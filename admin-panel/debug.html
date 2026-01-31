@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        .error { background: #f8d7da; color: #721c24; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Admin Panel Debug Tool</h1>
+        
+        <div class="status info">
+            <strong>Testing Admin Panel Connectivity</strong>
+        </div>
+        
+        <div id="results"></div>
+        
+        <h2>📱 Quick Access Links</h2>
+        <button onclick="window.open('http://localhost:3002/login', '_blank')">
+            Open Login Page
+        </button>
+        <button onclick="window.open('http://localhost:3002/', '_blank')">
+            Open Root Page
+        </button>
+        
+        <h2>🔍 Debug Information</h2>
+        <div id="debug-info"></div>
+        
+        <h2>📋 Manual Steps</h2>
+        <ol>
+            <li><strong>Check if server is running:</strong> Look for "Compiled successfully" message in terminal</li>
+            <li><strong>Try direct URL:</strong> <a href="http://localhost:3002/login" target="_blank">http://localhost:3002/login</a></li>
+            <li><strong>Check browser console:</strong> Press F12 and look for errors</li>
+            <li><strong>Clear browser cache:</strong> Ctrl+Shift+R or Cmd+Shift+R</li>
+            <li><strong>Try different browser:</strong> Chrome, Firefox, Edge</li>
+        </ol>
+    </div>
+
+    <script>
+        // Test server connectivity
+        async function testServer() {
+            const results = document.getElementById('results');
+            const debugInfo = document.getElementById('debug-info');
+            
+            try {
+                // Test main server
+                const response = await fetch('http://localhost:3002');
+                results.innerHTML += `<div class="status success">✅ Server responding: ${response.status} ${response.statusText}</div>`;
+                
+                // Test login page
+                const loginResponse = await fetch('http://localhost:3002/login');
+                results.innerHTML += `<div class="status success">✅ Login page responding: ${loginResponse.status} ${loginResponse.statusText}</div>`;
+                
+                // Get debug info
+                debugInfo.innerHTML = `
+                    <div class="status info">
+                        <strong>Current URL:</strong> ${window.location.href}<br>
+                        <strong>User Agent:</strong> ${navigator.userAgent}<br>
+                        <strong>Time:</strong> ${new Date().toLocaleString()}
+                    </div>
+                `;
+                
+            } catch (error) {
+                results.innerHTML += `<div class="status error">❌ Error: ${error.message}</div>`;
+                debugInfo.innerHTML = `
+                    <div class="status error">
+                        <strong>Possible Issues:</strong><br>
+                        • Server not running on port 3002<br>
+                        • Firewall blocking connection<br>
+                        • CORS issues<br>
+                        • Network connectivity problems
+                    </div>
+                `;
+            }
+        }
+        
+        // Run tests when page loads
+        window.onload = testServer;
+        
+        // Auto-refresh every 10 seconds
+        setInterval(testServer, 10000);
+    </script>
+</body>
+</html>
