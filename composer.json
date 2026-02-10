@@ -1,16 +1,10 @@
 {
     "name": "hostinger/alcant",
-    "description": "Node.js Application Launcher",
+    "description": "Node.js Application Configuration",
     "type": "project",
     "version": "1.0.0",
     "require": {
         "php": "^8.0"
-    },
-    "scripts": {
-        "post-install-cmd": [
-            "echo 'Node.js Application Detected'",
-            "node server.js"
-        ]
     },
     "minimum-stability": "stable",
     "prefer-stable": true
