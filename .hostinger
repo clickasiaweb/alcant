@@ -1,0 +1,13 @@
+# Node.js Application Detection for Hostinger
+# This file ensures Hostinger recognizes this as a Node.js project
+
+nodejs_version=18
+startup_file=server.js
+application_type=nodejs
+
+# Disable PHP detection
+disable_php=true
+
+# Environment
+NODE_ENV=production
+PORT=3000
