@@ -1,7 +1,8 @@
 {
-    "name": "alcant-website",
-    "description": "Node.js Application - Redirect to Node.js deployment",
+    "name": "hostinger/alcant",
+    "description": "Node.js Application Launcher",
     "type": "project",
+    "version": "1.0.0",
     "require": {
         "php": "^8.0"
     },
@@ -10,11 +11,6 @@
             "echo 'Node.js Application Detected'",
             "node server.js"
         ]
-    },
-    "autoload": {
-        "psr-4": {
-            "Alcant\\Website\\": "src/"
-        }
     },
     "minimum-stability": "stable",
     "prefer-stable": true
