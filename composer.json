@@ -1,0 +1,21 @@
+{
+    "name": "alcant-website",
+    "description": "Node.js Application - Redirect to Node.js deployment",
+    "type": "project",
+    "require": {
+        "php": "^8.0"
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "echo 'Node.js Application Detected'",
+            "node server.js"
+        ]
+    },
+    "autoload": {
+        "psr-4": {
+            "Alcant\\Website\\": "src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
