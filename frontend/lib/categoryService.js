@@ -36,6 +36,17 @@ export const categoryService = {
     }
   },
 
+  // Get sub-subcategories for a subcategory
+  getSubSubcategories: async (categorySlug, subcategorySlug) => {
+    try {
+      const response = await apiClient.get(`/categories/${categorySlug}/subcategories/${subcategorySlug}/sub-subcategories`);
+      return response.data.subSubcategories || [];
+    } catch (error) {
+      console.warn(`Sub-subcategories endpoint not found for ${categorySlug}/${subcategorySlug}, using fallback`);
+      return [];
+    }
+  },
+
   // Get products for a category
   getCategoryProducts: async (slug, options = {}) => {
     try {

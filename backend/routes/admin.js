@@ -43,12 +43,18 @@ router.patch(
   adminController.updateProductStatus
 );
 
-// Categories
+// Categories - Updated for 3-level hierarchy
 router.get(
   "/categories",
   authMiddleware,
   adminMiddleware,
   adminController.getAdminCategories
+);
+router.get(
+  "/subcategories",
+  authMiddleware,
+  adminMiddleware,
+  adminController.getSubCategories
 );
 router.post(
   "/category",
@@ -56,17 +62,53 @@ router.post(
   adminMiddleware,
   adminController.createCategory
 );
+router.post(
+  "/subcategory",
+  authMiddleware,
+  adminMiddleware,
+  adminController.createSubCategory
+);
+router.post(
+  "/sub-subcategory",
+  authMiddleware,
+  adminMiddleware,
+  adminController.createSubSubCategory
+);
 router.put(
   "/category/:id",
   authMiddleware,
   adminMiddleware,
   adminController.updateCategory
 );
+router.put(
+  "/subcategory/:id",
+  authMiddleware,
+  adminMiddleware,
+  adminController.updateSubCategory
+);
+router.put(
+  "/sub-subcategory/:id",
+  authMiddleware,
+  adminMiddleware,
+  adminController.updateSubSubCategory
+);
 router.delete(
   "/category/:id",
   authMiddleware,
   adminMiddleware,
   adminController.deleteCategory
+);
+router.delete(
+  "/subcategory/:id",
+  authMiddleware,
+  adminMiddleware,
+  adminController.deleteSubCategory
+);
+router.delete(
+  "/sub-subcategory/:id",
+  authMiddleware,
+  adminMiddleware,
+  adminController.deleteSubSubCategory
 );
 
 // Content

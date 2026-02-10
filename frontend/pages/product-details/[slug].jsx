@@ -51,7 +51,8 @@ const ProductDetailPage = () => {
     const loadProduct = async () => {
       try {
         setLoading(true);
-        console.log('Fetching product with slug:', slug);
+        console.log('🔍 Fetching product with slug:', slug);
+        console.log('🔍 Full URL:', window.location.href);
         
         // Add timeout handling
         const timeoutPromise = new Promise((_, reject) => 
@@ -63,29 +64,36 @@ const ProductDetailPage = () => {
           timeoutPromise
         ]);
         
-        console.log('Product response:', response);
+        console.log('✅ Product response:', response);
         
         if (response && response.product) {
           setProduct(response.product);
-          console.log('Product set successfully:', response.product.name);
+          console.log('✅ Product set successfully:', response.product.name);
         } else if (response && response.name) {
           // Handle case where API returns product directly
           setProduct(response);
-          console.log('Product set successfully:', response.name);
+          console.log('✅ Product set successfully:', response.name);
         } else {
-          console.log('Product not found, redirecting to 404');
+          console.log('❌ Product not found in response, redirecting to 404');
+          console.log('❌ Response structure:', response);
           router.push('/404');
         }
       } catch (error) {
-        console.error('Error loading product:', error);
-        console.error('Error details:', error.response?.data);
+        console.error('❌ Error loading product:', error);
+        console.error('❌ Error status:', error.response?.status);
+        console.error('❌ Error data:', error.response?.data);
+        console.error('❌ Requested slug:', slug);
         
         // Handle timeout errors gracefully
         if (error.message === 'Request timeout') {
           console.log('Request timed out, showing error message');
           // You could show a timeout error message to the user here
-        } else {
+        } else if (error.response?.status === 404) {
+          console.log('❌ Product not found (404), redirecting to 404 page');
           router.push('/404');
+        } else {
+          console.log('❌ Other error, showing error message');
+          // You could show a general error message to the user here
         }
       } finally {
         setLoading(false);

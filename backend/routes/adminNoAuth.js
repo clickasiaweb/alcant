@@ -14,9 +14,17 @@ router.patch("/product/status/:id", adminController.updateProductStatus);
 
 // Categories - No auth for testing
 router.get("/categories", adminController.getAdminCategories);
+router.get("/subcategories", adminController.getSubCategories);
+router.get("/sub-subcategories", adminController.getSubSubCategories);
 router.post("/category", adminController.createCategory);
+router.post("/subcategory", adminController.createSubCategory);
+router.post("/sub-subcategory", adminController.createSubSubCategory);
 router.put("/category/:id", adminController.updateCategory);
+router.put("/subcategory/:id", adminController.updateSubCategory);
+router.put("/sub-subcategory/:id", adminController.updateSubSubCategory);
 router.delete("/category/:id", adminController.deleteCategory);
+router.delete("/subcategory/:id", adminController.deleteSubCategory);
+router.delete("/sub-subcategory/:id", adminController.deleteSubSubCategory);
 
 // Content - No auth for testing
 router.get("/content/:page", adminController.getContent);

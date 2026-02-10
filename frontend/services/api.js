@@ -38,7 +38,9 @@ export const productsAPI = {
 
   // Get product by slug
   getBySlug: async (slug) => {
+    console.log('API: Fetching product with slug:', slug);
     const response = await api.get(`/products/slug/${slug}`);
+    console.log('API: Response received:', response.data);
     return response.data;
   },
 

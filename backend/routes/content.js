@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const contentController = require("../controllers/contentControllerMemory");
+const contentController = require("../controllers/contentController");
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 
 // Public route

@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Search, ShoppingCart, Heart, User, Menu, X, ChevronRight, ChevronDown, Grid3x3, Star, ArrowRight, Smartphone, Headphones, Wallet, Car, ShoppingBag } from 'lucide-react';
-import { categoryService } from '../lib/categoryService';
+import { categoryService } from '../services/categoryService';
+import { productService } from '../lib/productService';
 import CartDrawer from './CartDrawer';
 import SearchDropdown from './SearchDropdown';
 import WishlistDropdown from './WishlistDropdown';
+import GenericSubcategoryGrid from './GenericSubcategoryGrid';
 import { useCart } from '../contexts/CartContext';
 import { useSearch } from '../contexts/SearchContext';
 import { useWishlist } from '../contexts/WishlistContext';
@@ -19,6 +21,12 @@ const AlcantaraHeader = () => {
   const wishlistCount = getWishlistCount();
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState({});
+  const [subSubcategories, setSubSubcategories] = useState({});
+  const [selectedSubcategory, setSelectedSubcategory] = useState(null);
+  const [hoveredSubcategory, setHoveredSubcategory] = useState(null);
+  const [categoryProducts, setCategoryProducts] = useState({});
+  const [productsLoading, setProductsLoading] = useState({});
+  const [subSubcategoriesLoading, setSubSubcategoriesLoading] = useState({});
   const [loading, setLoading] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -29,23 +37,89 @@ const AlcantaraHeader = () => {
   const dropdownTimeoutRef = useRef(null);
   const categoryButtonRefs = useRef({});
 
+  // Fetch products for a category
+  const fetchCategoryProducts = async (categorySlug) => {
+    try {
+      setProductsLoading(prev => ({ ...prev, [categorySlug]: true }));
+      const productsData = await productService.getProductsByCategory(categorySlug, { limit: 8 });
+      setCategoryProducts(prev => ({ ...prev, [categorySlug]: productsData.products || [] }));
+    } catch (error) {
+      console.error('Failed to fetch category products:', error);
+      setCategoryProducts(prev => ({ ...prev, [categorySlug]: [] }));
+    } finally {
+      setProductsLoading(prev => ({ ...prev, [categorySlug]: false }));
+    }
+  };
+
+  // Fetch sub-subcategories for a subcategory
+  const fetchSubSubcategories = async (categorySlug, subcategorySlug) => {
+    try {
+      setSubSubcategoriesLoading(prev => ({ ...prev, [subcategorySlug]: true }));
+      const subSubcategoriesData = await categoryService.getSubSubcategories(categorySlug, subcategorySlug);
+      setSubSubcategories(prev => ({ ...prev, [subcategorySlug]: subSubcategoriesData }));
+    } catch (error) {
+      console.error('Failed to fetch sub-subcategories:', error);
+      setSubSubcategories(prev => ({ ...prev, [subcategorySlug]: [] }));
+    } finally {
+      setSubSubcategoriesLoading(prev => ({ ...prev, [subcategorySlug]: false }));
+    }
+  };
+
+  // Handle subcategory selection
+  const handleSubcategorySelect = (categorySlug, subcategory) => {
+    setSelectedSubcategory(subcategory);
+    fetchSubSubcategories(categorySlug, subcategory.slug);
+  };
+
   // Fetch categories and subcategories
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const categoriesData = await categoryService.getCategories();
-        setCategories(categoriesData);
+        console.log('🔄 AlcantaraHeader: Fetching categories with hierarchy...');
+        
+        // Use the hierarchy endpoint to get all data at once
+        const categoriesData = await categoryService.getCategoriesWithHierarchy();
+        console.log('📊 AlcantaraHeader: Categories data received:', categoriesData);
+        
+        const categoriesList = categoriesData.data || [];
+        setCategories(categoriesList);
 
-        // Fetch subcategories for each category
+        // Extract subcategories from the hierarchy data
         const subcategoriesData = {};
-        for (const category of categoriesData) {
-          const categorySubcategories = await categoryService.getSubcategories(category.slug);
-          subcategoriesData[category.slug] = categorySubcategories || [];
-        }
+        const subSubcategoriesData = {};
+        
+        categoriesList.forEach(category => {
+          subcategoriesData[category.slug] = category.subcategories || [];
+          
+          // Extract sub-subcategories for each subcategory
+          category.subcategories?.forEach(sub => {
+            if (sub.sub_subcategories && sub.sub_subcategories.length > 0) {
+              subSubcategoriesData[sub.slug] = sub.sub_subcategories;
+            }
+          });
+        });
+        
         setSubcategories(subcategoriesData);
+        setSubSubcategories(subSubcategoriesData);
+        
+        console.log('📁 Subcategories:', subcategoriesData);
+        console.log('📄 Sub-subcategories:', subSubcategoriesData);
+        
+        // Debug iPhone Cases specifically
+        const phoneCases = categoriesList.find(cat => cat.name === 'Phone Cases');
+        if (phoneCases) {
+          const iPhoneSub = phoneCases.subcategories?.find(sub => sub.name === 'iPhone Cases');
+          console.log('📱 Phone Cases category:', phoneCases);
+          console.log('📱 iPhone Cases subcategory:', iPhoneSub);
+          if (iPhoneSub) {
+            console.log('📱 iPhone Cases sub-subcategories:', iPhoneSub.sub_subcategories);
+          }
+        }
+        
+        console.log('✅ AlcantaraHeader: Data loaded successfully');
       } catch (err) {
-        console.error('Failed to fetch data:', err);
+        console.error('❌ AlcantaraHeader: Failed to fetch data:', err);
       } finally {
         setLoading(false);
       }
@@ -55,19 +129,28 @@ const AlcantaraHeader = () => {
   }, []);
 
   // Handle dropdown hover with delay
-  const handleDropdownEnter = (categoryName) => {
+  const handleDropdownEnter = async (categoryName) => {
     if (dropdownTimeoutRef.current) {
       clearTimeout(dropdownTimeoutRef.current);
     }
     setActiveDropdown(categoryName);
     setActiveCategory(categoryName);
+    setSelectedSubcategory(null); // Reset selected subcategory when changing category
+    setHoveredSubcategory(null); // Reset hovered subcategory when changing category
+    
+    // Fetch products for this category if not already loaded
+    const category = categories.find(cat => cat.name === categoryName);
+    if (category && !categoryProducts[category.slug]) {
+      await fetchCategoryProducts(category.slug);
+    }
   };
 
   const handleDropdownLeave = () => {
     dropdownTimeoutRef.current = setTimeout(() => {
       setActiveDropdown(null);
       setActiveCategory(null);
-    }, 150);
+      setHoveredSubcategory(null);
+    }, 50); // Reduced from 150ms to 50ms
   };
 
   // Add effect to control body scroll based on dropdown state
@@ -152,6 +235,7 @@ const AlcantaraHeader = () => {
       if (!e.target.closest('.mega-menu-container')) {
         setActiveDropdown(null);
         setActiveCategory(null);
+        setHoveredSubcategory(null);
       }
     };
 
@@ -159,6 +243,7 @@ const AlcantaraHeader = () => {
       if (e.key === 'Escape') {
         setActiveDropdown(null);
         setActiveCategory(null);
+        setHoveredSubcategory(null);
       }
     };
 
@@ -209,7 +294,31 @@ const AlcantaraHeader = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
+    <>
+      <style jsx>{`
+        @keyframes slideInFade {
+          from {
+            opacity: 0;
+            transform: translateX(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+        
+        @keyframes slideUpFade {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+      <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
       <div className="container">
         {/* Top Bar */}
         <div className="flex items-center justify-between h-16">
@@ -222,7 +331,7 @@ const AlcantaraHeader = () => {
           </Link>
 
           {/* Desktop Navigation - Mega Menu */}
-          <nav className="hidden lg:flex items-center space-x-1">
+          <nav className="hidden lg:flex items-center space-x-1 relative">
             {loading ? (
               <div className="flex space-x-2">
                 {[1, 2, 3, 4].map((i) => (
@@ -230,22 +339,18 @@ const AlcantaraHeader = () => {
                 ))}
               </div>
             ) : (
-              categories.map((category) => (
-                <div
-                  key={category.id}
-                  className="relative mega-menu-container"
-                >
+              <>
+                {categories.map((category) => (
                   <button 
+                    key={category.id}
                     ref={(el) => categoryButtonRefs.current[category.name] = el}
                     className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-primary-600 font-medium text-sm rounded-lg hover:bg-gray-50 transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 whitespace-nowrap cursor-pointer hover:scale-105 hover:shadow-md"
                     onKeyDown={(e) => handleKeyDown(e, category.name)}
                     aria-expanded={activeDropdown === category.name}
                     aria-haspopup="true"
-                    aria-controls={`mega-menu-${category.slug}`}
-                    onMouseEnter={() => {
+                    onMouseEnter={async () => {
                       console.log('Hovering on:', category.name);
-                      setActiveDropdown(category.name);
-                      setActiveCategory(category.name);
+                      await handleDropdownEnter(category.name);
                     }}
                   >
                     <span className="text-gray-500 group-hover:text-primary-600 transition-colors duration-200">
@@ -256,206 +361,188 @@ const AlcantaraHeader = () => {
                       activeDropdown === category.name ? 'rotate-180 text-primary-600' : 'text-gray-400'
                     }`} />
                   </button>
+                ))}
 
-                  {/* Mega Menu Dropdown */}
-                  {activeDropdown === category.name && (
+                {/* Static Mega Menu Dropdown */}
+                {activeDropdown && (
+                  <div 
+                    className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 transition-all duration-300 ease-out"
+                    style={{
+                      opacity: activeDropdown ? 1 : 0,
+                      transform: activeDropdown ? 'translateX(-50%) translateY(0) scale(1)' : 'translateX(-50%) translateY(-10px) scale(0.95)',
+                      pointerEvents: activeDropdown ? 'auto' : 'none'
+                    }}
+                    onMouseEnter={() => {
+                      console.log('Hovering on dropdown content');
+                      if (dropdownTimeoutRef.current) {
+                        clearTimeout(dropdownTimeoutRef.current);
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      console.log('Leaving dropdown content');
+                      dropdownTimeoutRef.current = setTimeout(() => {
+                        setActiveDropdown(null);
+                        setActiveCategory(null);
+                        setHoveredSubcategory(null);
+                      }, 50);
+                    }}
+                  >
                     <div 
-                      id={`mega-menu-${category.slug}`}
-                      className="fixed inset-0 flex items-start justify-center pt-28 pb-20 z-50 animate-in fade-in duration-200"
-                      onMouseEnter={() => {
-                        console.log('Hovering on dropdown backdrop');
-                        if (dropdownTimeoutRef.current) {
-                          clearTimeout(dropdownTimeoutRef.current);
-                        }
+                      className="bg-white shadow-xl border border-gray-200 rounded-xl transition-all duration-300 ease-out"
+                      style={{ 
+                        width: '90vw',
+                        maxWidth: '1200px',
+                        maxHeight: '70vh',
+                        transform: 'translateY(0)',
+                        opacity: 1
                       }}
-                      onClick={(e) => {
-                        if (e.target === e.currentTarget) {
-                          console.log('Clicked backdrop - closing dropdown');
-                          setActiveDropdown(null);
-                          setActiveCategory(null);
-                        }
-                      }}
+                      role="menu"
+                      aria-label={`${activeCategory} menu`}
                     >
-                      <div 
-                        className="bg-white shadow-xl border border-gray-200 rounded-xl animate-in slide-in-from-top-4 duration-300"
-                        style={{ 
-                          width: '90vw',
-                          maxWidth: '1200px',
-                          maxHeight: '70vh',
-                          marginBottom: '80px'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        onMouseEnter={() => {
-                          console.log('Hovering on dropdown content');
-                          if (dropdownTimeoutRef.current) {
-                            clearTimeout(dropdownTimeoutRef.current);
-                          }
-                        }}
-                        onMouseLeave={() => {
-                          console.log('Leaving dropdown content');
-                          dropdownTimeoutRef.current = setTimeout(() => {
-                            setActiveDropdown(null);
-                            setActiveCategory(null);
-                          }, 100);
-                        }}
-                        role="menu"
-                        aria-label={`${category.name} menu`}
-                      >
-                        <div className="w-full h-full px-6 sm:px-8 lg:px-10 xl:px-12 overflow-y-auto">
-                          <div 
-                            className="flex flex-row gap-0 py-8"
-                            style={{ 
-                              minHeight: '400px', 
-                              maxHeight: '70vh',
-                              width: '100%'
-                            }}
-                          >
-                          {/* Column 1 - Primary Categories (Fixed Width) */}
+                      <div className="w-full h-full px-6 sm:px-8 lg:px-10 xl:px-12 overflow-y-auto">
+                        <div 
+                          className="flex flex-row gap-0 py-8"
+                          style={{ 
+                            minHeight: '400px', 
+                            maxHeight: '70vh',
+                            width: '100%'
+                          }}
+                        >
+                          {/* Column 1 - Subcategories (Reduced Width) */}
                           <div 
                             className="flex-shrink-0 border-r border-gray-100"
                             style={{ 
-                              width: '25%',
-                              minWidth: '256px',
-                              maxWidth: '320px',
-                              flexBasis: '25%'
-                            }}
-                          >
-                            <div className="px-6">
-                              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 whitespace-nowrap">Categories</h3>
-                              <div className="space-y-1" role="menu">
-                                {categories.map((cat) => (
-                                  <button
-                                    key={cat.id}
-                                    onClick={() => handleCategoryHover(cat.name)}
-                                    onMouseEnter={() => handleCategoryHover(cat.name)}
-                                    className={`w-full flex items-center justify-between px-3 py-3 text-left rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 ${
-                                      activeCategory === cat.name 
-                                        ? 'bg-primary-50 text-primary-600 border-l-2 border-primary-600 shadow-sm' 
-                                        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900'
-                                    }`}
-                                    role="menuitem"
-                                    aria-current={activeCategory === cat.name}
-                                  >
-                                    <div className="flex items-center space-x-3 flex-shrink-0">
-                                      <span className={`transition-all duration-200 flex-shrink-0 ${
-                                        activeCategory === cat.name ? 'text-primary-600 scale-110' : 'text-gray-400 group-hover:text-gray-600'
-                                      }`}>
-                                        {getCategoryIcon(cat.name)}
-                                      </span>
-                                      <span className="font-medium text-sm whitespace-nowrap overflow-hidden text-ellipsis">{cat.name}</span>
-                                    </div>
-                                    <ChevronRight className={`w-4 h-4 transition-all duration-200 flex-shrink-0 ${
-                                      activeCategory === cat.name ? 'text-primary-600 opacity-100 translate-x-0' : 'text-gray-400 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0'
-                                    }`} />
-                                  </button>
-                                ))}
-                              </div>
-                              
-                              <div className="mt-6 pt-6 border-t border-gray-100">
-                                <Link
-                                  href={`/category/${category.slug}`}
-                                  className="flex items-center justify-between px-3 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded whitespace-nowrap"
-                                  onClick={() => setActiveDropdown(null)}
-                                  role="menuitem"
-                                >
-                                  <span className="whitespace-nowrap">Shop All {category.name}</span>
-                                  <ArrowRight className="w-4 h-4 flex-shrink-0" />
-                                </Link>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Column 2 - Subcategories (Flexible Width) */}
-                          <div 
-                            className="flex-grow min-w-0"
-                            style={{ 
                               width: '35%',
-                              minWidth: '358px',
-                              maxWidth: '448px',
+                              minWidth: '280px',
+                              maxWidth: '350px',
                               flexBasis: '35%'
                             }}
                           >
                             <div className="px-6">
-                              {activeCategory && (
-                                <div className="animate-in fade-in slide-in-from-left-2 duration-200">
-                                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 whitespace-nowrap">
-                                    {activeCategory}
-                                  </h3>
-                                  <div className="grid grid-cols-2 gap-4" role="menu" style={{ minWidth: '300px' }}>
-                                    {subcategories[category.slug] && subcategories[category.slug].length > 0 ? (
-                                      subcategories[category.slug].map((subcategory, index) => (
-                                        <div key={subcategory.slug} className="min-w-0">
-                                          <Link
-                                            href={`/category/${category.slug}?subcategory=${subcategory.slug}`}
-                                            className="block py-2 text-sm text-gray-700 hover:text-primary-600 transition-all duration-200 group hover:translate-x-1 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded whitespace-nowrap overflow-hidden text-ellipsis"
-                                            style={{ animationDelay: `${index * 50}ms` }}
-                                            onClick={() => setActiveDropdown(null)}
-                                            role="menuitem"
-                                          >
-                                            <div className="flex items-center space-x-2">
-                                              <ChevronRight className="w-3 h-3 text-gray-400 group-hover:text-primary-600 transition-all duration-200 group-hover:translate-x-1 flex-shrink-0" />
-                                              <span className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{subcategory.name}</span>
-                                            </div>
-                                          </Link>
-                                        </div>
-                                      ))
-                                    ) : (
-                                      <div className="col-span-2 text-sm text-gray-500 py-2 animate-in fade-in duration-200">
-                                        No subcategories available
+                              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 whitespace-nowrap">
+                                {(() => {
+                                  const currentCategory = categories.find(cat => cat.name === activeCategory);
+                                  return currentCategory ? `${currentCategory.name} Subcategories` : 'Subcategories';
+                                })()}
+                              </h3>
+                              
+                              {(() => {
+                                const currentCategory = categories.find(cat => cat.name === activeCategory);
+                                if (!currentCategory) return null;
+                                
+                                return subcategories[currentCategory.slug] && subcategories[currentCategory.slug].length > 0 ? (
+                                  <div className="space-y-4" role="menu">
+                                    {subcategories[currentCategory.slug].map((subcategory, index) => (
+                                      <div key={subcategory.slug} className="min-w-0">
+                                        <button
+                                          className={`block w-full py-2 text-sm text-left transition-all duration-300 ease-out group hover:translate-x-2 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded whitespace-nowrap overflow-hidden text-ellipsis ${
+                                            hoveredSubcategory?.slug === subcategory.slug 
+                                              ? 'text-primary-600 bg-primary-50 border-l-2 border-primary-600' 
+                                              : 'text-gray-700 hover:text-primary-600'
+                                          }`}
+                                          style={{ 
+                                            animationDelay: `${index * 50}ms`,
+                                            opacity: 0,
+                                            transform: 'translateX(-10px)',
+                                            animation: 'slideInFade 0.3s ease-out forwards',
+                                            animationDelay: `${index * 50}ms`
+                                          }}
+                                          onMouseEnter={() => {
+                                            console.log('Hovering on subcategory:', subcategory.name);
+                                            console.log('Available sub-subcategories for this subcategory:', subSubcategories[subcategory.slug]);
+                                            setHoveredSubcategory(subcategory);
+                                          }}
+                                          role="menuitem"
+                                        >
+                                          <div className="flex items-center space-x-2">
+                                            <ChevronRight className={`w-3 h-3 transition-all duration-200 group-hover:translate-x-1 flex-shrink-0 ${
+                                              hoveredSubcategory?.slug === subcategory.slug 
+                                                ? 'text-primary-600' 
+                                                : 'text-gray-400 group-hover:text-primary-600'
+                                            }`} />
+                                            <span className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{subcategory.name}</span>
+                                          </div>
+                                        </button>
                                       </div>
-                                    )}
+                                    ))}
                                   </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Column 3 - Visual/Promo (Fixed Width) */}
-                          <div 
-                            className="flex-shrink-0"
-                            style={{ 
-                              width: '40%',
-                              minWidth: '350px',
-                              maxWidth: '400px',
-                              flexBasis: '40%',
-                              overflow: 'hidden'
-                            }}
-                          >
-                            <div className="px-4 h-full flex flex-col justify-center" style={{ minHeight: '350px' }}>
-                              <div className="space-y-4">
-                                <div className="aspect-[4/5] bg-gray-50 rounded-xl overflow-hidden shadow-sm group" style={{ width: '100%', maxWidth: '280px', maxHeight: '280px' }}>
-                                  <img 
-                                    src={getCategoryPromoImage(activeCategory || category.name)}
-                                    alt={`Featured ${activeCategory || category.name}`}
-                                    className="w-full h-full object-cover transition-all duration-500 group-hover:scale-105"
-                                  />
-                                </div>
-                                <div className="text-center animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                  <h4 className="text-lg font-semibold text-gray-900 mb-2 whitespace-nowrap overflow-hidden text-ellipsis">
-                                    {activeCategory || category.name}
-                                  </h4>
-                                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                                    Discover our premium collection with modern design and exceptional quality.
-                                  </p>
-                                  <Link
-                                    href={`/category/${category.slug}?sort=newest`}
-                                    className="inline-block bg-primary-600 text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-primary-700 transition-all duration-200 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 whitespace-nowrap"
-                                    onClick={() => setActiveDropdown(null)}
-                                    role="menuitem"
-                                  >
-                                    Shop New Arrivals
-                                  </Link>
-                                </div>
+                                ) : (
+                                  <div className="text-sm text-gray-500 py-4 animate-in fade-in duration-200">
+                                    No subcategories available
+                                  </div>
+                                );
+                              })()}
+                              
+                              <div className="mt-6 pt-6 border-t border-gray-100">
+                                {(() => {
+                                  const currentCategory = categories.find(cat => cat.name === activeCategory);
+                                  if (!currentCategory) return null;
+                                  return (
+                                    <Link
+                                      href={`/category/${currentCategory.slug}`}
+                                      className="flex items-center justify-between px-3 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded whitespace-nowrap"
+                                      onClick={() => setActiveDropdown(null)}
+                                      role="menuitem"
+                                    >
+                                      <span className="whitespace-nowrap">Shop All {currentCategory.name}</span>
+                                      <ArrowRight className="w-4 h-4 flex-shrink-0" />
+                                    </Link>
+                                  );
+                                })()}
                               </div>
                             </div>
                           </div>
+
+                          {/* Column 2 - Sub-subcategories (Expanded Width) */}
+                          <div 
+                            className="flex-shrink-0"
+                            style={{ 
+                              width: '65%',
+                              minWidth: '450px',
+                              maxWidth: '750px',
+                              flexBasis: '65%'
+                            }}
+                          >
+                            <div className="px-6">
+                              {(() => {
+                                const currentCategory = categories.find(cat => cat.name === activeCategory);
+                                if (!currentCategory) return null;
+                                
+                                // Show only the hovered subcategory's sub-subcategories
+                                if (hoveredSubcategory && subSubcategories[hoveredSubcategory.slug] && subSubcategories[hoveredSubcategory.slug].length > 0) {
+                                  console.log('Displaying sub-subcategories for:', hoveredSubcategory.name, subSubcategories[hoveredSubcategory.slug]);
+                                  return (
+                                    <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+                                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 whitespace-nowrap">
+                                        {hoveredSubcategory.name}
+                                      </h3>
+                                      <GenericSubcategoryGrid 
+                                        subSubcategories={subSubcategories[hoveredSubcategory.slug]}
+                                        onLinkClick={() => setActiveDropdown(null)}
+                                        subcategoryName={hoveredSubcategory.name}
+                                      />
+                                    </div>
+                                  );
+                                }
+                                
+                                // Show placeholder when no subcategory is hovered
+                                return (
+                                  <div className="flex items-center justify-center h-full text-gray-400">
+                                    <div className="text-center">
+                                      <Grid3x3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                                      <p className="text-sm">Hover over a subcategory to view items</p>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              ))
+                  </div>
+                )}
+              </>
             )}
           </nav>
 
@@ -601,6 +688,7 @@ const AlcantaraHeader = () => {
       <WishlistDropdown />
       <CartDrawer />
     </header>
+    </>
   );
 };
 

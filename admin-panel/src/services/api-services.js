@@ -108,10 +108,16 @@ export const updateProductStatus = async (id, isActive) => {
   return data;
 };
 
-// Admin Categories
+// Admin Categories - Updated for 3-level hierarchy
 export const getAdminCategories = async () => {
-  const { data } = await apiClient.get("/admin/categories");
-  return data;
+  try {
+    const { data } = await apiClient.get("/categories/all/with-subcategories");
+    return data;
+  } catch (error) {
+    // Fallback to admin endpoint
+    const { data } = await apiClient.get("/admin/categories");
+    return data;
+  }
 };
 
 export const createAdminCategory = async (categoryData) => {
@@ -119,8 +125,73 @@ export const createAdminCategory = async (categoryData) => {
   return data;
 };
 
+export const getAdminSubCategories = async () => {
+  const { data } = await apiClient.get("/admin/subcategories");
+  return data;
+};
+
+export const getAdminSubSubCategories = async () => {
+  const { data } = await apiClient.get("/admin/sub-subcategories");
+  return data;
+};
+
+export const createAdminSubCategory = async (categoryData) => {
+  const { data } = await apiClient.post("/admin/subcategory", categoryData);
+  return data;
+};
+
+export const createAdminSubSubCategory = async (categoryData) => {
+  console.log('🔍 API: Creating sub-subcategory with data:', categoryData);
+  console.log('🌐 API: Base URL:', apiClient.defaults.baseURL);
+  
+  try {
+    const response = await apiClient.post("/admin/sub-subcategory", categoryData);
+    console.log('✅ API: Create response:', response.data);
+    console.log('📊 API: Response status:', response.status);
+    return response.data;
+  } catch (error) {
+    console.error('❌ API: Create error:', error);
+    console.error('❌ API: Error response:', error.response?.data);
+    console.error('❌ API: Error status:', error.response?.status);
+    console.error('❌ API: Error message:', error.message);
+    
+    if (error.code === 'ECONNREFUSED') {
+      console.error('🔌 Connection refused - backend might not be running');
+    } else if (error.code === 'ERR_NETWORK') {
+      console.error('🌐 Network error - CORS or connectivity issue');
+    }
+    
+    throw error;
+  }
+};
+
 export const updateAdminCategory = async (id, categoryData) => {
   const { data } = await apiClient.put(`/admin/category/${id}`, categoryData);
+  return data;
+};
+
+export const updateAdminSubCategory = async (id, categoryData) => {
+  const { data } = await apiClient.put(`/admin/subcategory/${id}`, categoryData);
+  return data;
+};
+
+export const updateAdminSubSubCategory = async (id, categoryData) => {
+  const { data } = await apiClient.put(`/admin/sub-subcategory/${id}`, categoryData);
+  return data;
+};
+
+export const deleteAdminCategory = async (id) => {
+  const { data } = await apiClient.delete(`/admin/category/${id}`);
+  return data;
+};
+
+export const deleteAdminSubCategory = async (id) => {
+  const { data } = await apiClient.delete(`/admin/subcategory/${id}`);
+  return data;
+};
+
+export const deleteAdminSubSubCategory = async (id) => {
+  const { data } = await apiClient.delete(`/admin/sub-subcategory/${id}`);
   return data;
 };
 

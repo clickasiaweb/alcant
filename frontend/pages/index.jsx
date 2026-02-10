@@ -128,22 +128,22 @@ const AlcantaraHome = ({ homeContent = {} }) => {
         </div>
         
         {/* Content */}
-        <div className="relative z-10 text-center space-y-4 px-6 md:px-12">
-          <p className="text-lg font-semibold text-blue-200 uppercase tracking-wider">
-            {homeContent.hero?.subtitle || "Blue Monday Sale"}
+        <div className="relative z-10 text-left space-y-4 px-6 md:px-12 max-w-2xl">
+          <p className=" font-semibold text-white uppercase tracking-wider drop-shadow-lg text-4xl">
+            {homeContent.hero?.subtitle}
           </p>
-          <h2 className="text-4xl md:text-6xl font-bold leading-tight text-white">
-            {homeContent.hero?.title || "ENJOY 25% OFF"}
+          <h2 className="text-4xl md:text-6xl font-bold leading-tight text-white drop-shadow-2xl">
+            {homeContent.hero?.title}
           </h2>
-          <p className="text-xl text-blue-100">
-            {homeContent.hero?.content || "Grab yours before stocks run out!"}
+          <p className="text-xl text-white drop-shadow-lg max-w-lg">
+            {homeContent.hero?.content}
           </p>
           <div className="pt-4">
             <Link
               href={homeContent.hero?.buttonLink || "/products"}
-              className="inline-block bg-white text-blue-700 hover:bg-blue-50 text-lg font-semibold px-8 py-3 rounded-lg transition-all duration-300 transform hover:scale-105"
+              className="inline-block bg-white text-blue-700 hover:bg-blue-50 text-lg font-semibold px-8 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
             >
-              {homeContent.hero?.buttonText || "Shop Now"}
+              {homeContent.hero?.buttonText}
             </Link>
           </div>
         </div>

@@ -488,3 +488,24 @@ exports.getRecommendedProducts = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+// GET /api/products/featured
+exports.getFeaturedProducts = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const query = { is_active: true };
+
+    const productsResult = await SupabaseProduct.find(query, {
+      sort: { created_at: { ascending: false }, rating: { ascending: false } },
+      limit: parseInt(limit)
+    });
+
+    const products = productsResult.data || [];
+
+    res.json({ data: products });
+  } catch (error) {
+    console.error("getFeaturedProducts error:", error);
+    res.status(500).json({ error: "Failed to fetch featured products" });
+  }
+};

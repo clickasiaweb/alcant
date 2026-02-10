@@ -1,5 +1,7 @@
 const SupabaseCategory = require('../models/SupabaseCategory');
 const SupabaseProduct = require('../models/SupabaseProduct');
+const SupabaseSubCategory = require('../models/SupabaseSubCategory');
+const SupabaseSubSubCategory = require('../models/SupabaseSubSubCategory');
 
 // GET /api/categories - returns active categories with product counts
 exports.getCategories = async (req, res) => {
@@ -35,6 +37,45 @@ exports.getCategories = async (req, res) => {
   } catch (error) {
     console.error('Categories fetch error:', error);
     res.status(500).json({ message: 'Error fetching categories', error: error.message });
+  }
+};
+
+// GET /api/categories - returns categories with full hierarchy for dropdown
+exports.getCategoriesWithHierarchy = async (req, res) => {
+  try {
+    // Fetch all categories
+    const categoriesResult = await SupabaseCategory.find({ is_active: true });
+    const categories = categoriesResult.data || [];
+    
+    // Fetch all subcategories
+    const subcategoriesResult = await SupabaseSubCategory.find({ is_active: true });
+    const subcategories = subcategoriesResult.data || [];
+    
+    // Fetch all sub-subcategories
+    const subSubcategoriesResult = await SupabaseSubSubCategory.find({ is_active: true });
+    const subSubcategories = subSubcategoriesResult.data || [];
+    
+    // Build the hierarchy
+    const categoriesWithHierarchy = categories.map(category => {
+      const categorySubcategories = subcategories.filter(sub => sub.category_id === category.id);
+      
+      return {
+        ...category,
+        subcategories: categorySubcategories.map(sub => {
+          const subSubcategoriesForSub = subSubcategories.filter(subSub => subSub.subcategory_id === sub.id);
+          
+          return {
+            ...sub,
+            sub_subcategories: subSubcategoriesForSub
+          };
+        })
+      };
+    });
+    
+    res.json({ data: categoriesWithHierarchy });
+  } catch (error) {
+    console.error('Categories hierarchy fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch categories hierarchy' });
   }
 };
 
@@ -168,6 +209,28 @@ exports.getSubcategories = async (req, res) => {
   }
 };
 
+// GET /api/categories/:slug/subcategories/:subcategorySlug/sub-subcategories - get sub-subcategories for a subcategory
+exports.getSubSubcategories = async (req, res) => {
+  try {
+    const { slug, subcategorySlug } = req.params;
+    
+    // Find category first
+    const category = await SupabaseCategory.findOne({ slug, is_active: true });
+    
+    if (!category) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+
+    // For now, return mock sub-subcategories based on subcategory name
+    const mockSubSubcategories = getMockSubSubcategories(subcategorySlug);
+    
+    res.json({ subSubcategories: mockSubSubcategories });
+  } catch (error) {
+    console.error('Sub-subcategories fetch error:', error);
+    res.status(500).json({ message: 'Error fetching sub-subcategories', error: error.message });
+  }
+};
+
 // Helper function to generate mock subcategories
 function getMockSubcategories(categoryName) {
   const mockData = {
@@ -207,4 +270,56 @@ function getMockSubcategories(categoryName) {
     ]
   };
   return mockData[categoryName] || [];
+}
+
+// Helper function to generate mock sub-subcategories
+function getMockSubSubcategories(subcategorySlug) {
+  const mockData = {
+    'watch-bands': [
+      { name: 'Apple Watch Bands', slug: 'apple-watch-bands' },
+      { name: 'Samsung Watch Bands', slug: 'samsung-watch-bands' },
+      { name: 'Universal Watch Bands', slug: 'universal-watch-bands' },
+      { name: 'Leather Watch Bands', slug: 'leather-watch-bands' },
+      { name: 'Sport Watch Bands', slug: 'sport-watch-bands' }
+    ],
+    'keychains': [
+      { name: 'Alcantara Keychains', slug: 'alcantara-keychains' },
+      { name: 'Metal Keychains', slug: 'metal-keychains' },
+      { name: 'Leather Keychains', slug: 'leather-keychains' },
+      { name: 'Custom Keychains', slug: 'custom-keychains' },
+      { name: 'Luxury Keychains', slug: 'luxury-keychains' }
+    ],
+    'tech-accessories': [
+      { name: 'Phone Stands', slug: 'phone-stands' },
+      { name: 'Cable Organizers', slug: 'cable-organizers' },
+      { name: 'Desk Mats', slug: 'desk-mats' },
+      { name: 'Tech Pouches', slug: 'tech-pouches' },
+      { name: 'Wireless Chargers', slug: 'wireless-chargers' }
+    ],
+    'car-accessories': [
+      { name: 'Car Mats', slug: 'car-mats' },
+      { name: 'Seat Covers', slug: 'seat-covers' },
+      { name: 'Dashboard Covers', slug: 'dashboard-covers' },
+      { name: 'Steering Wheel Covers', slug: 'steering-wheel-covers' }
+    ],
+    'travel-essentials': [
+      { name: 'Travel Pouches', slug: 'travel-pouches' },
+      { name: 'Passport Holders', slug: 'passport-holders' },
+      { name: 'Luggage Tags', slug: 'luggage-tags' },
+      { name: 'Travel Organizers', slug: 'travel-organizers' }
+    ],
+    'card-holders': [
+      { name: 'Minimal Card Holders', slug: 'minimal-card-holders' },
+      { name: 'RFID Card Holders', slug: 'rfid-card-holders' },
+      { name: 'Multi Card Holders', slug: 'multi-card-holders' },
+      { name: 'Premium Card Holders', slug: 'premium-card-holders' }
+    ],
+    'full-wallets': [
+      { name: 'Bifold Wallets', slug: 'bifold-wallets' },
+      { name: 'Trifold Wallets', slug: 'trifold-wallets' },
+      { name: 'Minimal Wallets', slug: 'minimal-wallets' },
+      { name: 'Luxury Wallets', slug: 'luxury-wallets' }
+    ]
+  };
+  return mockData[subcategorySlug] || [];
 }

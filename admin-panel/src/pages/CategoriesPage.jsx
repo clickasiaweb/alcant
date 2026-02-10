@@ -39,7 +39,7 @@ export default function CategoriesPage() {
     try {
       setLoading(true);
       const data = await getAdminCategories();
-      const categoriesData = data.categories || data || [];
+      const categoriesData = data.data || data.categories || [];
       setCategories(Array.isArray(categoriesData) ? categoriesData : []);
     } catch (error) {
       toast.error("Error loading categories");
@@ -98,7 +98,7 @@ export default function CategoriesPage() {
       slug: category.slug || "",
       description: category.description || "",
       icon: category.icon || "",
-      isActive: category.isActive !== false,
+      isActive: category.is_active !== false,
     });
     setShowForm(true);
   };
@@ -141,8 +141,8 @@ export default function CategoriesPage() {
     const matchesSearch = category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          category.slug.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === "all" ||
-                         (filterStatus === "active" && category.isActive !== false) ||
-                         (filterStatus === "inactive" && category.isActive === false);
+                         (filterStatus === "active" && category.is_active !== false) ||
+                         (filterStatus === "inactive" && category.is_active === false);
     return matchesSearch && matchesFilter;
   });
 
@@ -255,20 +255,20 @@ export default function CategoriesPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          category.isActive !== false 
+                          category.is_active !== false 
                             ? 'bg-green-100 text-green-800' 
                             : 'bg-red-100 text-red-800'
                         }`}>
-                          {category.isActive !== false ? 'Active' : 'Inactive'}
+                          {category.is_active !== false ? 'Active' : 'Inactive'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={() => handleToggleStatus(category)}
                           className="text-gray-600 hover:text-gray-900 mr-3"
-                          title={category.isActive !== false ? "Deactivate" : "Activate"}
+                          title={category.is_active !== false ? "Deactivate" : "Activate"}
                         >
-                          {category.isActive !== false ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                          {category.is_active !== false ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
                         </button>
                         <button
                           onClick={() => handleEdit(category)}
