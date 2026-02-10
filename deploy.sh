@@ -1,27 +1,28 @@
 #!/bin/bash
 
-# Hostinger Deployment Script
+# Hostinger Node.js Deployment Script
 # Usage: ./deploy.sh [frontend|admin|backend|all]
 
 set -e
 
 MODULE=${1:-all}
+PROJECT_NAME="alcant"
 HOSTINGER_USER="your_username"
 HOSTINGER_SERVER="your-server-ip"
-DOMAIN="example.com"
+DOMAIN="your-domain.com"
 
 echo "🚀 Starting deployment for: $MODULE"
 
 # Function to deploy backend
 deploy_backend() {
     echo "📦 Deploying backend..."
-    ssh $HOSTINGER_USER@$HOSTINGER_SERVER << 'EOF'
-cd /home/your_username/backend
-git pull origin main
-npm install
-pm2 restart industrial-solutions-api
-echo "✅ Backend deployed successfully"
-EOF
+    cd backend
+    npm install --production
+    echo "✅ Backend dependencies installed"
+    
+    # For Hostinger Node.js hosting
+    echo "🌐 Backend ready for Node.js deployment"
+    echo "Upload backend folder to your Hostinger Node.js hosting"
 }
 
 # Function to deploy frontend
@@ -29,11 +30,8 @@ deploy_frontend() {
     echo "🎨 Deploying frontend..."
     cd frontend
     npm run build
-    
-    # Upload to Hostinger (requires scp or rsync)
-    echo "📤 Uploading frontend files..."
-    # scp -r out/* $HOSTINGER_USER@$HOSTINGER_SERVER:/public_html/
-    echo "✅ Frontend build completed. Upload manually to /public_html/"
+    echo "✅ Frontend build completed"
+    echo "📤 Upload frontend/out folder to your Hostinger public_html directory"
 }
 
 # Function to deploy admin
@@ -41,11 +39,8 @@ deploy_admin() {
     echo "⚙️ Deploying admin panel..."
     cd admin-panel
     npm run build
-    
-    # Upload to Hostinger
-    echo "📤 Uploading admin files..."
-    # scp -r build/* $HOSTINGER_USER@$HOSTINGER_SERVER:/public_html/admin/
-    echo "✅ Admin build completed. Upload manually to /public_html/admin/"
+    echo "✅ Admin panel build completed"
+    echo "📤 Upload admin-panel/build folder to your Hostinger public_html/admin directory"
 }
 
 # Deploy based on module
