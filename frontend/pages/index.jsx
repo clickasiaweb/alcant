@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Layout from "../components/Layout";
 import Link from "next/link";
@@ -602,22 +602,47 @@ const AlcantaraHome = ({ homeContent = {} }) => {
   );
 };
 
-export async function getServerSideProps() {
+// Client-side data fetching for static export
+export async function fetchHomeContent() {
   try {
-    const homeContent = await getHomeContent();
-    return {
-      props: {
-        homeContent,
-      },
-    };
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/content/home`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data.content || {};
   } catch (error) {
     console.error('Error fetching home content:', error);
-    return {
-      props: {
-        homeContent: {},
-      },
-    };
+    // Return empty object as fallback
+    return {};
   }
 }
 
-export default AlcantaraHome;
+export default function HomePage() {
+  const [homeContent, setHomeContent] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchHomeContent()
+      .then(data => {
+        setHomeContent(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load home content:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <Layout title="Loading...">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  return <AlcantaraHome homeContent={homeContent} />;
+}

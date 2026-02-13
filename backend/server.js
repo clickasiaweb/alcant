@@ -4,7 +4,7 @@ const dotenv = require("dotenv");
 const path = require("path");
 
 // Load environment variables first
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 // Import database connection module
 const { testConnection, getConnectionStatus } = require('./config/supabase');
@@ -39,7 +39,8 @@ app.use(
       "https://www.example.com", 
       "https://admin.example.com",
       "http://localhost:3000",
-      "http://localhost:3001"
+      "http://localhost:3001",
+      "http://localhost:3002"
     ],
     credentials: true,
   }),

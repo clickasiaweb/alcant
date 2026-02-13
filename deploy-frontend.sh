@@ -9,9 +9,9 @@ echo "====================="
 # Configuration
 FRONTEND_DIR="frontend"
 BUILD_DIR="out"
-HOSTINGER_USER="your_username"
-HOSTINGER_SERVER="your-server-ip"
-DOMAIN="your-domain.com"
+HOSTINGER_USER="Md Dilshad Hussain"
+HOSTINGER_SERVER="145.223.17.74"
+DOMAIN="www.alcant.in"
 
 # Check if frontend directory exists
 if [ ! -d "$FRONTEND_DIR" ]; then

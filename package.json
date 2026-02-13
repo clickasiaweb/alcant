@@ -2,18 +2,19 @@
   "name": "alcant-website",
   "version": "1.0.0",
   "description": "Alcant E-commerce Website - Full Stack Application",
-  "main": "server.js",
+  "main": "frontend/server.js",
   "scripts": {
-    "start": "node server.js",
-    "install-deps": "npm install && cd frontend && npm install && cd ../backend && npm install && cd ../admin-panel && npm install",
+    "install-deps": "cd frontend && npm install && cd ../backend && npm install && cd ../admin-panel && npm install",
     "build": "cd frontend && npm run build && cd ../admin-panel && npm run build",
-    "dev": "concurrently \"node server.js\" \"cd frontend && npm run dev\" \"cd admin-panel && npm run dev\"",
+    "start": "cd backend && npm start",
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\" \"cd admin-panel && npm run dev\"",
     "deploy": "npm run build && npm start"
   },
   "dependencies": {
-    "express": "^4.18.0",
-    "cors": "^2.8.5",
     "concurrently": "^8.2.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   },
   "engines": {
     "node": ">=18.0.0",
@@ -24,14 +25,8 @@
     "react",
     "nodejs",
     "nextjs",
-    "supabase",
-    "hostinger"
+    "supabase"
   ],
   "author": "ClickAsia Web",
-  "license": "MIT",
-  "hostinger": {
-    "type": "nodejs",
-    "startup": "server.js",
-    "node_version": "18"
-  }
+  "license": "MIT"
 }

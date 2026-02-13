@@ -7,7 +7,7 @@ class SupabaseClient {
   constructor() {
     this.supabaseUrl = process.env.SUPABASE_URL;
     this.supabaseKey = process.env.SUPABASE_ANON_KEY;
-    this.supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    this.supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
     
     if (!this.supabaseUrl || !this.supabaseKey) {
       throw new Error('Missing Supabase configuration. Please check SUPABASE_URL and SUPABASE_ANON_KEY environment variables.');
