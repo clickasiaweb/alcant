@@ -1,5 +1,5 @@
 // Vercel serverless function for categories API
-import { supabase } from '../../../lib/supabase.js';
+import { supabase } from '../../../../lib/supabase.js';
 
 export default async function handler(req, res) {
   try {
