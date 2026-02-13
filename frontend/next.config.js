@@ -6,7 +6,6 @@ const nextConfig = {
   distDir: '.next',
   images: {
     unoptimized: true,
-    domains: ["your-domain.com"],
     remotePatterns: [
       {
         protocol: 'https',
