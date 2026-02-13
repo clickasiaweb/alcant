@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
     
-    const { data, error } = await supabaseService.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
