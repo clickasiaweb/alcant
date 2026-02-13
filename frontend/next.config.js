@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-  output: 'export',
+  // Remove output: 'export' to enable server-side rendering
   trailingSlash: false,
-  distDir: 'out',
+  distDir: '.next',
   images: {
     unoptimized: true,
     domains: ["your-domain.com"],
