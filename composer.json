@@ -1,0 +1,69 @@
+{
+	"name": "alcant/website-frontend",
+	"description": "Alcant E-commerce Website - Frontend Deployment for Hostinger",
+	"type": "project",
+	"version": "1.0.0",
+	"keywords": [
+		"ecommerce",
+		"react",
+		"nextjs",
+		"frontend",
+		"hostinger"
+	],
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "ClickAsia Web",
+			"email": "clickasiaweb@gmail.com"
+		}
+	],
+	"require": {
+		"php": "^8.0"
+	},
+	"require-dev": {
+		"php": "^8.0"
+	},
+	"scripts": {
+		"post-install-cmd": [
+			"cd frontend && npm install",
+			"cd frontend && npm run build"
+		],
+		"post-update-cmd": [
+			"cd frontend && npm install",
+			"cd frontend && npm run build"
+		],
+		"deploy": [
+			"cd frontend && npm install",
+			"cd frontend && npm run build",
+			"cp -r frontend/out/* ."
+		],
+		"build-frontend": [
+			"cd frontend && npm install",
+			"cd frontend && npm run build"
+		]
+	},
+	"extra": {
+		"symfony-app-dir": "frontend",
+		"symfony-web-dir": "frontend/out",
+		"symfony-var-dir": "frontend/var",
+		"symfony-bin-dir": "frontend/bin",
+		"symfony-tests-dir": "frontend/tests"
+	},
+	"config": {
+		"sort-packages": true,
+		"optimize-autoloader": true,
+		"apcu-autoloader": true
+	},
+	"minimum-stability": "stable",
+	"prefer-stable": true,
+	"autoload": {
+		"psr-4": {
+			"App\\": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"App\\Tests\\": "tests/"
+		}
+	}
+}
