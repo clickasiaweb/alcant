@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-  // Remove output: 'export' to enable server-side rendering
-  trailingSlash: false,
-  distDir: '.next',
+  // Enable static export for Hostinger deployment
+  output: 'export',
+  trailingSlash: true,
+  distDir: 'out',
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -24,7 +25,7 @@ const nextConfig = {
   assetPrefix: process.env.NODE_ENV === 'production' ? '' : '',
   basePath: process.env.NODE_ENV === 'production' ? '' : '',
   // Generate static sitemap for better SEO
-  // generateBuildId: false,
+  generateBuildId: false,
   // Skip build-time generation of client-side manifest
   generateEtags: false,
 };
