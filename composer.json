@@ -24,6 +24,16 @@
 		"php": "^8.0"
 	},
 	"scripts": {
+		"post-install-cmd": [
+			"cd frontend && npm install --production=false",
+			"cd frontend && npm run build",
+			"cp -r frontend/out/* . || xcopy \"frontend\\out\\*\" \".\" /E /I /Y"
+		],
+		"post-update-cmd": [
+			"cd frontend && npm install --production=false",
+			"cd frontend && npm run build",
+			"cp -r frontend/out/* . || xcopy \"frontend\\out\\*\" \".\" /E /I /Y"
+		],
 		"install-deps": "cd frontend && npm install --production=false",
 		"build": "cd frontend && npm run build",
 		"deploy": [
