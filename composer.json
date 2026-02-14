@@ -25,21 +25,22 @@
 	},
 	"scripts": {
 		"post-install-cmd": [
-			"cd frontend && npm install --production=false",
-			"cd frontend && npm run build",
-			"cp -r frontend/out/* . || xcopy \"frontend\\out\\*\" \".\" /E /I /Y"
+			"composer install-frontend"
 		],
 		"post-update-cmd": [
-			"cd frontend && npm install --production=false",
-			"cd frontend && npm run build",
-			"cp -r frontend/out/* . || xcopy \"frontend\\out\\*\" \".\" /E /I /Y"
+			"composer install-frontend"
 		],
-		"install-deps": "cd frontend && npm install --production=false",
-		"build": "cd frontend && npm run build",
+		"install-frontend": [
+			"npm --prefix frontend install --production=false",
+			"npm --prefix frontend run build",
+			"cp -r frontend/out/* . || robocopy frontend\\out . /E /MOVE"
+		],
+		"install-deps": "npm --prefix frontend install --production=false",
+		"build": "npm --prefix frontend run build",
 		"deploy": [
-			"cd frontend && npm install --production=false",
-			"cd frontend && npm run build",
-			"cp -r frontend/out/* . || xcopy \"frontend\\out\\*\" \".\" /E /I /Y"
+			"npm --prefix frontend install --production=false",
+			"npm --prefix frontend run build",
+			"cp -r frontend/out/* . || robocopy frontend\\out . /E /MOVE"
 		]
 	},
 	"extra": {
