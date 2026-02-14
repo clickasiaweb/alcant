@@ -28,7 +28,8 @@
 		"build": "cd frontend && npm run build",
 		"deploy": [
 			"cd frontend && npm install --production=false",
-			"cd frontend && npm run build"
+			"cd frontend && npm run build",
+			"cp -r frontend/out/* . || xcopy \"frontend\\out\\*\" \".\" /E /I /Y"
 		]
 	},
 	"extra": {
