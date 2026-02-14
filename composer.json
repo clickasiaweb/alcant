@@ -24,17 +24,6 @@
 		"php": "^8.0"
 	},
 	"scripts": {
-		"post-install-cmd": [
-			"composer install-frontend"
-		],
-		"post-update-cmd": [
-			"composer install-frontend"
-		],
-		"install-frontend": [
-			"npm --prefix frontend install --production=false",
-			"npm --prefix frontend run build",
-			"cp -r frontend/out/* . || robocopy frontend\\out . /E /MOVE"
-		],
 		"install-deps": "npm --prefix frontend install --production=false",
 		"build": "npm --prefix frontend run build",
 		"deploy": [
