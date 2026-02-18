@@ -52,45 +52,13 @@ app.get("/api/categories/hierarchy", async (req, res) => {
 
     console.log("📊 Found categories:", data.length);
 
-    // Try to get subcategories for each category (handle if table doesn't exist)
-    const categoriesWithSubcategories = await Promise.all(
-      data.map(async (category) => {
-        try {
-          const { data: subcategories, error: subError } = await supabase
-            .from('subcategories')
-            .select('*')
-            .eq('category_id', category.id)
-            .eq('is_active', true)
-            .order('name', 'asc');
-
-          if (subError) {
-            console.log("⚠️ Subcategories error for category", category.id, ":", subError.message);
-            return {
-              ...category,
-              subcategories: []
-            };
-          }
-
-          return {
-            ...category,
-            subcategories: subcategories || []
-          };
-        } catch (err) {
-          console.log("⚠️ Subcategories fetch failed for category", category.id, ":", err.message);
-          return {
-            ...category,
-            subcategories: []
-          };
-        }
-      })
-    );
-
-    const categoriesData = categoriesWithSubcategories.map(category => ({
+    // Return categories without subcategories for now
+    const categoriesData = data.map(category => ({
       ...category,
-      subcategories: category.subcategories || []
+      subcategories: [] // Empty for now, can be added later
     }));
 
-    console.log("📊 Returning categories with subcategories");
+    console.log("📊 Returning categories:", categoriesData.length);
     res.json({ data: categoriesData });
   } catch (error) {
     console.error("❌ Categories endpoint error:", error);
