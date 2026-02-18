@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "name": "alcant-backend",
+  "name": "alcant-backend-main",
   "builds": [
     {
       "src": "api/index.js",
@@ -10,7 +10,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "dest": "api/index.js"
     }
   ],
   "env": {
