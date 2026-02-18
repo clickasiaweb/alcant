@@ -189,6 +189,7 @@ app.use((req, res) => {
   });
 });
 
-module.exports = (req, res) => {
+// Export for Vercel serverless
+module.exports = async (req, res) => {
   app(req, res);
 };
