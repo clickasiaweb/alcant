@@ -1,9 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const { supabase } = require("../config/supabase-simple");
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: ".env.local" });
+if (!process.env.SUPABASE_URL) {
+  dotenv.config({ path: ".env.production" });
+}
 
 const app = express();
 
@@ -11,168 +15,168 @@ const app = express();
 app.use(cors({
   origin: [
     "https://alcant12.vercel.app",
-    "http://localhost:3000"
+    "https://www.alcant12.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
   ],
   credentials: true,
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: "100mb" }));
+app.use(express.urlencoded({ extended: true, limit: "100mb" }));
 
-// Mock categories endpoint (matches frontend expectations)
-app.get("/api/categories/hierarchy", (req, res) => {
+// Categories endpoint with real Supabase data
+app.get("/api/categories/hierarchy", async (req, res) => {
   console.log("📡 Categories endpoint called");
-  const mockData = {
-    data: [
-      {
-        id: 1,
-        name: "Phone Cases",
-        slug: "phone-cases",
-        subcategories: [
-          {
-            id: 1,
-            name: "iPhone Cases",
-            slug: "iphone-cases",
-            sub_subcategories: [
-              { id: 1, name: "iPhone 15 Pro", slug: "iphone-15-pro" },
-              { id: 2, name: "iPhone 15", slug: "iphone-15" },
-              { id: 3, name: "iPhone 14", slug: "iphone-14" }
-            ]
-          },
-          {
-            id: 2,
-            name: "Samsung Cases",
-            slug: "samsung-cases",
-            sub_subcategories: [
-              { id: 4, name: "Galaxy S24", slug: "galaxy-s24" },
-              { id: 5, name: "Galaxy S23", slug: "galaxy-s23" }
-            ]
-          }
-        ]
-      },
-      {
-        id: 2,
-        name: "Wallets",
-        slug: "wallets",
-        subcategories: [
-          {
-            id: 3,
-            name: "Men Wallets",
-            slug: "men-wallets",
-            sub_subcategories: [
-              { id: 6, name: "Bifold Wallets", slug: "bifold-wallets" },
-              { id: 7, name: "Trifold Wallets", slug: "trifold-wallets" }
-            ]
-          },
-          {
-            id: 4,
-            name: "Card Holders",
-            slug: "card-holders",
-            sub_subcategories: [
-              { id: 8, name: "Minimal Card Holder", slug: "minimal-card-holder" }
-            ]
-          }
-        ]
-      },
-      {
-        id: 3,
-        name: "Accessories",
-        slug: "accessories",
-        subcategories: [
-          {
-            id: 5,
-            name: "Tech Accessories",
-            slug: "tech-accessories",
-            sub_subcategories: [
-              { id: 9, name: "AirPod Cases", slug: "airpod-cases" },
-              { id: 10, name: "Watch Bands", slug: "watch-bands" }
-            ]
-          }
-        ]
-      }
-    ]
-  };
-  console.log("📊 Returning categories data:", mockData.data.length, "categories");
-  res.json(mockData);
-});
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select(`
+        id,
+        name,
+        slug,
+        description,
+        image,
+        display_order,
+        is_active,
+        created_at
+      `)
+      .eq('is_active', true)
+      .order('display_order', 'asc', 'name');
 
-// Mock products endpoint for category
-app.get("/api/products/category/:slug", (req, res) => {
-  const { slug } = req.params;
-  console.log("📦 Products endpoint called for category:", slug);
-  
-  const mockProducts = [
-    {
-      id: 1,
-      name: "Premium iPhone 15 Pro Case",
-      slug: "premium-iphone-15-pro-case",
-      price: 49.99,
-      category: slug,
-      subcategory: "iphone-cases",
-      image: `https://picsum.photos/seed/${slug}-1/300/300.jpg`
-    },
-    {
-      id: 2,
-      name: "Luxury Leather Wallet",
-      slug: "luxury-leather-wallet",
-      price: 89.99,
-      category: slug,
-      subcategory: "men-wallets",
-      image: `https://picsum.photos/seed/${slug}-2/300/300.jpg`
-    },
-    {
-      id: 3,
-      name: "Alcantara AirPod Case",
-      slug: "alcantara-airpod-case",
-      price: 34.99,
-      category: slug,
-      subcategory: "tech-accessories",
-      image: `https://picsum.photos/seed/${slug}-3/300/300.jpg`
+    if (error) {
+      console.error("❌ Error fetching categories:", error);
+      return res.status(500).json({ error: error.message });
     }
-  ];
-  
-  const filteredProducts = mockProducts.filter(p => p.category === slug);
-  res.json({
-    products: filteredProducts.slice(0, 8),
-    total: filteredProducts.length
-  });
+
+    console.log("📊 Found categories:", data.length);
+
+    // Get subcategories for each category
+    const categoriesWithSubcategories = await Promise.all(
+      data.map(async (category) => {
+        const { data: subcategories, error: subError } = await supabase
+          .from('subcategories')
+          .select('*')
+          .eq('category_id', category.id)
+          .eq('is_active', true)
+          .order('name', 'asc');
+
+        return {
+          ...category,
+          subcategories: subcategories || [],
+          subcategories_error: subError
+        };
+      })
+    );
+
+    const categoriesData = categoriesWithSubcategories.map(category => ({
+      ...category,
+      subcategories: category.subcategories || []
+    }));
+
+    res.json({ data: categoriesData });
+  } catch (error) {
+    console.error("❌ Categories endpoint error:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Mock content endpoint
-app.get("/api/content/home", (req, res) => {
+// Products endpoint with real Supabase data
+app.get("/api/products/category/:slug", async (req, res) => {
+  console.log("📦 Products endpoint called for category:", req.params.slug);
+  try {
+    const { slug } = req.params;
+    
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('category', slug)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(8);
+
+    if (error) {
+      console.error("❌ Error fetching products:", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    console.log("📊 Found products:", data.length);
+    res.json({
+      products: data || [],
+      total: data.length
+    });
+  } catch (error) {
+    console.error("❌ Products endpoint error:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Content endpoint with real Supabase data
+app.get("/api/content/home", async (req, res) => {
   console.log("📄 Content endpoint called");
-  const mockContent = {
-    hero: {
-      title: "Welcome to Alcantara",
-      subtitle: "Premium luxury materials for your lifestyle",
-      content: "Experience the finest Alcantara products crafted with precision and care.",
-      buttonText: "Shop Now",
-      buttonLink: "/products"
-    },
-    collections: {
-      title: "Shop Our Collections",
-      items: []
-    },
-    asSeenIn: {
-      title: "As seen in",
-      items: ["REDLINE", "MTAY", "ONDERNEMER", "TopGear"]
+  try {
+    const { data, error } = await supabase
+      .from('content')
+      .select('*')
+      .eq('page', 'home')
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error("❌ Error fetching content:", error);
+      return res.status(500).json({ error: error.message });
     }
-  };
-  res.json({ content: mockContent });
+
+    console.log("📄 Found content:", data ? 'success' : 'not found');
+    res.json({ 
+      content: data || {
+        hero: {
+          title: "Welcome to Alcantara",
+          subtitle: "Premium luxury materials for your lifestyle",
+          content: "Experience the finest Alcantara products crafted with precision and care.",
+          buttonText: "Shop Now",
+          buttonLink: "/products"
+        },
+        collections: { title: "Shop Our Collections", items: [] },
+        asSeenIn: { title: "As seen in", items: ["REDLINE", "MTAY", "ONDERNEMER", "TopGear"] }
+      }
+    });
+  } catch (error) {
+    console.error("❌ Content endpoint error:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// Health check
-app.get("/api/health", (req, res) => {
+// Health check with database status
+app.get("/api/health", async (req, res) => {
   console.log("🏥 Health check called");
-  res.json({
-    status: "Backend API is running",
-    timestamp: new Date().toISOString(),
-    endpoints: [
-      "/api/categories/hierarchy",
-      "/api/products/category/:slug",
-      "/api/content/home",
-      "/api/health"
-    ]
-  });
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('count')
+      .limit(1);
+
+    const dbStatus = {
+      connected: !error,
+      count: data ? data[0].count : 0,
+      error: error ? error.message : null
+    };
+
+    res.json({
+      status: "Backend API is running",
+      database: dbStatus,
+      timestamp: new Date().toISOString(),
+      endpoints: [
+        "/api/categories/hierarchy",
+        "/api/products/category/:slug",
+        "/api/content/home",
+        "/api/health"
+      ]
+    });
+  } catch (error) {
+    console.error("❌ Health check error:", error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // 404 handler
