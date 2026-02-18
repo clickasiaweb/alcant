@@ -5,11 +5,16 @@ const path = require("path");
 
 // Load environment variables first
 dotenv.config({ path: ".env.local" });
+// Also try .env.production for Vercel
+if (!process.env.SUPABASE_URL) {
+  dotenv.config({ path: ".env.production" });
+}
 
 // Debug: show whether Supabase env vars are loaded
 console.log("Loaded env:", {
   SUPABASE_URL: process.env.SUPABASE_URL ? "SET" : "MISSING",
   SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY ? "SET" : "MISSING",
+  NODE_ENV: process.env.NODE_ENV || "MISSING"
 });
 
 // Import database connection module
@@ -22,30 +27,32 @@ const productRoutes = require("./routes/products");
 const categoryRoutes = require("./routes/categories");
 const contentRoutes = require("./routes/content");
 
-// Initialize database connection
+const app = express();
+
+// Test database connection asynchronously (don't block startup)
 testConnection()
   .then((result) => {
     if (result.success) {
       console.log("🚀 Database initialization completed");
     } else {
       console.error("💥 Database initialization failed:", result.error);
-      process.exit(1);
+      // Don't exit, just log the error
     }
   })
   .catch((error) => {
     console.error("💥 Database initialization failed:", error.message);
-    process.exit(1);
+    // Don't exit, just log the error
   });
-
-const app = express();
 
 // Middleware
 app.use(
   cors({
     origin: [
-      "https://example.com",
-      "https://www.example.com",
-      "https://admin.example.com",
+      "https://alcannt.in",
+      "https://www.alcannt.in",
+      "https://admin.alcannt.in",
+      "https://api.alcannt.in",
+      "https://alcant-website.vercel.app",
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",
@@ -162,11 +169,6 @@ app.use((err, req, res, next) => {
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
-});
-
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
 });
 
 module.exports = app;
