@@ -14,14 +14,6 @@ const nextConfig = {
   generateBuildId: async () => 'build',
   // Skip build-time generation of client-side manifest
   generateEtags: false,
-  // Set root directory to avoid confusion
-  ...(process.env.NODE_ENV === 'production' && {
-    experimental: {
-      turbo: {
-        root: './'
-      }
-    }
-  })
 };
 
 module.exports = nextConfig;
