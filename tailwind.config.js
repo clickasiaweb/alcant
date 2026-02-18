@@ -1,0 +1,203 @@
+module.exports = {
+  content: [
+    "./pages/**/*.{js,ts,jsx,tsx}",
+    "./components/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        // Alcantara-inspired color palette
+        'alcantara': {
+          50: '#f0f4f8',
+          100: '#e2e8f0',
+          200: '#cbd5e0',
+          300: '#a0aec0',
+          400: '#718096',
+          500: '#4a5568',
+          600: '#2d3748',
+          700: '#1a202c',
+          800: '#1a365d',
+          900: '#1a2f5a',
+          950: '#0f172a',
+        },
+        'primary': {
+          50: '#f0f4f8',
+          100: '#e2e8f0',
+          200: '#cbd5e0',
+          300: '#a0aec0',
+          400: '#718096',
+          500: '#1a365d',
+          600: '#1a2f5a',
+          700: '#1a202c',
+          800: '#0f172a',
+          900: '#0c1420',
+          950: '#0a0e1a',
+        },
+        'secondary': {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
+          950: '#020617',
+        },
+        'accent': {
+          50: '#fef2f2',
+          100: '#fee2e2',
+          200: '#fecaca',
+          300: '#fca5a5',
+          400: '#f87171',
+          500: '#ef4444',
+          600: '#dc2626',
+          700: '#b91c1c',
+          800: '#991b1b',
+          900: '#7f1d1d',
+          950: '#450a0a',
+        },
+        'background': '#ffffff',
+        'surface': '#f8fafc',
+        'text': {
+          primary: '#0f172a',
+          secondary: '#64748b',
+          muted: '#94a3b8',
+        },
+        'border': '#e2e8f0',
+        'ui': {
+          'border': '#e2e8f0',
+          'divider': '#f1f5f9',
+          'overlay': 'rgba(0, 0, 0, 0.5)',
+          'focus': '#3b82f6',
+        }
+      },
+      fontFamily: {
+        sans: [
+          "Inter",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "Helvetica Neue",
+          "Arial",
+          "sans-serif",
+        ],
+        display: [
+          "Inter",
+          "system-ui",
+          "sans-serif"
+        ],
+        body: [
+          "Inter",
+          "system-ui",
+          "sans-serif"
+        ]
+      },
+      animation: {
+        "fade-in": "fadeIn 0.6s ease-out",
+        "fade-in-up": "fadeInUp 0.6s ease-out",
+        "fade-in-down": "fadeInDown 0.6s ease-out",
+        "slide-in-left": "slideInLeft 0.6s ease-out",
+        "slide-in-right": "slideInRight 0.6s ease-out",
+        "scale-in": "scaleIn 0.6s ease-out",
+        "bounce-soft": "bounceSoft 2s infinite",
+        "pulse-soft": "pulseSoft 2s infinite",
+        "slide-down": "slideDown 0.3s ease-out",
+        "mega-menu": "megaMenu 0.3s ease-out",
+      },
+      keyframes: {
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        fadeInUp: {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        fadeInDown: {
+          "0%": { opacity: "0", transform: "translateY(-20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        slideInLeft: {
+          "0%": { opacity: "0", transform: "translateX(-30px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        slideInRight: {
+          "0%": { opacity: "0", transform: "translateX(30px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        scaleIn: {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        bounceSoft: {
+          "0%, 20%, 53%, 80%, 100%": { transform: "translateY(0)" },
+          "40%, 43%": { transform: "translateY(-8px)" },
+          "70%": { transform: "translateY(-4px)" },
+          "90%": { transform: "translateY(-2px)" },
+        },
+        pulseSoft: {
+          "0%": { transform: "scale(1)" },
+          "50%": { transform: "scale(1.02)" },
+          "100%": { transform: "scale(1)" },
+        },
+        slideDown: {
+          "0%": { opacity: "0", transform: "translateY(-10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        megaMenu: {
+          "0%": { opacity: "0", transform: "translateY(-10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+      },
+      transitionDuration: {
+        fast: "150ms",
+        base: "300ms",
+        slow: "500ms",
+        mega: "400ms",
+      },
+      transitionTimingFunction: {
+        "bounce-out": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+        "smooth-out": "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+      },
+      boxShadow: {
+        "sm-hover": "0 4px 6px rgba(0, 0, 0, 0.07)",
+        "md-hover": "0 12px 24px rgba(0, 0, 0, 0.1)",
+        "lg-hover": "0 20px 40px rgba(0, 0, 0, 0.08)",
+        "card": "0 2px 8px rgba(0, 0, 0, 0.06)",
+        "card-hover": "0 8px 24px rgba(0, 0, 0, 0.12)",
+        "mega-menu": "0 10px 40px rgba(0, 0, 0, 0.15)",
+        "header": "0 2px 8px rgba(0, 0, 0, 0.06)",
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+        '128': '32rem',
+        '144': '36rem',
+      },
+      fontSize: {
+        'xs': ['0.75rem', { lineHeight: '1rem' }],
+        'sm': ['0.875rem', { lineHeight: '1.25rem' }],
+        'base': ['1rem', { lineHeight: '1.5rem' }],
+        'lg': ['1.125rem', { lineHeight: '1.75rem' }],
+        'xl': ['1.25rem', { lineHeight: '1.75rem' }],
+        '2xl': ['1.5rem', { lineHeight: '2rem' }],
+        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
+        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
+        '5xl': ['3rem', { lineHeight: '1' }],
+        '6xl': ['3.75rem', { lineHeight: '1' }],
+        '7xl': ['4.5rem', { lineHeight: '1' }],
+        '8xl': ['6rem', { lineHeight: '1' }],
+        '9xl': ['8rem', { lineHeight: '1' }],
+      },
+    },
+  },
+  plugins: [],
+};

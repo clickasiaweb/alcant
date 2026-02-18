@@ -1,21 +1,7 @@
-# Dependencies
 node_modules/
-*/node_modules/
-
-# Production builds
-frontend/out/
-frontend/.next/
-admin-panel/build/
-backend/dist/
-
-# Environment variables
-.env
+.next/
+out/
+build/
+*.log
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# PHP files (to prevent Hostinger PHP detection)
-composer.lock
-vendor/
-*.php
+.DS_Store
