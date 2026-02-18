@@ -1,1 +1,18 @@
-{"version": 2, "name": "alcant-website", "builds": [{"src": "frontend/package.json", "use": "@vercel/next"}], "routes": [{"src": "/api/(.*)", "dest": "/frontend/api/$1"}, {"src": "/(.*)", "dest": "/frontend/$1"}]}
+{
+  "version": 2,
+  "name": "alcant-website",
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/.next",
+  "installCommand": "cd frontend && npm install",
+  "framework": "nextjs",
+  "rootDirectory": "frontend",
+  "env": {
+    "NEXT_PUBLIC_API_URL": "https://your-backend-url.com"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_SUPABASE_URL": "https://db.orhcxgmjychxcrqqwcqu.supabase.co",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGN4Z21qeWNoeGNycXF3Y3F1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNjIwODQsImV4cCI6MjA4NDgzODA4NH0.lHKuN5EKkVmCMF-u3PKmDSXkkS2k8k52hQhZ2M5zdNg"
+    }
+  }
+}

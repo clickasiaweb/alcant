@@ -4,4 +4,9 @@ out/
 build/
 *.log
 .env.local
+.env
+.env*.local
 .DS_Store
+.vercel
+*.tsbuildinfo
+next-env.d.ts
