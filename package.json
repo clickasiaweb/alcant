@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Alcant E-commerce Website - Full Stack Application",
   "main": "frontend/server.js",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
     "install-deps": "cd frontend && npm install && cd ../backend && npm install && cd ../admin-panel && npm install",
     "build": "cd frontend && npm run build && cd ../admin-panel && npm run build",
@@ -15,10 +19,6 @@
   },
   "devDependencies": {
     "cross-env": "^7.0.3"
-  },
-  "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=8.0.0"
   },
   "keywords": [
     "ecommerce",
