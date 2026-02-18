@@ -320,6 +320,11 @@ const AlcantaraHeader = () => {
       `}</style>
       <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
       <div className="container">
+        {/* Debug Info */}
+        <div className="bg-yellow-100 text-yellow-800 p-2 text-xs mb-2">
+          DEBUG: Categories loaded: {categories.length}, Loading: {loading.toString()}, Active Dropdown: {activeDropdown}
+        </div>
+        
         {/* Top Bar */}
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
