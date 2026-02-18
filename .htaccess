@@ -1,0 +1,14 @@
+# Force Node.js project detection
+DirectoryIndex index.html index.htm
+
+# Disable PHP execution
+<Files "*.php">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Handle Node.js app
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ frontend/out/index.html [L,QSA]
