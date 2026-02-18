@@ -1,4 +1,4 @@
-const { createClient } = require('@supabase/supabase-js');
+const { createClient } = require("@supabase/supabase-js");
 
 /**
  * Supabase database connection and configuration
@@ -8,16 +8,20 @@ class SupabaseClient {
     this.supabaseUrl = process.env.SUPABASE_URL;
     this.supabaseKey = process.env.SUPABASE_ANON_KEY;
     this.supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
-    
+
     if (!this.supabaseUrl || !this.supabaseKey) {
-      throw new Error('Missing Supabase configuration. Please check SUPABASE_URL and SUPABASE_ANON_KEY environment variables.');
+      throw new Error(
+        "Missing Supabase configuration. Please check SUPABASE_URL and SUPABASE_ANON_KEY environment variables.",
+      );
     }
 
     // Client for general operations
     this.client = createClient(this.supabaseUrl, this.supabaseKey);
-    
-    // Service client for admin operations
-    this.serviceClient = createClient(this.supabaseUrl, this.supabaseServiceKey);
+
+    // Service client for admin operations (only create if service key is provided)
+    this.serviceClient = this.supabaseServiceKey
+      ? createClient(this.supabaseUrl, this.supabaseServiceKey)
+      : null;
   }
 
   /**
@@ -40,15 +44,15 @@ class SupabaseClient {
   async testConnection() {
     try {
       const { data, error } = await this.client
-        .from('products')
-        .select('count')
+        .from("products")
+        .select("count")
         .limit(1);
-      
+
       if (error) {
         throw error;
       }
-      
-      return { success: true, message: 'Supabase connection successful' };
+
+      return { success: true, message: "Supabase connection successful" };
     } catch (error) {
       return { success: false, error: error.message };
     }
@@ -60,8 +64,10 @@ class SupabaseClient {
   getConnectionStatus() {
     return {
       connected: !!this.supabaseUrl && !!this.supabaseKey,
-      url: this.supabaseUrl ? this.supabaseUrl.replace(/https:\/\/([^\.]+)\..*/, 'https://$$.***') : null,
-      client: 'supabase'
+      url: this.supabaseUrl
+        ? this.supabaseUrl.replace(/https:\/\/([^\.]+)\..*/, "https://$$.***")
+        : null,
+      client: "supabase",
     };
   }
 }
@@ -73,5 +79,5 @@ module.exports = {
   supabase: supabaseClient.getClient(),
   supabaseService: supabaseClient.getServiceClient(),
   testConnection: () => supabaseClient.testConnection(),
-  getConnectionStatus: () => supabaseClient.getConnectionStatus()
+  getConnectionStatus: () => supabaseClient.getConnectionStatus(),
 };
