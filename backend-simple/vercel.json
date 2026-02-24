@@ -3,14 +3,14 @@
   "name": "alcant-backend-api",
   "builds": [
     {
-      "src": "backend-simple/api/index.js",
+      "src": "api/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "backend-simple/api/index.js"
+      "dest": "api/index.js"
     }
   ],
   "env": {
