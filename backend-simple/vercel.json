@@ -14,7 +14,7 @@
     }
   ],
   "env": {
-    "SUPABASE_URL": "https://db.orhcxgmjychxcrqqwcqu.supabase.co",
+    "SUPABASE_URL": "postgresql://postgres:fVj_k5b5GxcF+H$@db.orhcxgmjychxcrqqwcqu.supabase.co:5432/postgres",
     "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGN4Z21qeWNoeGNycXF3Y3F1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNjIwODQsImV4cCI6MjA4NDgzODA4NH0.lHKuN5EKkVmCMF-u3PKmDSXkkS2k8k52hQhZ2M5zdNg",
     "NODE_ENV": "production"
   }
