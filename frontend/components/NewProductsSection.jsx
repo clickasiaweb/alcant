@@ -47,8 +47,35 @@ const NewProductsSection = () => {
         (product.is_active !== false) // Only show active products
       );
       
+      // Add test product for demo
+      const testProduct = {
+        id: 'test-123',
+        name: 'Test Product for Demo',
+        slug: 'test-product-demo',
+        description: 'This is a test product for demonstration purposes.',
+        price: 99.99,
+        old_price: 149.99,
+        final_price: 99.99,
+        category: 'test-category',
+        subcategory: 'demo',
+        images: ['https://picsum.photos/seed/test-product/400/400.jpg'],
+        image: 'https://picsum.photos/seed/test-product/400/400.jpg',
+        rating: 4.5,
+        reviews: 12,
+        stock: 50,
+        is_new: true,
+        is_limited_edition: false,
+        is_blue_monday_sale: false,
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      
+      const productsWithTest = [testProduct, ...validProducts];
+      
       console.log('Valid products filtered:', validProducts);
-      setNewProducts(validProducts);
+      console.log('Products with test product:', productsWithTest);
+      setNewProducts(productsWithTest);
     } catch (error) {
       console.error("Error fetching new products:", error);
       console.error("Error details:", error.response?.data);
