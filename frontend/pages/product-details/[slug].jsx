@@ -235,6 +235,7 @@ const ProductDetailPage = () => {
   }
 
   if (loading) {
+    console.log('🔍 Still loading product...');
     return (
       <Layout title="Loading...">
         <div className="min-h-screen flex items-center justify-center">
@@ -244,7 +245,12 @@ const ProductDetailPage = () => {
     );
   }
 
+  console.log('🔍 Product state:', product);
+  console.log('🔍 Product exists:', !!product);
+  console.log('🔍 Product name:', product?.name);
+
   if (!product) {
+    console.log('❌ Product is null/undefined, showing not found');
     return (
       <Layout title="Product Not Found">
         <div className="min-h-screen flex items-center justify-center">
