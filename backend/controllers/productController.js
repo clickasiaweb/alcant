@@ -350,7 +350,7 @@ exports.searchProducts = async (req, res) => {
 exports.getProductBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const product = await SupabaseProduct.findOne({ slug, isActive: true });
+    const product = await SupabaseProduct.findOne({ slug, is_active: true });
 
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
