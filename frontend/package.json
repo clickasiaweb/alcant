@@ -1,7 +1,7 @@
 {
   "name": "industrial-solutions-frontend",
   "version": "1.0.0",
-  "description": "Industrial Solutions Frontend - v4",
+  "description": "Industrial Solutions Frontend - v5 - API URL fixed",
   "private": true,
   "scripts": {
     "dev": "next dev",

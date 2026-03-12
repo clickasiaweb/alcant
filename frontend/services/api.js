@@ -41,11 +41,15 @@ export const productsAPI = {
     console.log('API: Fetching product with slug:', slug);
     console.log('API: Base URL:', api.defaults.baseURL);
     console.log('API: Full URL:', `${api.defaults.baseURL}/products/slug/${slug}`);
+    console.log('API: Hardcoded check - should be https://alcant-backend.vercel.app/api');
+    
     try {
       const response = await api.get(`/products/slug/${slug}`);
       console.log('API: Response received:', response.data);
       console.log('API: Response status:', response.status);
       console.log('API: Response headers:', response.headers);
+      console.log('API: Response type:', typeof response.data);
+      console.log('API: Response keys:', Object.keys(response.data || {}));
       return response.data;
     } catch (error) {
       console.error('API: Error fetching product by slug:', error);
