@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const contentController = require("../controllers/contentController");
+const contentController = require("../controllers/contentControllerSupabase"); // Use Supabase controller instead of mock
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 
 // Public route
