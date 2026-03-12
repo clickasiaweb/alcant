@@ -3,9 +3,10 @@ import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import Link from 'next/link';
 import { productsAPI } from '../../services/api';
-import WishlistButton from '../../components/WishlistButton';
-import QuickAddToCart from '../../components/QuickAddToCart';
-import { useCart } from '../../contexts/CartContext';
+// TEMPORARILY COMMENTED OUT FOR TESTING
+// import WishlistButton from '../../components/WishlistButton';
+// import QuickAddToCart from '../../components/QuickAddToCart';
+// import { useCart } from '../../contexts/CartContext';
 import { 
   ShoppingCart, 
   Heart, 
@@ -26,30 +27,30 @@ import {
   Zap
 } from 'lucide-react';
 
-const ProductDetailPage = () => {
+const ProductDetailPage = ({ slug: initialSlug }) => {
   const router = useRouter();
   const { slug } = router.query;
-  const { addToCart } = useCart();
+  const finalSlug = slug || initialSlug;
   
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [mounted, setMounted] = useState(false);
   const [selectedSize, setSelectedSize] = useState('');
   const [selectedColor, setSelectedColor] = useState('');
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!mounted || !slug) return;
+    if (!mounted || !finalSlug) return;
     
     console.log('🚀 STRATEGY TEST: useEffect triggered');
-    console.log('🚀 STRATEGY TEST: slug =', slug);
+    console.log('🚀 STRATEGY TEST: slug =', finalSlug);
     console.log('🚀 STRATEGY TEST: mounted =', mounted);
     
     const loadProduct = async () => {
@@ -57,6 +58,7 @@ const ProductDetailPage = () => {
         setLoading(true);
         console.log('🚀 STRATEGY TEST: Starting product load');
         
+        console.log('🔍 Fetching product with slug:', finalSlug);
         console.log('🔍 Fetching product with slug:', slug);
         console.log('🔍 Full URL:', window.location.href);
         
@@ -335,24 +337,11 @@ const ProductDetailPage = () => {
                     }}
                   />
                   
-                  {/* Floating Wishlist Icon */}
+                  {/* Floating Wishlist Icon - DISABLED FOR TESTING */}
                   <div className="absolute top-4 right-4 z-10">
-                    {product && (
-                      <WishlistButton 
-                        product={{
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          originalPrice: product.originalPrice,
-                          image: product.images?.[0] || product.image,
-                          category: product.category,
-                          variant: `${selectedSize || 'Standard'} / ${selectedColor || 'Default'}`,
-                          slug: product.slug
-                        }}
-                        size="lg"
-                        className="bg-white shadow-lg hover:shadow-xl"
-                      />
-                    )}
+                    <div className="p-2 bg-white rounded-full shadow-lg">
+                      <Heart className="w-5 h-5 text-gray-400" />
+                    </div>
                   </div>
                   
                   {(product.stock || 0) <= 0 && (

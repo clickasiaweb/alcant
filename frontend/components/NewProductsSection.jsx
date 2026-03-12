@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { productsAPI } from '../services/api';
+import { 
+  Eye, 
+  Heart, 
+  ShoppingCart, 
+  Star, 
+  Truck, 
+  Shield, 
+  RotateCcw,
+  Package
+} from 'lucide-react';
 import dynamic from "next/dynamic";
-import Eye from "lucide-react/dist/esm/icons/eye";
-import ShoppingCart from "lucide-react/dist/esm/icons/shopping-cart";
-import Heart from "lucide-react/dist/esm/icons/heart";
-import Star from "lucide-react/dist/esm/icons/star";
-import Link from "next/link";
-import { productsAPI } from "../services/api";
 
 // Force client-side only rendering
 const NewProductsSection = () => {
@@ -377,13 +383,13 @@ const NewProductsSection = () => {
                     </div>
                     
                     {/* Main Action Button */}
-                    <button
-                      onClick={() => handleQuickView(product)}
+                    <Link 
+                      href={`/product-details/${slug}`}
                       className="w-full bg-primary-900 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-800 transition-colors flex items-center justify-center"
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       View Details
-                    </button>
+                    </Link>
                   </div>
                 </div>
               );
