@@ -9,6 +9,7 @@ const supabase = createClient(
 exports.getContent = async (req, res) => {
   try {
     const { pageKey } = req.params;
+    console.log('🏠 Supabase Controller: Getting content for pageKey:', pageKey);
     
     const { data: content, error } = await supabase
       .from('content')
@@ -16,7 +17,10 @@ exports.getContent = async (req, res) => {
       .eq('pageKey', pageKey)
       .single();
 
+    console.log('🏠 Supabase Controller: Database query result:', { content, error });
+
     if (error || !content) {
+      console.log('🏠 Supabase Controller: No content found, returning empty structure');
       // Return empty content structure instead of 404
       return res.json({ 
         content: {
@@ -36,9 +40,10 @@ exports.getContent = async (req, res) => {
       });
     }
 
+    console.log('🏠 Supabase Controller: Found content:', content);
     res.json({ content });
   } catch (error) {
-    console.error('Error getting content:', error);
+    console.error('🏠 Supabase Controller: Error getting content:', error);
     res.status(500).json({ error: error.message });
   }
 };
