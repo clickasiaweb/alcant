@@ -39,9 +39,15 @@ export const productsAPI = {
   // Get product by slug
   getBySlug: async (slug) => {
     console.log('API: Fetching product with slug:', slug);
-    const response = await api.get(`/products/slug/${slug}`);
-    console.log('API: Response received:', response.data);
-    return response.data;
+    try {
+      const response = await api.get(`/products/slug/${slug}`);
+      console.log('API: Response received:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API: Error fetching product by slug:', error);
+      console.error('API: Error response:', error.response?.data);
+      throw error;
+    }
   },
 
   // Get featured products

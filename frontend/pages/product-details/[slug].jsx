@@ -66,13 +66,18 @@ const ProductDetailPage = () => {
         
         console.log('✅ Product response:', response);
         
+        // Handle different response structures
         if (response && response.product) {
           setProduct(response.product);
-          console.log('✅ Product set successfully:', response.product.name);
+          console.log('✅ Product set successfully (wrapped):', response.product.name);
         } else if (response && response.name) {
           // Handle case where API returns product directly
           setProduct(response);
-          console.log('✅ Product set successfully:', response.name);
+          console.log('✅ Product set successfully (direct):', response.name);
+        } else if (response && response.data) {
+          // Handle case where API returns in data property
+          setProduct(response.data);
+          console.log('✅ Product set successfully (data):', response.data.name);
         } else {
           console.log('❌ Product not found in response, redirecting to 404');
           console.log('❌ Response structure:', response);
