@@ -69,6 +69,13 @@ const ProductDetailPage = () => {
         console.log('✅ Response keys:', Object.keys(response || {}));
         console.log('✅ Response stringified:', JSON.stringify(response));
         
+        // TEMPORARY: Force set the product if response exists
+        if (response && Object.keys(response).length > 0) {
+          console.log('✅ Setting product directly (force):', response);
+          setProduct(response);
+          return;
+        }
+        
         // Handle different response structures
         if (response && response.product) {
           setProduct(response.product);
