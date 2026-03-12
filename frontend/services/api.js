@@ -39,13 +39,19 @@ export const productsAPI = {
   // Get product by slug
   getBySlug: async (slug) => {
     console.log('API: Fetching product with slug:', slug);
+    console.log('API: Base URL:', api.defaults.baseURL);
+    console.log('API: Full URL:', `${api.defaults.baseURL}/products/slug/${slug}`);
     try {
       const response = await api.get(`/products/slug/${slug}`);
       console.log('API: Response received:', response.data);
+      console.log('API: Response status:', response.status);
+      console.log('API: Response headers:', response.headers);
       return response.data;
     } catch (error) {
       console.error('API: Error fetching product by slug:', error);
       console.error('API: Error response:', error.response?.data);
+      console.error('API: Error status:', error.response?.status);
+      console.error('API: Full error:', error);
       throw error;
     }
   },
