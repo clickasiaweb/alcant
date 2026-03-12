@@ -44,7 +44,9 @@ export const productsAPI = {
     console.log('API: Hardcoded check - should be https://alcant-backend.vercel.app/api');
     
     try {
+      console.log('API: Making request...');
       const response = await api.get(`/products/slug/${slug}`);
+      console.log('API: Request completed successfully');
       console.log('API: Response received:', response.data);
       console.log('API: Response status:', response.status);
       console.log('API: Response headers:', response.headers);
@@ -52,11 +54,15 @@ export const productsAPI = {
       console.log('API: Response keys:', Object.keys(response.data || {}));
       return response.data;
     } catch (error) {
+      console.error('API: ERROR - Request failed!');
       console.error('API: Error fetching product by slug:', error);
       console.error('API: Error response:', error.response?.data);
       console.error('API: Error status:', error.response?.status);
+      console.error('API: Error message:', error.message);
       console.error('API: Full error:', error);
-      throw error;
+      
+      // Return empty object on error to prevent undefined
+      return {};
     }
   },
 
