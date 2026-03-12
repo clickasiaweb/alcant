@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = "https://alcant-backend.vercel.app/api";
+const API_BASE_URL = "https://alcant-backend.vercel.app/api"; // FIXED - Using hardcoded URL
 
 // Create axios instance
 const api = axios.create({
