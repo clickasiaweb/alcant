@@ -43,9 +43,21 @@ const ProductsPage = () => {
     try {
       setLoading(true);
       const response = await apiClient.get("/products", { params: filters });
-      setProducts(response.data.products || []);
+      const allProducts = response.data.products || [];
+      
+      // Filter only existing/valid products
+      const validProducts = allProducts.filter(product => 
+        product && 
+        product.name && 
+        product.slug && 
+        product.price && 
+        (product.is_active !== false) // Only show active products
+      );
+      
+      setProducts(validProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
+      setProducts([]); // Clear products on error
     } finally {
       setLoading(false);
     }
@@ -270,7 +282,7 @@ const ProductsPage = () => {
                       : "space-y-4"
                   }
                 >
-                  {products.map((product) => (
+                  {products.filter(product => product && product.name && product.slug).map((product) => (
                     <div
                       key={product._id}
                       className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300"
