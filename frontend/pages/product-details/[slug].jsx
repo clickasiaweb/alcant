@@ -278,7 +278,7 @@ const ProductDetailPage = () => {
   console.log('🎯 STRATEGY TEST: If you see this, everything worked up to this point');
 
   const images = getImages();
-  const mainImage = images[selectedImage] || product.image || '/api/placeholder/600/600';
+  const mainImage = images[selectedImage] || product.image || `https://picsum.photos/seed/${product?.name || 'product'}/600/600.jpg`;
   const hasMultipleImages = images.length > 1;
   
   console.log('🎯 STRATEGY TEST: Images processed:', images);
