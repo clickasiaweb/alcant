@@ -32,51 +32,61 @@ import Phone from "lucide-react/dist/esm/icons/phone";
 import MapPin from "lucide-react/dist/esm/icons/map-pin";
 
 const AlcantaraHome = ({ homeContent = {} }) => {
-  const collections = homeContent.collections?.items || [
+  const collections = homeContent.collections?.items?.map(item => ({
+    ...item,
+    image: item.image?.includes('/api/placeholder') 
+      ? `https://picsum.photos/seed/${item.title || 'collection'}/400/300.jpg`
+      : item.image
+  })) || [
     {
       id: 1,
       title: "Phone Cases",
-      image: "/api/placeholder/400/300",
+      image: "https://picsum.photos/seed/phone-cases/400/300.jpg",
       link: "/category/phone-cases",
     },
     {
       id: 2,
       title: "Wallets",
-      image: "/api/placeholder/400/300",
+      image: "https://picsum.photos/seed/wallets/400/300.jpg",
       link: "/category/wallets",
     },
     {
       id: 3,
       title: "Accessories",
-      image: "/api/placeholder/400/300",
+      image: "https://picsum.photos/seed/accessories/400/300.jpg",
       link: "/category/accessories",
     },
     {
       id: 4,
       title: "Car & Travel",
-      image: "/api/placeholder/400/300",
+      image: "https://picsum.photos/seed/car-travel/400/300.jpg",
       link: "/category/car-travel",
     },
     {
       id: 5,
       title: "Office",
-      image: "/api/placeholder/400/300",
+      image: "https://picsum.photos/seed/office/400/300.jpg",
       link: "/category/office",
     },
     {
       id: 6,
       title: "Sale",
-      image: "/api/placeholder/400/300",
+      image: "https://picsum.photos/seed/sale/400/300.jpg",
       link: "/category/sale",
     },
   ];
 
-  const tuners = homeContent.tuners?.items || [
+  const tuners = homeContent.tuners?.items?.map(item => ({
+    ...item,
+    image: item.image?.includes('/api/placeholder') 
+      ? `https://picsum.photos/seed/${item.title || 'tuner'}/100/100.jpg`
+      : item.image
+  })) || [
     {
       id: 1,
       name: "John Smith",
       title: "Professional Car Tuner",
-      image: "/api/placeholder/100/100",
+      image: "https://picsum.photos/seed/john-smith/100/100.jpg",
       description:
         "Specializing in luxury vehicle modifications with Alcantara interiors.",
     },
@@ -84,7 +94,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
       id: 2,
       name: "Mike Johnson",
       title: "Performance Specialist",
-      image: "/api/placeholder/100/100",
+      image: "https://picsum.photos/seed/mike-johnson/100/100.jpg",
       description:
         "Expert in high-performance vehicle upgrades and custom Alcantara work.",
     },
@@ -92,7 +102,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
       id: 3,
       name: "David Lee",
       title: "Interior Designer",
-      image: "/api/placeholder/100/100",
+      image: "https://picsum.photos/seed/david-lee/100/100.jpg",
       description:
         "Creating bespoke automotive interiors with premium Alcantara materials.",
     },
@@ -100,7 +110,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
 
   const communityPosts = Array.from({ length: 8 }, (_, i) => ({
     id: i + 1,
-    image: "/api/placeholder/300/300",
+    image: `https://picsum.photos/seed/community-post-${i + 1}/300/300.jpg`,
     title: `Community Post ${i + 1}`,
   }));
 
@@ -605,11 +615,14 @@ const AlcantaraHome = ({ homeContent = {} }) => {
 // Client-side data fetching for static export
 export async function fetchHomeContent() {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/content/home`);
+    // Use hardcoded API URL to ensure it works in production
+    const API_URL = 'https://alcant-backend.vercel.app/api';
+    const response = await fetch(`${API_URL}/content/home`);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     const data = await response.json();
+    console.log('🏠 Home content fetched:', data);
     return data.content || {};
   } catch (error) {
     console.error('Error fetching home content:', error);
