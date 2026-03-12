@@ -80,6 +80,23 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// Root route for backend
+app.get("/", (req, res) => {
+  res.json({
+    message: "Alcant Backend API is running",
+    version: "1.0.0",
+    status: "Active",
+    endpoints: {
+      health: "/api/health",
+      products: "/api/products",
+      categories: "/api/categories",
+      content: "/api/content",
+      auth: "/api/auth"
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Temporary endpoint to fix content table
 app.post("/api/fix-content-table", async (req, res) => {
   try {
