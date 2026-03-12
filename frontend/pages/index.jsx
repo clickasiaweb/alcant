@@ -4,7 +4,7 @@ import Layout from "../components/Layout";
 import Link from "next/link";
 import { getHomeContent } from "../services/contentService";
 
-const NewProductsSection = dynamic(() => import("../components/NewProductsSectionMock"), {
+const NewProductsSection = dynamic(() => import("../components/NewProductsSection"), {
   ssr: false,
   loading: () => (
     <section className="py-16 bg-white">

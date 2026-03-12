@@ -36,7 +36,19 @@ const NewProductsSection = () => {
       console.log('Products array:', data.products);
       console.log('Products length:', data.products?.length);
       
-      setNewProducts(data.products || []);
+      const allProducts = data.products || [];
+      
+      // Filter only existing/valid products
+      const validProducts = allProducts.filter(product => 
+        product && 
+        product.name && 
+        product.slug && 
+        product.price && 
+        (product.is_active !== false) // Only show active products
+      );
+      
+      console.log('Valid products filtered:', validProducts);
+      setNewProducts(validProducts);
     } catch (error) {
       console.error("Error fetching new products:", error);
       console.error("Error details:", error.response?.data);
@@ -258,7 +270,7 @@ const NewProductsSection = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {newProducts.length > 0 ? (
-            newProducts.map((product) => {
+            newProducts.filter(product => product && product.name && product.slug).map((product) => {
               const slug = getProductSlug(product);
               const price = getProductPrice(product);
               const oldPrice = getOldPrice(product);
