@@ -67,6 +67,7 @@ const ProductDetailPage = () => {
         console.log('✅ Product response:', response);
         console.log('✅ Response type:', typeof response);
         console.log('✅ Response keys:', Object.keys(response || {}));
+        console.log('✅ Response stringified:', JSON.stringify(response));
         
         // Handle different response structures
         if (response && response.product) {
@@ -80,6 +81,10 @@ const ProductDetailPage = () => {
           // Handle case where API returns in data property
           setProduct(response.data);
           console.log('✅ Product set successfully (data):', response.data.name);
+        } else if (response && Object.keys(response).length > 0) {
+          // Handle case where response has data but not expected structure
+          setProduct(response);
+          console.log('✅ Product set successfully (fallback):', response);
         } else {
           console.log('❌ Product not found in response, redirecting to 404');
           console.log('❌ Response structure:', response);
