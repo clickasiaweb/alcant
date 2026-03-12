@@ -1,7 +1,7 @@
 {
   "name": "industrial-solutions-admin",
   "version": "1.0.0",
-  "description": "Admin Panel for Industrial Solutions",
+  "description": "Admin Panel for Industrial Solutions - v2",
   "private": true,
   "scripts": {
     "dev": "react-scripts start",
