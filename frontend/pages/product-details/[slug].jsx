@@ -48,9 +48,14 @@ const ProductDetailPage = () => {
   useEffect(() => {
     if (!mounted || !slug) return;
     
+    console.log('🚀 STRATEGY TEST: useEffect triggered');
+    console.log('🚀 STRATEGY TEST: slug =', slug);
+    console.log('🚀 STRATEGY TEST: mounted =', mounted);
+    
     const loadProduct = async () => {
       try {
         setLoading(true);
+        console.log('🚀 STRATEGY TEST: Starting product load');
         
         console.log('🔍 Fetching product with slug:', slug);
         console.log('🔍 Full URL:', window.location.href);
@@ -60,48 +65,39 @@ const ProductDetailPage = () => {
           setTimeout(() => reject(new Error('Request timeout')), 25000)
         );
         
+        console.log('🚀 STRATEGY TEST: About to call API');
         const response = await Promise.race([
           productsAPI.getBySlug(slug),
           timeoutPromise
         ]);
         
+        console.log('🚀 STRATEGY TEST: API call completed');
         console.log('✅ Product response:', response);
         console.log('✅ Response type:', typeof response);
         console.log('✅ Response keys:', Object.keys(response || {}));
         console.log('✅ Response stringified:', JSON.stringify(response));
         
-        // TEMPORARY: Force set the product if response exists
+        // STRATEGY TEST: Check response before setting state
         if (response && Object.keys(response).length > 0) {
-          console.log('✅ Setting product directly (force):', response);
+          console.log('🚀 STRATEGY TEST: About to setProduct with valid data');
+          console.log('🚀 STRATEGY TEST: Product data before setProduct:', response);
+          
+          // Test direct state setting
           setProduct(response);
+          
+          console.log('🚀 STRATEGY TEST: setProduct called');
+          console.log('🚀 STRATEGY TEST: Waiting for state update...');
+          
+          // Add a small delay to check if state updates
+          setTimeout(() => {
+            console.log('🚀 STRATEGY TEST: State update check after timeout');
+          }, 100);
+          
           return;
         }
         
-        // Handle different response structures
-        if (response && response.product) {
-          setProduct(response.product);
-          console.log('✅ Product set successfully (wrapped):', response.product.name);
-        } else if (response && response.name) {
-          // Handle case where API returns product directly
-          setProduct(response);
-          console.log('✅ Product set successfully (direct):', response.name);
-        } else if (response && response.data) {
-          // Handle case where API returns in data property
-          setProduct(response.data);
-          console.log('✅ Product set successfully (data):', response.data.name);
-        } else if (response && Object.keys(response).length > 0) {
-          // Handle case where response has data but not expected structure
-          setProduct(response);
-          console.log('✅ Product set successfully (fallback):', response);
-        } else {
-          console.log('❌ Product not found in response, redirecting to 404');
-          console.log('❌ Response structure:', response);
-          console.log('❌ Response exists:', !!response);
-          console.log('❌ Response has name:', !!(response && response.name));
-          console.log('❌ Response has product:', !!(response && response.product));
-          console.log('❌ Response has data:', !!(response && response.data));
-          router.push('/404');
-        }
+        console.log('❌ STRATEGY TEST: Response was empty or invalid');
+        
       } catch (error) {
         console.error('❌ Error loading product:', error);
         console.error('❌ Error status:', error.response?.status);
@@ -120,7 +116,9 @@ const ProductDetailPage = () => {
           // You could show a generic error message to the user here
         }
       } finally {
+        console.log('🚀 STRATEGY TEST: About to setLoading(false)');
         setLoading(false);
+        console.log('🚀 STRATEGY TEST: setLoading(false) called');
       }
     };
 
@@ -235,7 +233,7 @@ const ProductDetailPage = () => {
   }
 
   if (loading) {
-    console.log('🔍 Still loading product...');
+    console.log('� STRATEGY TEST: In loading state, showing spinner');
     return (
       <Layout title="Loading...">
         <div className="min-h-screen flex items-center justify-center">
@@ -245,12 +243,17 @@ const ProductDetailPage = () => {
     );
   }
 
-  console.log('🔍 Product state:', product);
+  console.log('� STRATEGY TEST: Past loading state');
+  console.log('� Product state:', product);
   console.log('🔍 Product exists:', !!product);
   console.log('🔍 Product name:', product?.name);
 
+  // STRATEGY TEST: Add a test render checkpoint
+  console.log('� STRATEGY TEST: About to check product existence');
+  
   if (!product) {
-    console.log('❌ Product is null/undefined, showing not found');
+    console.log('❌ STRATEGY TEST: Product is null/undefined, showing not found');
+    console.log('❌ STRATEGY TEST: This means setProduct never worked or state was reset');
     return (
       <Layout title="Product Not Found">
         <div className="min-h-screen flex items-center justify-center">
@@ -266,9 +269,20 @@ const ProductDetailPage = () => {
     );
   }
 
+  console.log('✅ STRATEGY TEST: Product exists, about to render product details');
+  console.log('✅ STRATEGY TEST: Product name for render:', product.name);
+  console.log('✅ STRATEGY TEST: Product price for render:', product.price);
+
+  // STRATEGY TEST: Final checkpoint before actual product rendering
+  console.log('🎯 STRATEGY TEST: FINAL CHECKPOINT - About to render actual product');
+  console.log('🎯 STRATEGY TEST: If you see this, everything worked up to this point');
+
   const images = getImages();
   const mainImage = images[selectedImage] || product.image || '/api/placeholder/600/600';
   const hasMultipleImages = images.length > 1;
+  
+  console.log('🎯 STRATEGY TEST: Images processed:', images);
+  console.log('🎯 STRATEGY TEST: Main image:', mainImage);
   
   // Extract product features from description or use defaults
   const features = [
