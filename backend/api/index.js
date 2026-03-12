@@ -55,6 +55,7 @@ app.use(
       "https://alcant-website.vercel.app",
       "https://alcant-backend.vercel.app",
       "https://alcant-three.vercel.app",
+      "https://alcant12.vercel.app",
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",
