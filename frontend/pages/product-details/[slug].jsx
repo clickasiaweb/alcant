@@ -65,6 +65,8 @@ const ProductDetailPage = () => {
         ]);
         
         console.log('✅ Product response:', response);
+        console.log('✅ Response type:', typeof response);
+        console.log('✅ Response keys:', Object.keys(response || {}));
         
         // Handle different response structures
         if (response && response.product) {
@@ -81,6 +83,10 @@ const ProductDetailPage = () => {
         } else {
           console.log('❌ Product not found in response, redirecting to 404');
           console.log('❌ Response structure:', response);
+          console.log('❌ Response exists:', !!response);
+          console.log('❌ Response has name:', !!(response && response.name));
+          console.log('❌ Response has product:', !!(response && response.product));
+          console.log('❌ Response has data:', !!(response && response.data));
           router.push('/404');
         }
       } catch (error) {
