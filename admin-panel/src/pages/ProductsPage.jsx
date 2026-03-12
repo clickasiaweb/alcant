@@ -78,8 +78,8 @@ export default function ProductsPage() {
       console.log('Products data:', productsData);
       console.log('Categories data:', categoriesData);
 
-      const products = productsData.products || [];
-      const categories = categoriesData.categories || [];
+      const products = productsData.products || productsData.data || [];
+      const categories = categoriesData.categories || categoriesData.data || [];
       
       console.log('Processed products:', products);
       console.log('Processed categories:', categories);
