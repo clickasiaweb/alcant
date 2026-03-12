@@ -617,15 +617,24 @@ export async function fetchHomeContent() {
   try {
     // Use hardcoded API URL to ensure it works in production
     const API_URL = 'https://alcant-backend.vercel.app/api';
-    const response = await fetch(`${API_URL}/content/home`);
+    const url = `${API_URL}/content/home`;
+    console.log('🏠 fetchHomeContent: Making request to:', url);
+    
+    const response = await fetch(url);
+    console.log('🏠 fetchHomeContent: Response status:', response.status);
+    
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
+    
     const data = await response.json();
-    console.log('🏠 Home content fetched:', data);
+    console.log('🏠 fetchHomeContent: Raw response:', data);
+    console.log('🏠 fetchHomeContent: Content extracted:', data.content);
+    console.log('🏠 Home content fetched successfully');
     return data.content || {};
   } catch (error) {
-    console.error('Error fetching home content:', error);
+    console.error('🏠 fetchHomeContent: Error fetching home content:', error);
+    console.error('🏠 fetchHomeContent: Error details:', error.message);
     // Return empty object as fallback
     return {};
   }
@@ -636,13 +645,16 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🏠 HomePage: Starting content fetch');
     fetchHomeContent()
       .then(data => {
+        console.log('🏠 HomePage: Content received:', data);
+        console.log('🏠 HomePage: Content keys:', Object.keys(data));
         setHomeContent(data);
         setLoading(false);
       })
       .catch(err => {
-        console.error('Failed to load home content:', err);
+        console.error('🏠 HomePage: Failed to load home content:', err);
         setLoading(false);
       });
   }, []);
@@ -656,6 +668,10 @@ export default function HomePage() {
       </Layout>
     );
   }
+
+  console.log('🏠 HomePage: Rendering with content:', homeContent);
+  console.log('🏠 HomePage: Hero content:', homeContent.hero);
+  console.log('🏠 HomePage: Collections content:', homeContent.collections);
 
   return <AlcantaraHome homeContent={homeContent} />;
 }
