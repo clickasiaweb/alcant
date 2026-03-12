@@ -47,35 +47,8 @@ const NewProductsSection = () => {
         (product.is_active !== false) // Only show active products
       );
       
-      // Add test product for demo
-      const testProduct = {
-        id: 'test-123',
-        name: 'Test Product for Demo',
-        slug: 'test-product-demo',
-        description: 'This is a test product for demonstration purposes.',
-        price: 99.99,
-        old_price: 149.99,
-        final_price: 99.99,
-        category: 'test-category',
-        subcategory: 'demo',
-        images: ['https://picsum.photos/seed/test-product/400/400.jpg'],
-        image: 'https://picsum.photos/seed/test-product/400/400.jpg',
-        rating: 4.5,
-        reviews: 12,
-        stock: 50,
-        is_new: true,
-        is_limited_edition: false,
-        is_blue_monday_sale: false,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-      
-      const productsWithTest = [testProduct, ...validProducts];
-      
       console.log('Valid products filtered:', validProducts);
-      console.log('Products with test product:', productsWithTest);
-      setNewProducts(productsWithTest);
+      setNewProducts(validProducts);
     } catch (error) {
       console.error("Error fetching new products:", error);
       console.error("Error details:", error.response?.data);
@@ -86,44 +59,24 @@ const NewProductsSection = () => {
           id: 1,
           name: "iPhone 15 Pro Case - Black",
           price: 89.99,
-          image: "/api/placeholder/300/400",
-          color: "Black",
+          slug: "iphone-15-pro-case-black",
+          image: "https://picsum.photos/seed/iphone-15-black-case/300/400.jpg",
+          category: "Phone Cases",
+          rating: 4.7,
+          reviews: 23,
+          is_new: true
         },
         {
           id: 2,
-          name: "iPhone 15 Pro Case - Brown",
-          price: 89.99,
-          image: "/api/placeholder/300/400",
-          color: "Brown",
-        },
-        {
-          id: 3,
-          name: "iPhone 15 Pro Case - Red",
-          price: 89.99,
-          image: "/api/placeholder/300/400",
-          color: "Red",
-        },
-        {
-          id: 4,
-          name: "iPhone 15 Pro Case - Blue",
-          price: 89.99,
-          image: "/api/placeholder/300/400",
-          color: "Blue",
-        },
-        {
-          id: 5,
-          name: "iPhone 15 Pro Case - Green",
-          price: 89.99,
-          image: "/api/placeholder/300/400",
-          color: "Green",
-        },
-        {
-          id: 6,
-          name: "iPhone 15 Pro Case - Gray",
-          price: 89.99,
-          image: "/api/placeholder/300/400",
-          color: "Gray",
-        },
+          name: "MacBook Pro Sleeve - Brown",
+          price: 129.99,
+          slug: "macbook-pro-sleeve-brown",
+          image: "https://picsum.photos/seed/macbook-sleeve-brown/300/400.jpg",
+          category: "Laptop Accessories",
+          rating: 4.9,
+          reviews: 18,
+          is_new: true
+        }
       ]);
     } finally {
       setLoading(false);

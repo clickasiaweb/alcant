@@ -52,37 +52,6 @@ const ProductDetailPage = () => {
       try {
         setLoading(true);
         
-        // TEMPORARY TEST: Use hardcoded product for testing
-        if (slug === 'test-product-demo') {
-          const testProduct = {
-            id: 'test-123',
-            name: 'Test Product for Demo',
-            slug: 'test-product-demo',
-            description: 'This is a test product for demonstration purposes. It should display correctly on the product details page.',
-            price: 99.99,
-            old_price: 149.99,
-            final_price: 99.99,
-            category: 'test-category',
-            subcategory: 'demo',
-            images: ['https://picsum.photos/seed/test-product/400/400.jpg'],
-            image: 'https://picsum.photos/seed/test-product/400/400.jpg',
-            rating: 4.5,
-            reviews: 12,
-            stock: 50,
-            is_new: true,
-            is_limited_edition: false,
-            is_blue_monday_sale: false,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-          
-          console.log('✅ Using hardcoded test product:', testProduct);
-          setProduct(testProduct);
-          setLoading(false);
-          return;
-        }
-        
         console.log('🔍 Fetching product with slug:', slug);
         console.log('🔍 Full URL:', window.location.href);
         
