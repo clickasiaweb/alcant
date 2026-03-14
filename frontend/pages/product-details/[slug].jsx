@@ -3,8 +3,7 @@ import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import Link from 'next/link';
 import { productsAPI } from '../../services/api';
-// TEMPORARILY COMMENTED OUT FOR TESTING
-// import WishlistButton from '../../components/WishlistButton';
+import WishlistButton from '../../components/WishlistButton';
 // import QuickAddToCart from '../../components/QuickAddToCart';
 // import { useCart } from '../../contexts/CartContext';
 import { 
