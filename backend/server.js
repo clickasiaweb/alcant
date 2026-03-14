@@ -48,6 +48,10 @@ testConnection()
 app.use(
   cors({
     origin: [
+      "https://alcant.in",
+      "https://www.alcant.in",
+      "https://admin.alcant.in",
+      "https://api.alcant.in",
       "https://alcannt.in",
       "https://www.alcannt.in",
       "https://admin.alcannt.in",
