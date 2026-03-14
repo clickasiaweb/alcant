@@ -4,7 +4,7 @@ import Layout from "../components/Layout";
 import Link from "next/link";
 import { getHomeContent } from "../services/contentService";
 
-const NewProductsSection = dynamic(() => import("../components/NewProductsSection"), {
+const NewProductsSection = dynamic(() => import("../components/NewProductsSectionMock"), {
   ssr: false,
   loading: () => (
     <section className="py-16 bg-white">
@@ -32,61 +32,51 @@ import Phone from "lucide-react/dist/esm/icons/phone";
 import MapPin from "lucide-react/dist/esm/icons/map-pin";
 
 const AlcantaraHome = ({ homeContent = {} }) => {
-  const collections = homeContent.collections?.items?.map(item => ({
-    ...item,
-    image: item.image?.includes('/api/placeholder') 
-      ? `https://picsum.photos/seed/${item.title || 'collection'}/400/300.jpg`
-      : item.image
-  })) || [
+  const collections = homeContent.collections?.items || [
     {
       id: 1,
       title: "Phone Cases",
-      image: "https://picsum.photos/seed/phone-cases/400/300.jpg",
+      image: "/api/placeholder/400/300",
       link: "/category/phone-cases",
     },
     {
       id: 2,
       title: "Wallets",
-      image: "https://picsum.photos/seed/wallets/400/300.jpg",
+      image: "/api/placeholder/400/300",
       link: "/category/wallets",
     },
     {
       id: 3,
       title: "Accessories",
-      image: "https://picsum.photos/seed/accessories/400/300.jpg",
+      image: "/api/placeholder/400/300",
       link: "/category/accessories",
     },
     {
       id: 4,
       title: "Car & Travel",
-      image: "https://picsum.photos/seed/car-travel/400/300.jpg",
+      image: "/api/placeholder/400/300",
       link: "/category/car-travel",
     },
     {
       id: 5,
       title: "Office",
-      image: "https://picsum.photos/seed/office/400/300.jpg",
+      image: "/api/placeholder/400/300",
       link: "/category/office",
     },
     {
       id: 6,
       title: "Sale",
-      image: "https://picsum.photos/seed/sale/400/300.jpg",
+      image: "/api/placeholder/400/300",
       link: "/category/sale",
     },
   ];
 
-  const tuners = homeContent.tuners?.items?.map(item => ({
-    ...item,
-    image: item.image?.includes('/api/placeholder') 
-      ? `https://picsum.photos/seed/${item.title || 'tuner'}/100/100.jpg`
-      : item.image
-  })) || [
+  const tuners = homeContent.tuners?.items || [
     {
       id: 1,
       name: "John Smith",
       title: "Professional Car Tuner",
-      image: "https://picsum.photos/seed/john-smith/100/100.jpg",
+      image: "/api/placeholder/100/100",
       description:
         "Specializing in luxury vehicle modifications with Alcantara interiors.",
     },
@@ -94,7 +84,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
       id: 2,
       name: "Mike Johnson",
       title: "Performance Specialist",
-      image: "https://picsum.photos/seed/mike-johnson/100/100.jpg",
+      image: "/api/placeholder/100/100",
       description:
         "Expert in high-performance vehicle upgrades and custom Alcantara work.",
     },
@@ -102,7 +92,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
       id: 3,
       name: "David Lee",
       title: "Interior Designer",
-      image: "https://picsum.photos/seed/david-lee/100/100.jpg",
+      image: "/api/placeholder/100/100",
       description:
         "Creating bespoke automotive interiors with premium Alcantara materials.",
     },
@@ -110,7 +100,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
 
   const communityPosts = Array.from({ length: 8 }, (_, i) => ({
     id: i + 1,
-    image: `https://picsum.photos/seed/community-post-${i + 1}/300/300.jpg`,
+    image: "/api/placeholder/300/300",
     title: `Community Post ${i + 1}`,
   }));
 
@@ -615,26 +605,14 @@ const AlcantaraHome = ({ homeContent = {} }) => {
 // Client-side data fetching for static export
 export async function fetchHomeContent() {
   try {
-    // Use hardcoded API URL to ensure it works in production
-    const API_URL = 'https://alcant-backend.vercel.app/api';
-    const url = `${API_URL}/content/home`;
-    console.log('🏠 fetchHomeContent: Making request to:', url);
-    
-    const response = await fetch(url);
-    console.log('🏠 fetchHomeContent: Response status:', response.status);
-    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/content/home`);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
     const data = await response.json();
-    console.log('🏠 fetchHomeContent: Raw response:', data);
-    console.log('🏠 fetchHomeContent: Content extracted:', data.content);
-    console.log('🏠 Home content fetched successfully');
     return data.content || {};
   } catch (error) {
-    console.error('🏠 fetchHomeContent: Error fetching home content:', error);
-    console.error('🏠 fetchHomeContent: Error details:', error.message);
+    console.error('Error fetching home content:', error);
     // Return empty object as fallback
     return {};
   }
@@ -645,16 +623,13 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🏠 HomePage: Starting content fetch');
     fetchHomeContent()
       .then(data => {
-        console.log('🏠 HomePage: Content received:', data);
-        console.log('🏠 HomePage: Content keys:', Object.keys(data));
         setHomeContent(data);
         setLoading(false);
       })
       .catch(err => {
-        console.error('🏠 HomePage: Failed to load home content:', err);
+        console.error('Failed to load home content:', err);
         setLoading(false);
       });
   }, []);
@@ -668,10 +643,6 @@ export default function HomePage() {
       </Layout>
     );
   }
-
-  console.log('🏠 HomePage: Rendering with content:', homeContent);
-  console.log('🏠 HomePage: Hero content:', homeContent.hero);
-  console.log('🏠 HomePage: Collections content:', homeContent.collections);
 
   return <AlcantaraHome homeContent={homeContent} />;
 }

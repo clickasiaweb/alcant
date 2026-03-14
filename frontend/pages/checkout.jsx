@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-import { useCart } from '../contexts/CartContext';
 import { 
   CreditCard, 
   Truck, 
@@ -19,22 +18,8 @@ import {
 
 const CheckoutPage = () => {
   const router = useRouter();
-  const { cartItems, calculateSubtotal, clearCart } = useCart();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [isClient, setIsClient] = useState(false);
-
-  // Ensure client-side rendering for cart-dependent content
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  // Redirect to products if cart is empty (only on client-side)
-  useEffect(() => {
-    if (isClient && cartItems.length === 0) {
-      router.push('/products');
-    }
-  }, [cartItems, router, isClient]);
   
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
@@ -69,6 +54,34 @@ const CheckoutPage = () => {
     cardName: '',
     saveCard: false
   });
+
+  const [orderSummary] = useState([
+    {
+      id: 1,
+      name: 'Premium Industrial Automation System',
+      price: 25000,
+      quantity: 1,
+      image: 'https://via.placeholder.com/60x60/1a365d/ffffff?text=Automation'
+    },
+    {
+      id: 2,
+      name: 'Quality Control System',
+      price: 15000,
+      quantity: 2,
+      image: 'https://via.placeholder.com/60x60/2b6cb0/ffffff?text=QC'
+    },
+    {
+      id: 3,
+      name: 'Industrial Robot Arm',
+      price: 45000,
+      quantity: 1,
+      image: 'https://via.placeholder.com/60x60/3182ce/ffffff?text=Robot'
+    }
+  ]);
+
+  const calculateSubtotal = () => {
+    return orderSummary.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
 
   const calculateTax = () => {
     return calculateSubtotal() * 0.08; // 8% tax
@@ -127,40 +140,8 @@ const CheckoutPage = () => {
     // Simulate order processing
     await new Promise(resolve => setTimeout(resolve, 2000));
     setLoading(false);
-    // Clear cart after successful order
-    clearCart();
     // Redirect to order confirmation
     router.push('/order-confirmation');
-  };
-
-  // Show loading state during SSR or if cart is empty
-  if (!isClient) {
-    return (
-      <Layout title="Loading...">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-        </div>
-      </Layout>
-    );
-  }
-
-  if (cartItems.length === 0) {
-    return (
-      <Layout title="Cart Empty">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Cart is Empty</h1>
-            <p className="text-gray-600 mb-8">Your shopping cart is empty</p>
-            <button
-              onClick={() => router.push('/products')}
-              className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
-            >
-              Continue Shopping
-            </button>
-          </div>
-        </div>
-      </Layout>
-    );
   };
 
   const steps = [
@@ -611,43 +592,7 @@ const CheckoutPage = () => {
                 <div className="bg-white rounded-lg p-6 shadow-sm sticky top-4">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
                   
-                  {/* Cart Items */}
-                  <div className="space-y-4 mb-6">
-                    {cartItems.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <p>Your cart is empty</p>
-                        <Link href="/products" className="text-primary-600 hover:text-primary-700 mt-2 inline-block">
-                          Continue Shopping
-                        </Link>
-                      </div>
-                    ) : (
-                      cartItems.map((item) => (
-                        <div key={item.id} className="flex items-center space-x-4">
-                          <img 
-                            src={item.image} 
-                            alt={item.name}
-                            className="w-16 h-16 object-cover rounded-lg"
-                          />
-                          <div className="flex-1">
-                            <h3 className="text-sm font-medium text-gray-900">{item.name}</h3>
-                            <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-gray-900">
-                              ${((item.originalPrice || item.price) * item.quantity).toLocaleString()}
-                            </p>
-                            {item.originalPrice && item.originalPrice > item.price && (
-                              <p className="text-xs text-gray-500 line-through">
-                                ${(item.originalPrice * item.quantity).toLocaleString()}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  
-                  <div className="space-y-3 mb-6 border-t pt-4">
+                  <div className="space-y-3 mb-6">
                     <div className="flex justify-between text-gray-600">
                       <span>Subtotal</span>
                       <span>${calculateSubtotal().toLocaleString()}</span>

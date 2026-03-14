@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = "https://alcant-backend.vercel.app/api"; // FIXED - Using hardcoded URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
 // Create axios instance
 const api = axios.create({
@@ -8,20 +8,7 @@ const api = axios.create({
   timeout: 30000, // Increased timeout to 30 seconds
   headers: {
     'Content-Type': 'application/json',
-    'Cache-Control': 'no-cache',
   },
-});
-
-// Add request interceptor for cache-busting
-api.interceptors.request.use((config) => {
-  // Add timestamp to prevent caching
-  if (config.method === 'get') {
-    config.params = {
-      ...config.params,
-      _t: Date.now(),
-    };
-  }
-  return config;
 });
 
 // Products API
@@ -52,31 +39,9 @@ export const productsAPI = {
   // Get product by slug
   getBySlug: async (slug) => {
     console.log('API: Fetching product with slug:', slug);
-    console.log('API: Base URL:', api.defaults.baseURL);
-    console.log('API: Full URL:', `${api.defaults.baseURL}/products/slug/${slug}`);
-    console.log('API: Hardcoded check - should be https://alcant-backend.vercel.app/api');
-    
-    try {
-      console.log('API: Making request...');
-      const response = await api.get(`/products/slug/${slug}`);
-      console.log('API: Request completed successfully');
-      console.log('API: Response received:', response.data);
-      console.log('API: Response status:', response.status);
-      console.log('API: Response headers:', response.headers);
-      console.log('API: Response type:', typeof response.data);
-      console.log('API: Response keys:', Object.keys(response.data || {}));
-      return response.data;
-    } catch (error) {
-      console.error('API: ERROR - Request failed!');
-      console.error('API: Error fetching product by slug:', error);
-      console.error('API: Error response:', error.response?.data);
-      console.error('API: Error status:', error.response?.status);
-      console.error('API: Error message:', error.message);
-      console.error('API: Full error:', error);
-      
-      // Return empty object on error to prevent undefined
-      return {};
-    }
+    const response = await api.get(`/products/slug/${slug}`);
+    console.log('API: Response received:', response.data);
+    return response.data;
   },
 
   // Get featured products

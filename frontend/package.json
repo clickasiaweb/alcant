@@ -1,7 +1,7 @@
 {
   "name": "industrial-solutions-frontend",
   "version": "1.0.0",
-  "description": "Industrial Solutions Frontend - v6 - FINAL FIX",
+  "description": "Frontend for Industrial Solutions Product Website",
   "private": true,
   "scripts": {
     "dev": "next dev",

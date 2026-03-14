@@ -114,14 +114,6 @@ const SearchResults = () => {
       // Filter products based on search query and filters
       let filteredProducts = mockProducts;
       
-      // Filter only valid/existing products
-      filteredProducts = filteredProducts.filter(product => 
-        product && 
-        product.name && 
-        product.slug && 
-        product.price
-      );
-      
       if (searchQuery) {
         filteredProducts = filteredProducts.filter(product =>
           product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -326,7 +318,7 @@ const SearchResults = () => {
                 </div>
               ) : products.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {products.filter(product => product && product.name && product.slug).map((product, index) => (
+                  {products.map((product, index) => (
                     <ProductCard key={product.id} product={product} index={index} />
                   ))}
                 </div>

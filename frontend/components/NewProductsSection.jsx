@@ -1,17 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { productsAPI } from '../services/api';
-import { 
-  Eye, 
-  Heart, 
-  ShoppingCart, 
-  Star, 
-  Truck, 
-  Shield, 
-  RotateCcw,
-  Package
-} from 'lucide-react';
+import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import Eye from "lucide-react/dist/esm/icons/eye";
+import ShoppingCart from "lucide-react/dist/esm/icons/shopping-cart";
+import Heart from "lucide-react/dist/esm/icons/heart";
+import Star from "lucide-react/dist/esm/icons/star";
+import Link from "next/link";
+import { productsAPI } from "../services/api";
 
 // Force client-side only rendering
 const NewProductsSection = () => {
@@ -35,27 +29,17 @@ const NewProductsSection = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Fetching new products...');
       
       const data = await productsAPI.getNew();
-      const allProducts = data.products || [];
+      console.log('New products received:', data);
+      console.log('Products array:', data.products);
+      console.log('Products length:', data.products?.length);
       
-      // Filter only existing/valid products with better validation
-      const validProducts = allProducts.filter(product => 
-        product && 
-        typeof product === 'object' &&
-        product.name && 
-        typeof product.name === 'string' &&
-        product.name.trim() &&
-        (product.slug ? typeof product.slug === 'string' : true) && // Allow missing slug but validate type if present
-        product.price !== undefined && 
-        product.price !== null &&
-        (product.is_active !== false) // Only show active products
-      );
-      
-      console.log('Filtered valid products:', validProducts.length, 'out of', allProducts.length);
-      setNewProducts(validProducts);
+      setNewProducts(data.products || []);
     } catch (error) {
       console.error("Error fetching new products:", error);
+      console.error("Error details:", error.response?.data);
       setError(error.message);
       // Fallback to hardcoded products if API fails
       setNewProducts([
@@ -63,24 +47,44 @@ const NewProductsSection = () => {
           id: 1,
           name: "iPhone 15 Pro Case - Black",
           price: 89.99,
-          slug: "iphone-15-pro-case-black",
-          image: "https://picsum.photos/seed/iphone-15-black-case/300/400.jpg",
-          category: "Phone Cases",
-          rating: 4.7,
-          reviews: 23,
-          is_new: true
+          image: "/api/placeholder/300/400",
+          color: "Black",
         },
         {
           id: 2,
-          name: "MacBook Pro Sleeve - Brown",
-          price: 129.99,
-          slug: "macbook-pro-sleeve-brown",
-          image: "https://picsum.photos/seed/macbook-sleeve-brown/300/400.jpg",
-          category: "Laptop Accessories",
-          rating: 4.9,
-          reviews: 18,
-          is_new: true
-        }
+          name: "iPhone 15 Pro Case - Brown",
+          price: 89.99,
+          image: "/api/placeholder/300/400",
+          color: "Brown",
+        },
+        {
+          id: 3,
+          name: "iPhone 15 Pro Case - Red",
+          price: 89.99,
+          image: "/api/placeholder/300/400",
+          color: "Red",
+        },
+        {
+          id: 4,
+          name: "iPhone 15 Pro Case - Blue",
+          price: 89.99,
+          image: "/api/placeholder/300/400",
+          color: "Blue",
+        },
+        {
+          id: 5,
+          name: "iPhone 15 Pro Case - Green",
+          price: 89.99,
+          image: "/api/placeholder/300/400",
+          color: "Green",
+        },
+        {
+          id: 6,
+          name: "iPhone 15 Pro Case - Gray",
+          price: 89.99,
+          image: "/api/placeholder/300/400",
+          color: "Gray",
+        },
       ]);
     } finally {
       setLoading(false);
@@ -88,12 +92,14 @@ const NewProductsSection = () => {
   };
 
   const handleQuickView = (product) => {
-    const slug = getProductSlug(product);
-    if (slug && slug !== 'product-details') {
-      window.location.href = `/product-details/${slug}`;
-    } else {
-      console.error('Invalid slug generated for product:', product);
-    }
+    // Use the actual slug from the database, not generate one from name
+    const slug = product.slug || (
+      product.name
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "")
+    );
+    window.location.href = `/product-details/${slug}`;
   };
 
   const handleAddToCart = (product) => {
@@ -158,34 +164,12 @@ const NewProductsSection = () => {
   };
 
   const getProductSlug = (product) => {
-    // First try to use the existing slug
-    if (product.slug && typeof product.slug === 'string' && product.slug.trim()) {
-      return product.slug.trim();
-    }
-    
-    // If no slug, generate from name with better error handling
-    if (product.name && typeof product.name === 'string' && product.name.trim()) {
-      const slug = product.name
+    return product.slug || (
+      product.name
         .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
-        .replace(/\s+/g, '-') // Replace spaces with hyphens
-        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-        .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
-      
-      // Ensure we have a valid slug
-      if (slug && slug.length > 0) {
-        return slug;
-      }
-    }
-    
-    // Fallback to product ID
-    if (product.id || product._id) {
-      return `product-${product.id || product._id}`;
-    }
-    
-    // Last resort - generate a random slug
-    return `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "")
+    );
   };
 
   const getProductPrice = (product) => {
@@ -273,7 +257,7 @@ const NewProductsSection = () => {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {newProducts && newProducts.length > 0 ? (
+          {newProducts.length > 0 ? (
             newProducts.map((product) => {
               const slug = getProductSlug(product);
               const price = getProductPrice(product);
@@ -401,13 +385,13 @@ const NewProductsSection = () => {
                     </div>
                     
                     {/* Main Action Button */}
-                    <Link 
-                      href={`/product-details/${slug}`}
+                    <button
+                      onClick={() => handleQuickView(product)}
                       className="w-full bg-primary-900 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-primary-800 transition-colors flex items-center justify-center"
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       View Details
-                    </Link>
+                    </button>
                   </div>
                 </div>
               );

@@ -1,5 +1,5 @@
 // API service for fetching categories and products
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
 console.log('🔧 CategoryService initialized with API URL:', API_BASE_URL);
 
