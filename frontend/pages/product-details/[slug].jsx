@@ -16,24 +16,44 @@ const ProductDetailPage = () => {
     const loadProduct = async () => {
       try {
         setLoading(true);
+        console.log('🔍 Loading product with slug:', slug);
+        console.log('🔍 Browser:', navigator.userAgent);
+        console.log('🔍 Current URL:', window.location.href);
+        
         const response = await productsAPI.getBySlug(slug);
+        console.log('📦 API Response:', response);
         
         let productData = null;
         if (response && typeof response === "object") {
           if (response.data && typeof response.data === "object") {
             productData = response.data;
+            console.log('✅ Using response.data');
           } else if (response.name || response.title || response.price !== undefined) {
             productData = response;
+            console.log('✅ Using direct response');
           } else if (response.product && typeof response.product === "object") {
             productData = response.product;
+            console.log('✅ Using response.product');
+          } else {
+            console.log('❌ Unknown response structure:', Object.keys(response));
           }
+        } else {
+          console.log('❌ No response or invalid response');
         }
         
         if (productData && Object.keys(productData).length > 0) {
+          console.log('🎉 Product data set:', productData.name || productData.title);
           setProduct(productData);
+        } else {
+          console.log('❌ No valid product data found');
         }
       } catch (error) {
-        console.error("Error loading product:", error);
+        console.error("❌ Error loading product:", error);
+        console.error("❌ Error details:", {
+          message: error.message,
+          status: error.response?.status,
+          data: error.response?.data
+        });
         if (error.response?.status === 404) {
           router.push("/404");
         }
