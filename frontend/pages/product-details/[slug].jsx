@@ -64,24 +64,16 @@ const ProductDetailPage = () => {
           timeoutPromise
         ]);
         
-        console.log('Product API Response:', response);
+        console.log('✅ Product response:', response);
         
-        // Handle different response structures
-        let productData = null;
-        
-        if (response && typeof response === 'object') {
-          // Check if response has data property
-          if (response.data && typeof response.data === 'object') {
-            productData = response.data;
-          } 
-          // Check if response is product directly
-          else if (response.name || response.title || response.price !== undefined) {
-            productData = response;
-          }
-          // Check if response has product property
-          else if (response.product && typeof response.product === 'object') {
-            productData = response.product;
-          }
+        if (response && response.product) {
+          setProduct(response.product);
+          console.log('✅ Product set successfully:', response.product.name);
+        } else if (response && response.name) {
+          // Handle case where API returns product directly
+          setProduct(response);
+          console.log('✅ Product set successfully:', response.name);
+        } else {
           console.log('❌ Product not found in response, redirecting to 404');
           console.log('❌ Response structure:', response);
           router.push('/404');
