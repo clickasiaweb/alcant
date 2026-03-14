@@ -15,6 +15,16 @@ const nextConfig = {
   generateBuildId: async () => 'build',
   // Skip build-time generation of client-side manifest
   generateEtags: false,
+  // Add better handling for static export
+  skipTrailingSlashRedirect: true,
+  // Ensure proper handling of dynamic routes
+  exportPathMap: async function (
+    defaultPathMap,
+    { dev, dir, outDir, distDir, buildId }
+  ) {
+    // In static export mode, ensure all dynamic routes are properly handled
+    return defaultPathMap;
+  },
 };
 
 module.exports = nextConfig;

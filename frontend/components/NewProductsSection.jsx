@@ -39,16 +39,20 @@ const NewProductsSection = () => {
       const data = await productsAPI.getNew();
       const allProducts = data.products || [];
       
-      // Filter only existing/valid products - simplified filtering
+      // Filter only existing/valid products with better validation
       const validProducts = allProducts.filter(product => 
         product && 
+        typeof product === 'object' &&
         product.name && 
-        product.slug && 
+        typeof product.name === 'string' &&
+        product.name.trim() &&
+        (product.slug ? typeof product.slug === 'string' : true) && // Allow missing slug but validate type if present
         product.price !== undefined && 
         product.price !== null &&
         (product.is_active !== false) // Only show active products
       );
       
+      console.log('Filtered valid products:', validProducts.length, 'out of', allProducts.length);
       setNewProducts(validProducts);
     } catch (error) {
       console.error("Error fetching new products:", error);
@@ -84,14 +88,12 @@ const NewProductsSection = () => {
   };
 
   const handleQuickView = (product) => {
-    // Use the actual slug from the database, not generate one from name
-    const slug = product.slug || (
-      product.name
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "")
-    );
-    window.location.href = `/product-details/${slug}`;
+    const slug = getProductSlug(product);
+    if (slug && slug !== 'product-details') {
+      window.location.href = `/product-details/${slug}`;
+    } else {
+      console.error('Invalid slug generated for product:', product);
+    }
   };
 
   const handleAddToCart = (product) => {
@@ -156,12 +158,34 @@ const NewProductsSection = () => {
   };
 
   const getProductSlug = (product) => {
-    return product.slug || (
-      product.name
+    // First try to use the existing slug
+    if (product.slug && typeof product.slug === 'string' && product.slug.trim()) {
+      return product.slug.trim();
+    }
+    
+    // If no slug, generate from name with better error handling
+    if (product.name && typeof product.name === 'string' && product.name.trim()) {
+      const slug = product.name
         .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "")
-    );
+        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+      
+      // Ensure we have a valid slug
+      if (slug && slug.length > 0) {
+        return slug;
+      }
+    }
+    
+    // Fallback to product ID
+    if (product.id || product._id) {
+      return `product-${product.id || product._id}`;
+    }
+    
+    // Last resort - generate a random slug
+    return `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   };
 
   const getProductPrice = (product) => {
