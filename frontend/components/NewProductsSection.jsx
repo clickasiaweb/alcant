@@ -35,29 +35,23 @@ const NewProductsSection = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Fetching new products...');
       
       const data = await productsAPI.getNew();
-      console.log('New products received:', data);
-      console.log('Products array:', data.products);
-      console.log('Products length:', data.products?.length);
-      
       const allProducts = data.products || [];
       
-      // Filter only existing/valid products
+      // Filter only existing/valid products - simplified filtering
       const validProducts = allProducts.filter(product => 
         product && 
         product.name && 
         product.slug && 
-        product.price && 
+        product.price !== undefined && 
+        product.price !== null &&
         (product.is_active !== false) // Only show active products
       );
       
-      console.log('Valid products filtered:', validProducts);
       setNewProducts(validProducts);
     } catch (error) {
       console.error("Error fetching new products:", error);
-      console.error("Error details:", error.response?.data);
       setError(error.message);
       // Fallback to hardcoded products if API fails
       setNewProducts([
@@ -255,8 +249,8 @@ const NewProductsSection = () => {
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {newProducts.length > 0 ? (
-            newProducts.filter(product => product && product.name && product.slug).map((product) => {
+          {newProducts && newProducts.length > 0 ? (
+            newProducts.map((product) => {
               const slug = getProductSlug(product);
               const price = getProductPrice(product);
               const oldPrice = getOldPrice(product);
