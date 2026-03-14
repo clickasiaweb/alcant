@@ -22,13 +22,19 @@ const CheckoutPage = () => {
   const { cartItems, calculateSubtotal, clearCart } = useCart();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
-  // Redirect to products if cart is empty
+  // Ensure client-side rendering for cart-dependent content
   useEffect(() => {
-    if (cartItems.length === 0) {
+    setIsClient(true);
+  }, []);
+
+  // Redirect to products if cart is empty (only on client-side)
+  useEffect(() => {
+    if (isClient && cartItems.length === 0) {
       router.push('/products');
     }
-  }, [cartItems, router]);
+  }, [cartItems, router, isClient]);
   
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
@@ -125,6 +131,36 @@ const CheckoutPage = () => {
     clearCart();
     // Redirect to order confirmation
     router.push('/order-confirmation');
+  };
+
+  // Show loading state during SSR or if cart is empty
+  if (!isClient) {
+    return (
+      <Layout title="Loading...">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        </div>
+      </Layout>
+    );
+  }
+
+  if (cartItems.length === 0) {
+    return (
+      <Layout title="Cart Empty">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Cart is Empty</h1>
+            <p className="text-gray-600 mb-8">Your shopping cart is empty</p>
+            <button
+              onClick={() => router.push('/products')}
+              className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Continue Shopping
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
   };
 
   const steps = [
