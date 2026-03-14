@@ -8,7 +8,20 @@ const api = axios.create({
   timeout: 30000, // Increased timeout to 30 seconds
   headers: {
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache',
   },
+});
+
+// Add request interceptor for cache-busting
+api.interceptors.request.use((config) => {
+  // Add timestamp to prevent caching
+  if (config.method === 'get') {
+    config.params = {
+      ...config.params,
+      _t: Date.now(),
+    };
+  }
+  return config;
 });
 
 // Products API

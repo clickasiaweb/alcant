@@ -64,6 +64,17 @@ app.use(
     credentials: true,
   }),
 );
+
+// Add cache control headers for API responses
+app.use((req, res, next) => {
+  // Prevent caching for API routes
+  if (req.path.startsWith('/api/')) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
 app.use(express.json({ limit: "100mb" })); // Increased payload limit for videos
 app.use(express.urlencoded({ extended: true, limit: "100mb" })); // Increased payload limit for videos
 

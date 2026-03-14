@@ -12,7 +12,7 @@ const nextConfig = {
   compress: true,
   // Remove assetPrefix and basePath for deployment
   // Generate static sitemap for better SEO
-  generateBuildId: async () => 'build',
+  generateBuildId: async () => `build-${Date.now()}`, // Add timestamp for cache-busting
   // Skip build-time generation of client-side manifest
   generateEtags: false,
   // Add better handling for static export
@@ -24,6 +24,28 @@ const nextConfig = {
   ) {
     // In static export mode, ensure all dynamic routes are properly handled
     return defaultPathMap;
+  },
+  // Add headers for cache control
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-cache, no-store, must-revalidate',
+          },
+          {
+            key: 'Pragma',
+            value: 'no-cache',
+          },
+          {
+            key: 'Expires',
+            value: '0',
+          },
+        ],
+      },
+    ];
   },
 };
 
