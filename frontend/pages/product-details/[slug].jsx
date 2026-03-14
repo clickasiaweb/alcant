@@ -105,23 +105,28 @@ const ProductDetailPage = ({ slug: initialSlug }) => {
   };
 
   const getImageUrl = (image) => {
+    // If image is null or undefined, return fallback
+    if (!image) {
+      return `https://picsum.photos/seed/${product?.name || 'product'}/600/600.jpg`;
+    }
+    
     // If it's already a full URL, return as is
-    if (image?.startsWith('http')) {
+    if (image.startsWith('http')) {
       return image;
     }
     
-    // If it's a blob URL, return as is
-    if (image?.startsWith('blob:')) {
+    // If it's a blob URL, return as is (but add error handling)
+    if (image.startsWith('blob:')) {
       return image;
     }
     
     // If it's a relative path, make it absolute
-    if (image?.startsWith('/')) {
+    if (image.startsWith('/')) {
       return image;
     }
     
     // If it's a placeholder or test image, use picsum
-    if (image?.includes('test-image') || image?.includes('placeholder')) {
+    if (image.includes('test-image') || image.includes('placeholder')) {
       return `https://picsum.photos/seed/${product.name}/600/600.jpg`;
     }
     
@@ -246,6 +251,9 @@ const ProductDetailPage = ({ slug: initialSlug }) => {
                     src={getImageUrl(mainImage)}
                     alt={product.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = `https://picsum.photos/seed/${product.name}/600/600.jpg`;
+                    }}
                   />
                 </div>
                 
@@ -300,6 +308,9 @@ const ProductDetailPage = ({ slug: initialSlug }) => {
                         src={getImageUrl(image)}
                         alt={`${product.name} - Image ${index + 1}`}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = `https://picsum.photos/seed/${product.name}/300/300.jpg`;
+                        }}
                       />
                     </button>
                   ))}
