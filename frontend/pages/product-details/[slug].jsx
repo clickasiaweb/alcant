@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Layout from "../../components/Layout";
-import Link from "next/link";
 import { productsAPI } from "../../services/api";
+import ProductImage from "../../components/product-details/ProductImage";
+import ProductInfo from "../../components/product-details/ProductInfo";
+import ProductBreadcrumb from "../../components/product-details/ProductBreadcrumb";
+import ProductLoader from "../../components/product-details/ProductLoader";
+import ProductNotFound from "../../components/product-details/ProductNotFound";
 
 const ProductDetailPage = () => {
   const router = useRouter();
   const { slug } = router.query;
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedImage, setSelectedImage] = useState(0);
 
   useEffect(() => {
     if (!slug) return;
@@ -65,97 +71,99 @@ const ProductDetailPage = () => {
     loadProduct();
   }, [slug, router]);
 
+  const handleQuantityChange = (change) => {
+    setQuantity(prev => Math.max(1, prev + change));
+  };
+
+  const handleAddToCart = () => {
+    console.log('Added to cart:', product?.name, 'Quantity:', quantity);
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: product?.name,
+        text: product?.description,
+        url: window.location.href
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+    }
+  };
+
+  const handleImageChange = (index) => {
+    setSelectedImage(index);
+  };
+
+  const getImages = () => {
+    if (!product?.images) return [];
+    
+    if (typeof product.images === 'string') {
+      try {
+        const parsed = JSON.parse(product.images);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch (e) {
+        console.error('Error parsing images:', e);
+        return [];
+      }
+    }
+    
+    if (Array.isArray(product.images)) {
+      return product.images;
+    }
+    
+    if (typeof product.images === 'object' && product.images !== null) {
+      return [product.images];
+    }
+    
+    return [];
+  };
+
   if (loading) {
-    return (
-      <Layout title="Loading...">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-        </div>
-      </Layout>
-    );
+    return <ProductLoader />;
   }
 
   if (!product) {
-    return (
-      <Layout title="Product Not Found">
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Product Not Found</h1>
-            <p className="text-gray-600 mb-8">The product you are looking for does not exist.</p>
-            <Link href="/products" className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700">
-              Back to Products
-            </Link>
-          </div>
-        </div>
-      </Layout>
-    );
+    return <ProductNotFound />;
   }
 
   const displayName = product.name || product.title || "Product";
   const displayDescription = product.description || product.short_description || "No description available.";
   const currentPrice = product.price || product.final_price || 0;
+  const oldPrice = product.old_price || product.oldPrice;
+  
+  const images = getImages();
+  const mainImage = images[selectedImage] || product.image || `https://picsum.photos/seed/${displayName}/600/600.jpg`;
+  const hasMultipleImages = images.length > 1;
 
   return (
     <Layout title={displayName} description={displayDescription}>
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container">
-          <nav className="mb-8">
-            <ol className="flex items-center space-x-2 text-sm text-gray-500">
-              <li><Link href="/" className="hover:text-primary-600">Home</Link></li>
-              <li>/</li>
-              <li><Link href="/products" className="hover:text-primary-600">Products</Link></li>
-              <li>/</li>
-              <li className="text-gray-900">{displayName}</li>
-            </ol>
-          </nav>
-
+          <ProductBreadcrumb displayName={displayName} />
+          
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <div className="space-y-4">
-              <div className="bg-white rounded-lg overflow-hidden shadow-lg">
-                <div className="aspect-square">
-                  <img
-                    src={product.image || `https://picsum.photos/seed/${displayName}/600/600.jpg`}
-                    alt={displayName}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-4">{displayName}</h1>
-                <div className="flex items-baseline space-x-3 mb-4">
-                  <span className="text-3xl font-bold text-primary-600">
-                    ${typeof currentPrice === "number" ? currentPrice.toFixed(2) : currentPrice}
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Description</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {displayDescription}
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex space-x-4">
-                  <button className="flex-1 bg-primary-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-primary-700">
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Availability:</span>
-                  <span className="text-sm font-medium text-green-600">
-                    In Stock
-                  </span>
-                </div>
-              </div>
-            </div>
+            <ProductImage 
+              product={product}
+              displayName={displayName}
+              mainImage={mainImage}
+              selectedImage={selectedImage}
+              images={images}
+              hasMultipleImages={hasMultipleImages}
+              handleImageChange={handleImageChange}
+            />
+            
+            <ProductInfo 
+              product={product}
+              displayName={displayName}
+              displayDescription={displayDescription}
+              currentPrice={currentPrice}
+              oldPrice={oldPrice}
+              quantity={quantity}
+              handleQuantityChange={handleQuantityChange}
+              handleAddToCart={handleAddToCart}
+              handleShare={handleShare}
+            />
           </div>
         </div>
       </div>
