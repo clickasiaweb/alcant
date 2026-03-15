@@ -29,29 +29,33 @@ const ProductDetailPage = () => {
         const response = await productsAPI.getBySlug(slug);
         console.log('📦 API Response:', response);
         
-        let productData = null;
-        if (response && typeof response === "object") {
-          if (response.data && typeof response.data === "object") {
-            productData = response.data;
-            console.log('✅ Using response.data');
-          } else if (response.name || response.title || response.price !== undefined) {
-            productData = response;
-            console.log('✅ Using direct response');
-          } else if (response.product && typeof response.product === "object") {
-            productData = response.product;
-            console.log('✅ Using response.product');
+        // The API already returns response.data, so response is the product data
+        let productData = response;
+        
+        if (productData && typeof productData === "object") {
+          console.log('✅ Using direct response (API already unwrapped)');
+          if (Object.keys(productData).length > 0) {
+            console.log('🎉 Product data set:', productData.name || productData.title);
+            setProduct(productData);
           } else {
-            console.log('❌ Unknown response structure:', Object.keys(response));
+            console.log('❌ Empty product data object');
+            // Set a fallback product to prevent infinite loading
+            setProduct({
+              name: 'Product Loading...',
+              description: 'Please wait while we load the product details.',
+              price: 0,
+              image: null
+            });
           }
         } else {
-          console.log('❌ No response or invalid response');
-        }
-        
-        if (productData && Object.keys(productData).length > 0) {
-          console.log('🎉 Product data set:', productData.name || productData.title);
-          setProduct(productData);
-        } else {
-          console.log('❌ No valid product data found');
+          console.log('❌ Invalid response format:', typeof response);
+          // Set a fallback product to prevent infinite loading
+          setProduct({
+            name: 'Product Not Available',
+            description: 'This product is currently unavailable.',
+            price: 0,
+            image: null
+          });
         }
       } catch (error) {
         console.error("❌ Error loading product:", error);
