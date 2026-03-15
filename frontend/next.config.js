@@ -1,19 +1,27 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-  // Remove static export for Vercel deployment
-  // output: "export",
-  trailingSlash: true,
-  // distDir: "out",
   images: {
     unoptimized: true,
+    domains: ['placehold.co', 'picsum.photos'],
   },
   reactStrictMode: true,
   compress: true,
-  // Generate static sitemap for better SEO
-  generateBuildId: async () => 'build',
-  // Skip build-time generation of client-side manifest
   generateEtags: false,
+  skipTrailingSlashRedirect: true,
+
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
