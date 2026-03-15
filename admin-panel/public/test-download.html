@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Template Download</title>
+</head>
+<body>
+    <h1>Test Template Download</h1>
+    <button onclick="downloadTemplate()">Download Template</button>
+    <div id="status"></div>
+
+    <script>
+        async function downloadTemplate() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = 'Downloading...';
+            
+            try {
+                const response = await fetch('http://localhost:5001/api/bulk-upload/template');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.setAttribute('download', 'product-upload-template.xlsx');
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+                
+                statusDiv.innerHTML = '✅ Template downloaded successfully!';
+            } catch (error) {
+                console.error('Error:', error);
+                statusDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

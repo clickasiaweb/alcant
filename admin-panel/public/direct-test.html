@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direct API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        button { padding: 15px 30px; font-size: 18px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; margin: 10px 0; }
+        #status { margin-top: 20px; padding: 15px; border-radius: 8px; font-weight: bold; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Direct API Test</h1>
+    <div id="status" class="info">Click buttons below to test different download methods...</div>
+    
+    <button onclick="testFetch()">Test 1: Fetch API Directly</button>
+    <button onclick="testWindowOpen()">Test 2: Window Open</button>
+    <button onclick="testDirectLink()">Test 3: Direct Link</button>
+    
+    <script>
+        async function testFetch() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = 'Testing fetch to local API...';
+            statusDiv.className = 'info';
+            
+            try {
+                const response = await fetch('http://localhost:5001/api/bulk-upload/template');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                
+                // Create download
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'product-upload-template.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                statusDiv.innerHTML = '✅ Success! Template downloaded via fetch!';
+                statusDiv.className = 'success';
+                
+            } catch (error) {
+                statusDiv.innerHTML = `❌ Failed: ${error.message}`;
+                statusDiv.className = 'error';
+            }
+        }
+        
+        function testWindowOpen() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = 'Opening template in new window...';
+            statusDiv.className = 'info';
+            
+            window.open('http://localhost:5001/api/bulk-upload/template', '_blank');
+            
+            statusDiv.innerHTML = '📂 Template opened in new window (right-click to save)';
+            statusDiv.className = 'success';
+        }
+        
+        function testDirectLink() {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = 'Creating direct download link...';
+            statusDiv.className = 'info';
+            
+            // Create a direct download link
+            const linkContainer = document.createElement('div');
+            linkContainer.innerHTML = `
+                <h3>Direct Download Link:</h3>
+                <a href="http://localhost:5001/api/bulk-upload/template" 
+                   download="product-upload-template.xlsx"
+                   style="color: #007bff; text-decoration: underline; font-size: 16px;">
+                    📥 Download Excel Template
+                </a>
+                <p><small>Right-click and "Save link as..." if needed</small></p>
+            `;
+            
+            statusDiv.innerHTML = '';
+            statusDiv.appendChild(linkContainer);
+        }
+    </script>
+</body>
+</html>

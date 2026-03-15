@@ -18,10 +18,22 @@ const productSchema = new mongoose.Schema({
     required: [true, "Product description is required"],
     minlength: [10, "Description must be at least 10 characters"],
   },
+  shortDescription: {
+    type: String,
+    maxlength: [500, "Short description cannot exceed 500 characters"],
+  },
+  brand: {
+    type: String,
+    trim: true,
+  },
   price: {
     type: Number,
     required: [true, "Product price is required"],
     min: [0, "Price cannot be negative"],
+  },
+  salePrice: {
+    type: Number,
+    min: [0, "Sale price cannot be negative"],
   },
   oldPrice: {
     type: Number,
@@ -42,6 +54,34 @@ const productSchema = new mongoose.Schema({
     required: [true, "Subcategory is required"],
     trim: true,
   },
+  subSubCategory: {
+    type: String,
+    trim: true,
+  },
+  sku: {
+    type: String,
+    required: [true, "SKU is required"],
+    unique: true,
+    trim: true,
+    index: true,
+  },
+  stock: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  color: {
+    type: String,
+    trim: true,
+  },
+  size: {
+    type: String,
+    trim: true,
+  },
+  weight: {
+    type: Number,
+    min: [0, "Weight cannot be negative"],
+  },
   images: [
     {
       type: String,
@@ -59,11 +99,6 @@ const productSchema = new mongoose.Schema({
     max: 5,
   },
   reviews: {
-    type: Number,
-    default: 0,
-    min: 0,
-  },
-  stock: {
     type: Number,
     default: 0,
     min: 0,
@@ -101,6 +136,7 @@ const productSchema = new mongoose.Schema({
 
 // Indexes for performance
 productSchema.index({ slug: 1 });
+productSchema.index({ sku: 1 });
 productSchema.index({ category: 1, subcategory: 1 });
 productSchema.index({ isActive: 1 });
 productSchema.index({ isNew: 1 });
@@ -115,12 +151,14 @@ productSchema.pre("save", function (next) {
   if (!this.slug) {
     this.slug = this.name
       .toLowerCase()
-      .replace(/\s+/g, "-")
-      .replace(/[^a-z0-9-]/g, "");
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
   }
 
-  // Calculate final price based on old price
-  if (this.oldPrice && this.oldPrice > this.price) {
+  // Calculate final price based on sale price or old price
+  if (this.salePrice && this.salePrice < this.price) {
+    this.finalPrice = this.salePrice;
+  } else if (this.oldPrice && this.oldPrice > this.price) {
     this.finalPrice = this.price;
   } else {
     this.finalPrice = this.price;

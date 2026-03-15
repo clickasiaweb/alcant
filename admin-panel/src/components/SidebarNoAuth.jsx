@@ -8,6 +8,7 @@ import {
   FaFileAlt,
   FaLayerGroup,
   FaSitemap,
+  FaUpload,
 } from "react-icons/fa";
 
 export default function SidebarNoAuth() {
@@ -58,6 +59,23 @@ export default function SidebarNoAuth() {
           className="sidebar-btn"
         >
           <FaBox style={{ marginRight: "0.5rem" }} /> Products
+        </button>
+
+        <button
+          onClick={() => navigate("/bulk-upload")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "1rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FaUpload style={{ marginRight: "0.5rem" }} /> Bulk Upload
         </button>
 
         <button

@@ -3,7 +3,16 @@
 const nextConfig = {
   images: {
     unoptimized: true,
-    domains: ['placehold.co', 'picsum.photos'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
+    ],
   },
   reactStrictMode: true,
   compress: true,

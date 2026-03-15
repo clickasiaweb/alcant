@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Environment Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .env-info { background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Environment Variable Test</h1>
+    <div class="env-info">
+        <h3>Current Environment Variables:</h3>
+        <p><strong>API_BASE_URL:</strong> <span id="api-url" class="success">Loading...</span></p>
+        <p><strong>NODE_ENV:</strong> <span id="node-env">Loading...</span></p>
+        <p><strong>Full Template URL:</strong> <span id="full-url" class="success">Loading...</span></p>
+    </div>
+
+    <script>
+        // Display environment variables
+        document.getElementById('api-url').textContent = 
+            (process.env && process.env.REACT_APP_API_URL) || 'Not set';
+        document.getElementById('node-env').textContent = 
+            (process.env && process.env.NODE_ENV) || 'Not set';
+        
+        const apiUrl = (process.env && process.env.REACT_APP_API_URL) || 'http://localhost:5001/api';
+        document.getElementById('full-url').textContent = apiUrl + '/bulk-upload/template';
+        
+        // Test download
+        async function testDownload() {
+            console.log('Testing download with API_URL:', apiUrl);
+            
+            try {
+                const response = await fetch(apiUrl + '/bulk-upload/template');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'product-upload-template.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                
+                alert('✅ Template downloaded successfully!');
+                
+            } catch (error) {
+                console.error('Download failed:', error);
+                alert(`❌ Download failed: ${error.message}`);
+            }
+        }
+    </script>
+    
+    <button onclick="testDownload()" style="padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+        📥 Test Download with Current Environment
+    </button>
+</body>
+</html>
