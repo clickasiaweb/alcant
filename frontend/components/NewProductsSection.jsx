@@ -96,18 +96,30 @@ const NewProductsSection = () => {
     const slug = product.slug || (
       product.name
         .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "")
+        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
+        .replace(/\s+/g, '-') // Replace multiple spaces with single hyphen
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
     );
+    
+    // Validate slug before navigation
+    if (!slug || slug.length < 2) {
+      console.error('❌ Invalid slug generated:', slug, 'for product:', product.name);
+      alert('Invalid product URL. Please try again.');
+      return;
+    }
     
     console.log('🔗 Navigating to product details:', {
       slug: slug,
       productName: product.name,
       productSlug: product.slug,
-      generatedSlug: slug
+      generatedSlug: slug,
+      hasSlug: !!product.slug,
+      finalUrl: `/product-details/${slug}`
     });
     
-    // Use Next.js router for better navigation
+    // Navigate to product details page
     window.location.href = `/product-details/${slug}`;
   };
 
@@ -176,8 +188,11 @@ const NewProductsSection = () => {
     return product.slug || (
       product.name
         .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "")
+        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
+        .replace(/\s+/g, '-') // Replace multiple spaces with single hyphen
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
     );
   };
 
