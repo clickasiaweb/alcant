@@ -112,12 +112,15 @@ class SupabaseProduct {
   }
   
   static async create(productData) {
-    // Generate slug if not provided
+    // Generate slug if not provided - use same logic as frontend
     if (!productData.slug) {
       productData.slug = productData.name
         .toLowerCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9-]/g, '');
+        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
+        .replace(/\s+/g, '-') // Replace multiple spaces with single hyphen
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
     }
     
     // Convert field names to match database schema
