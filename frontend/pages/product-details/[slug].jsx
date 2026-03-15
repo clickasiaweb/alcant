@@ -25,6 +25,7 @@ const ProductDetailPage = () => {
         console.log('🔍 Loading product with slug:', slug);
         console.log('🔍 Browser:', navigator.userAgent);
         console.log('🔍 Current URL:', window.location.href);
+        console.log('🔍 API Base URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api');
         
         const response = await productsAPI.getBySlug(slug);
         console.log('📦 API Response:', response);
@@ -42,7 +43,7 @@ const ProductDetailPage = () => {
             // Set a fallback product to prevent infinite loading
             setProduct({
               name: 'Product Loading...',
-              description: 'Please wait while we load the product details.',
+              description: `Please wait while we load the product details for "${slug}".`,
               price: 0,
               image: null
             });
@@ -52,7 +53,7 @@ const ProductDetailPage = () => {
           // Set a fallback product to prevent infinite loading
           setProduct({
             name: 'Product Not Available',
-            description: 'This product is currently unavailable.',
+            description: `The product with slug "${slug}" is currently unavailable or does not exist.`,
             price: 0,
             image: null
           });
@@ -62,10 +63,26 @@ const ProductDetailPage = () => {
         console.error("❌ Error details:", {
           message: error.message,
           status: error.response?.status,
-          data: error.response?.data
+          data: error.response?.data,
+          requestedSlug: slug
         });
         if (error.response?.status === 404) {
-          router.push("/404");
+          console.log('❌ Product not found (404) for slug:', slug);
+          // Set a fallback product instead of redirecting
+          setProduct({
+            name: 'Product Not Found',
+            description: `The product with slug "${slug}" was not found in our database.`,
+            price: 0,
+            image: null
+          });
+        } else {
+          // Set a fallback product for other errors
+          setProduct({
+            name: 'Product Error',
+            description: `There was an error loading the product "${slug}". Please try again later.`,
+            price: 0,
+            image: null
+          });
         }
       } finally {
         setLoading(false);

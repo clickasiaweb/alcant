@@ -99,6 +99,15 @@ const NewProductsSection = () => {
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-]/g, "")
     );
+    
+    console.log('🔗 Navigating to product details:', {
+      slug: slug,
+      productName: product.name,
+      productSlug: product.slug,
+      generatedSlug: slug
+    });
+    
+    // Use Next.js router for better navigation
     window.location.href = `/product-details/${slug}`;
   };
 
