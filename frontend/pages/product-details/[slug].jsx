@@ -8,15 +8,21 @@ import ProductBreadcrumb from "../../components/product-details/ProductBreadcrum
 import ProductLoader from "../../components/product-details/ProductLoader";
 import ProductNotFound from "../../components/product-details/ProductNotFound";
 
-// Force dynamic rendering - this is the key fix!
-export const dynamic = 'force-dynamic';
+// ✅ This forces dynamic rendering in Pages Router (replaces force-dynamic)
+export async function getServerSideProps(context) {
+  const { slug } = context.params;
+  return {
+    props: { slugFromServer: slug },
+  };
+}
 
-// This tells Next.js NOT to generate static data files
-export const revalidate = 0;
-
-const ProductDetailPage = () => {
+const ProductDetailPage = ({ slugFromServer }) => {
   const router = useRouter();
-  const { slug } = router.query;
+  
+  // ✅ Use slugFromServer first, fall back to router.query
+  // This prevents the "slug is undefined on first render" bug
+  const slug = slugFromServer || router.query.slug;
+  
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -24,79 +30,31 @@ const ProductDetailPage = () => {
 
   useEffect(() => {
     if (!slug) return;
-    
+
     const loadProduct = async () => {
       try {
         setLoading(true);
         console.log('🔍 Loading product with slug:', slug);
-        console.log('🔍 Browser:', navigator.userAgent);
-        console.log('🔍 Current URL:', window.location.href);
-        console.log('🔍 API Base URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api');
-        
+
         const response = await productsAPI.getBySlug(slug);
         console.log('📦 API Response:', response);
-        
-        // The API already returns response.data, so response is the product data
-        let productData = response;
-        
-        if (productData && typeof productData === "object") {
-          console.log('✅ Using direct response (API already unwrapped)');
-          if (Object.keys(productData).length > 0) {
-            console.log('🎉 Product data set:', productData.name || productData.title);
-            setProduct(productData);
-          } else {
-            console.log('❌ Empty product data object');
-            // Set a fallback product to prevent infinite loading
-            setProduct({
-              name: 'Product Loading...',
-              description: `Please wait while we load the product details for "${slug}".`,
-              price: 0,
-              image: null
-            });
-          }
+
+        if (response && typeof response === "object" && Object.keys(response).length > 0) {
+          setProduct(response);
         } else {
-          console.log('❌ Invalid response format:', typeof response);
-          // Set a fallback product to prevent infinite loading
-          setProduct({
-            name: 'Product Not Available',
-            description: `The product with slug "${slug}" is currently unavailable or does not exist.`,
-            price: 0,
-            image: null
-          });
+          // ✅ Don't set fake fallback products - let ProductNotFound handle it
+          setProduct(null);
         }
       } catch (error) {
-        console.error("❌ Error loading product:", error);
-        console.error("❌ Error details:", {
-          message: error.message,
-          status: error.response?.status,
-          data: error.response?.data,
-          requestedSlug: slug
-        });
-        if (error.response?.status === 404) {
-          console.log('❌ Product not found (404) for slug:', slug);
-          // Set a fallback product instead of redirecting
-          setProduct({
-            name: 'Product Not Found',
-            description: `The product with slug "${slug}" was not found in our database.`,
-            price: 0,
-            image: null
-          });
-        } else {
-          // Set a fallback product for other errors
-          setProduct({
-            name: 'Product Error',
-            description: `There was an error loading the product "${slug}". Please try again later.`,
-            price: 0,
-            image: null
-          });
-        }
+        console.error("❌ Error loading product:", error.message);
+        setProduct(null); // ✅ Let ProductNotFound render cleanly
       } finally {
         setLoading(false);
       }
     };
 
     loadProduct();
-  }, [slug, router]);
+  }, [slug]);
 
   const handleQuantityChange = (change) => {
     setQuantity(prev => Math.max(1, prev + change));
@@ -111,56 +69,43 @@ const ProductDetailPage = () => {
       navigator.share({
         title: product?.name,
         text: product?.description,
-        url: window.location.href
+        url: window.location.href,
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
     }
   };
 
-  const handleImageChange = (index) => {
-    setSelectedImage(index);
-  };
-
   const getImages = () => {
     if (!product?.images) return [];
-    
     if (typeof product.images === 'string') {
       try {
         const parsed = JSON.parse(product.images);
         return Array.isArray(parsed) ? parsed : [parsed];
-      } catch (e) {
-        console.error('Error parsing images:', e);
+      } catch {
         return [];
       }
     }
-    
-    if (Array.isArray(product.images)) {
-      return product.images;
-    }
-    
-    if (typeof product.images === 'object' && product.images !== null) {
-      return [product.images];
-    }
-    
+    if (Array.isArray(product.images)) return product.images;
+    if (typeof product.images === 'object') return [product.images];
     return [];
   };
 
-  if (loading) {
-    return <ProductLoader />;
-  }
-
-  if (!product) {
-    return <ProductNotFound />;
-  }
+  if (loading) return <ProductLoader />;
+  if (!product) return <ProductNotFound />;
 
   const displayName = product.name || product.title || "Product";
   const displayDescription = product.description || product.short_description || "No description available.";
   const currentPrice = product.price || product.final_price || 0;
   const oldPrice = product.old_price || product.oldPrice;
-  
+
   const images = getImages();
-  const mainImage = images[selectedImage] || product.image || `https://picsum.photos/seed/${displayName}/600/600.jpg`;
+  
+  // ✅ Fixed: use placehold.co instead of /api/placeholder which doesn't exist
+  const mainImage = images[selectedImage] 
+    || product.image 
+    || `https://placehold.co/600x600?text=${encodeURIComponent(displayName)}`;
+  
   const hasMultipleImages = images.length > 1;
 
   return (
@@ -168,19 +113,17 @@ const ProductDetailPage = () => {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container">
           <ProductBreadcrumb displayName={displayName} />
-          
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <ProductImage 
+            <ProductImage
               product={product}
               displayName={displayName}
               mainImage={mainImage}
               selectedImage={selectedImage}
               images={images}
               hasMultipleImages={hasMultipleImages}
-              handleImageChange={handleImageChange}
+              handleImageChange={setSelectedImage}
             />
-            
-            <ProductInfo 
+            <ProductInfo
               product={product}
               displayName={displayName}
               displayDescription={displayDescription}
