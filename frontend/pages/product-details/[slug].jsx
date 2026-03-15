@@ -8,26 +8,55 @@ import ProductBreadcrumb from "../../components/product-details/ProductBreadcrum
 import ProductLoader from "../../components/product-details/ProductLoader";
 import ProductNotFound from "../../components/product-details/ProductNotFound";
 
-const ProductDetailPage = () => {
+// For static export, we need to generate static params
+export async function getStaticPaths() {
+  // Return empty paths for now, let Next.js handle dynamic routing
+  return {
+    paths: [],
+    fallback: 'blocking' // This will generate pages on-demand
+  };
+}
+
+export async function getStaticProps({ params }) {
+  try {
+    const response = await productsAPI.getBySlug(params.slug);
+    
+    if (!response) {
+      return { notFound: true };
+    }
+    
+    return {
+      props: {
+        product: response,
+        slug: params.slug
+      }
+    };
+  } catch (error) {
+    return { notFound: true };
+  }
+}
+
+const ProductDetailPage = ({ product: initialProduct, slug: initialSlug }) => {
   const router = useRouter();
   const { slug } = router.query;
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const finalSlug = slug || initialSlug;
+  const [product, setProduct] = useState(initialProduct || null);
+  const [loading, setLoading] = useState(!initialProduct);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!finalSlug) return;
     
     const loadProduct = async () => {
       try {
         setLoading(true);
-        console.log('🔍 Loading product with slug:', slug);
+        console.log('🔍 Loading product with slug:', finalSlug);
         console.log('🔍 Browser:', navigator.userAgent);
         console.log('🔍 Current URL:', window.location.href);
         console.log('🔍 API Base URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api');
         
-        const response = await productsAPI.getBySlug(slug);
+        const response = await productsAPI.getBySlug(finalSlug);
         console.log('📦 API Response:', response);
         
         // The API already returns response.data, so response is the product data
@@ -43,7 +72,7 @@ const ProductDetailPage = () => {
             // Set a fallback product to prevent infinite loading
             setProduct({
               name: 'Product Loading...',
-              description: `Please wait while we load the product details for "${slug}".`,
+              description: `Please wait while we load the product details for "${finalSlug}".`,
               price: 0,
               image: null
             });
@@ -53,7 +82,7 @@ const ProductDetailPage = () => {
           // Set a fallback product to prevent infinite loading
           setProduct({
             name: 'Product Not Available',
-            description: `The product with slug "${slug}" is currently unavailable or does not exist.`,
+            description: `The product with slug "${finalSlug}" is currently unavailable or does not exist.`,
             price: 0,
             image: null
           });
@@ -64,14 +93,14 @@ const ProductDetailPage = () => {
           message: error.message,
           status: error.response?.status,
           data: error.response?.data,
-          requestedSlug: slug
+          requestedSlug: finalSlug
         });
         if (error.response?.status === 404) {
-          console.log('❌ Product not found (404) for slug:', slug);
+          console.log('❌ Product not found (404) for slug:', finalSlug);
           // Set a fallback product instead of redirecting
           setProduct({
             name: 'Product Not Found',
-            description: `The product with slug "${slug}" was not found in our database.`,
+            description: `The product with slug "${finalSlug}" was not found in our database.`,
             price: 0,
             image: null
           });
@@ -79,7 +108,7 @@ const ProductDetailPage = () => {
           // Set a fallback product for other errors
           setProduct({
             name: 'Product Error',
-            description: `There was an error loading the product "${slug}". Please try again later.`,
+            description: `There was an error loading the product "${finalSlug}". Please try again later.`,
             price: 0,
             image: null
           });
@@ -90,7 +119,7 @@ const ProductDetailPage = () => {
     };
 
     loadProduct();
-  }, [slug, router]);
+  }, [finalSlug, router]);
 
   const handleQuantityChange = (change) => {
     setQuantity(prev => Math.max(1, prev + change));

@@ -23,7 +23,13 @@ const nextConfig = {
     { dev, dir, outDir, distDir, buildId }
   ) {
     // In static export mode, ensure all dynamic routes are properly handled
-    return defaultPathMap;
+    // We need to add specific handling for product-details routes
+    const pathMap = { ...defaultPathMap };
+    
+    // Add fallback for dynamic product routes
+    pathMap['/product-details/[slug]'] = { page: '/product-details/[slug]' };
+    
+    return pathMap;
   },
   // Add headers for cache control
   async headers() {
