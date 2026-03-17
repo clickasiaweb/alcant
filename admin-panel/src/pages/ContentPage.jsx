@@ -61,8 +61,10 @@ export default function ContentPage() {
 
   const loadContent = async (pageKey, sectionKey = "hero") => {
     try {
+      console.log('🔄 Loading content for:', `${pageKey}-${sectionKey}`);
       setLoading(true);
       const data = await getContent(`${pageKey}-${sectionKey}`);
+      console.log('📥 Content data received:', data);
       setContent(data.content);
       setFormData(data.content || {
         title: "",
@@ -78,6 +80,7 @@ export default function ContentPage() {
         metadata: {},
         isPublished: true,
       });
+      console.log('📝 Form data set:', data.content);
     } catch (error) {
       toast.error("Error loading content");
       console.error("Error loading content:", error);
@@ -88,14 +91,20 @@ export default function ContentPage() {
 
   const handleSave = async () => {
     try {
-      console.log('Saving content:', `${selectedPage}-${selectedSection}`, formData);
+      console.log('🔧 Save button clicked!');
+      console.log('🔧 Saving content:', `${selectedPage}-${selectedSection}`, formData);
+      console.log('🔧 Form data type:', typeof formData);
+      console.log('🔧 Form data keys:', Object.keys(formData));
+      
       const response = await updateContent(`${selectedPage}-${selectedSection}`, formData);
-      console.log('Save response:', response);
+      console.log('✅ Save response:', response);
       setContent(formData);
       setEditing(false);
       toast.success("Content saved successfully!");
     } catch (error) {
-      console.error('Error saving content:', error);
+      console.error('❌ Error saving content:', error);
+      console.error('❌ Error details:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
       
       // Handle specific payload errors
       if (error.code === 'ERR_NETWORK' || error.message?.includes('413') || error.message?.includes('PayloadTooLargeError')) {
@@ -569,7 +578,10 @@ export default function ContentPage() {
             {editing && (
               <>
                 <button
-                  onClick={handleSave}
+                  onClick={() => {
+                    console.log('🔥 Save button clicked!');
+                    handleSave();
+                  }}
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center space-x-2"
                 >
                   <FiSave className="w-4 h-4" />

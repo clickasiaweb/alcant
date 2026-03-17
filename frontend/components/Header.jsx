@@ -51,8 +51,24 @@ export default function Header() {
             description: "Premium Alcantara cases for your smartphones",
             image: "https://via.placeholder.com/300x200/1a365d/ffffff?text=Phone+Cases",
             subcategories: [
-              { name: "iPhone Cases", href: "/category/phone-cases?filter=iphone" },
-              { name: "Samsung Cases", href: "/category/phone-cases?filter=samsung" },
+              { 
+                name: "iPhone Cases", 
+                href: "/category/phone-cases?filter=iphone",
+                subSubcategories: [
+                  { name: "iPhone 15", href: "/category/phone-cases?filter=iphone-15" },
+                  { name: "iPhone 14", href: "/category/phone-cases?filter=iphone-14" },
+                  { name: "iPhone 13", href: "/category/phone-cases?filter=iphone-13" }
+                ]
+              },
+              { 
+                name: "Samsung Cases", 
+                href: "/category/phone-cases?filter=samsung",
+                subSubcategories: [
+                  { name: "Galaxy S24", href: "/category/phone-cases?filter=galaxy-s24" },
+                  { name: "Galaxy S23", href: "/category/phone-cases?filter=galaxy-s23" },
+                  { name: "Galaxy Z", href: "/category/phone-cases?filter=galaxy-z" }
+                ]
+              },
               { name: "Universal Cases", href: "/category/phone-cases?filter=universal" }
             ]
           },
@@ -73,8 +89,24 @@ export default function Header() {
             description: "Premium Alcantara wallets and card holders",
             image: "https://via.placeholder.com/300x200/2b6cb0/ffffff?text=Wallets",
             subcategories: [
-              { name: "Card Holders", href: "/category/wallets?filter=card-holders" },
-              { name: "Bifold Wallets", href: "/category/wallets?filter=bifold" },
+              { 
+                name: "Card Holders", 
+                href: "/category/wallets?filter=card-holders",
+                subSubcategories: [
+                  { name: "Slim Card Holders", href: "/category/wallets?filter=slim-card" },
+                  { name: "RFID Card Holders", href: "/category/wallets?filter=rfid-card" },
+                  { name: "Multi Card Holders", href: "/category/wallets?filter=multi-card" }
+                ]
+              },
+              { 
+                name: "Bifold Wallets", 
+                href: "/category/wallets?filter=bifold",
+                subSubcategories: [
+                  { name: "Classic Bifold", href: "/category/wallets?filter=classic-bifold" },
+                  { name: "Minimalist Bifold", href: "/category/wallets?filter=minimalist-bifold" },
+                  { name: "Premium Bifold", href: "/category/wallets?filter=premium-bifold" }
+                ]
+              },
               { name: "Travel Wallets", href: "/category/wallets?filter=travel" }
             ]
           },
@@ -350,13 +382,32 @@ export default function Header() {
                       <p className="text-sm text-gray-600 mb-3">{category.description}</p>
                       <div className="space-y-1">
                         {category.subcategories.map((sub) => (
-                          <Link
-                            key={sub.name}
-                            href={sub.href}
-                            className="text-sm text-gray-600 hover:text-primary-600 transition-colors block"
-                          >
-                            {sub.name}
-                          </Link>
+                          <div key={sub.name} className="group/sub">
+                            <div className="flex items-center justify-between">
+                              <Link
+                                href={sub.href}
+                                className="text-sm text-gray-600 hover:text-primary-600 transition-colors block"
+                              >
+                                {sub.name}
+                              </Link>
+                              {sub.subSubcategories && (
+                                <ChevronDown className="w-3 h-3 text-gray-400 group-hover/sub:text-primary-600 transition-colors" />
+                              )}
+                            </div>
+                            {sub.subSubcategories && (
+                              <div className="ml-4 mt-1 space-y-1 opacity-0 group-hover/sub:opacity-100 transition-opacity duration-200">
+                                {sub.subSubcategories.map((subSub) => (
+                                  <Link
+                                    key={subSub.name}
+                                    href={subSub.href}
+                                    className="text-xs text-gray-500 hover:text-primary-500 transition-colors block"
+                                  >
+                                    {subSub.name}
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         ))}
                       </div>
                     </Link>
@@ -569,13 +620,27 @@ export default function Header() {
                         </Link>
                         <div className="ml-4 space-y-1">
                           {category.subcategories.map((sub) => (
-                            <Link
-                              key={sub.name}
-                              href={sub.href}
-                              className="block text-sm text-gray-600 hover:text-primary-600 transition-colors"
-                            >
-                              {sub.name}
-                            </Link>
+                            <div key={sub.name}>
+                              <Link
+                                href={sub.href}
+                                className="block text-sm text-gray-600 hover:text-primary-600 transition-colors"
+                              >
+                                {sub.name}
+                              </Link>
+                              {sub.subSubcategories && (
+                                <div className="ml-4 space-y-1">
+                                  {sub.subSubcategories.map((subSub) => (
+                                    <Link
+                                      key={subSub.name}
+                                      href={subSub.href}
+                                      className="block text-xs text-gray-500 hover:text-primary-500 transition-colors"
+                                    >
+                                      {subSub.name}
+                                    </Link>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           ))}
                         </div>
                       </div>

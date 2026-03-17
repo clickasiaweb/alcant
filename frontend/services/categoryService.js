@@ -1,5 +1,5 @@
 // API service for fetching categories and products
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 console.log('🔧 CategoryService initialized with API URL:', API_BASE_URL);
 
@@ -77,7 +77,7 @@ export const categoryService = {
   // Get all categories with subcategories and sub-subcategories
   async getCategoriesWithHierarchy() {
     try {
-      const url = `${API_BASE_URL}/categories/hierarchy`;
+      const url = `${API_BASE_URL}/categories/hierarchy?t=${Date.now()}`;
       console.log('📡 CategoryService: Fetching categories from:', url);
       
       const response = await fetch(url);

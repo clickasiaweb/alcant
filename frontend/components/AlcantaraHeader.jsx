@@ -103,16 +103,17 @@ const AlcantaraHeader = () => {
         setSubcategories(subcategoriesData);
         setSubSubcategories(subSubcategoriesData);
         
-        console.log('📁 Subcategories:', subcategoriesData);
-        console.log('📄 Sub-subcategories:', subSubcategoriesData);
+        console.log(' Subcategories:', subcategoriesData);
+        console.log(' Sub-subcategories:', subSubcategoriesData);
         
         // Debug iPhone Cases specifically
         const phoneCases = categoriesList.find(cat => cat.name === 'Phone Cases');
         if (phoneCases) {
           const iPhoneSub = phoneCases.subcategories?.find(sub => sub.name === 'iPhone Cases');
-          console.log('📱 Phone Cases category:', phoneCases);
-          console.log('📱 iPhone Cases subcategory:', iPhoneSub);
+          console.log(' Phone Cases category:', phoneCases);
+          console.log(' iPhone Cases subcategory:', iPhoneSub);
           if (iPhoneSub) {
+            console.log(' iPhone Cases sub-subcategories:', iPhoneSub.sub_subcategories);
             console.log('📱 iPhone Cases sub-subcategories:', iPhoneSub.sub_subcategories);
           }
         }

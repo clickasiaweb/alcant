@@ -605,12 +605,10 @@ const AlcantaraHome = ({ homeContent = {} }) => {
 // Client-side data fetching for static export
 export async function fetchHomeContent() {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/content/home`);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    const data = await response.json();
-    return data.content || {};
+    // Use the proper content service to get all sections
+    const { getHomeContent } = await import("../services/contentService");
+    const data = await getHomeContent();
+    return data;
   } catch (error) {
     console.error('Error fetching home content:', error);
     // Return empty object as fallback
@@ -625,6 +623,9 @@ export default function HomePage() {
   useEffect(() => {
     fetchHomeContent()
       .then(data => {
+        console.log('🏠 Home content loaded:', data);
+        console.log('🏠 Hero section:', data.hero);
+        console.log('🏠 New We Have section:', data.newWeHave);
         setHomeContent(data);
         setLoading(false);
       })
