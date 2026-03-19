@@ -9,6 +9,9 @@ import {
   FaFileAlt,
   FaSignOutAlt,
   FaUpload,
+  FaLayerGroup,
+  FaFolderPlus,
+  FaFolderOpen,
 } from "react-icons/fa";
 
 export default function Sidebar() {
@@ -82,6 +85,77 @@ export default function Sidebar() {
           className="sidebar-btn"
         >
           <FaUpload style={{ marginRight: "0.5rem" }} /> Bulk Upload
+        </button>
+
+        <button
+          onClick={() => navigate("/category-bulk-upload")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "1rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FaLayerGroup style={{ marginRight: "0.5rem" }} /> Category Bulk Upload
+        </button>
+
+        <button
+          onClick={() => navigate("/category-upload")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "0.9rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+            marginLeft: "1rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FaFolderPlus style={{ marginRight: "0.5rem" }} /> Categories
+        </button>
+
+        <button
+          onClick={() => navigate("/subcategory-upload")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "0.9rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+            marginLeft: "1rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FaFolderOpen style={{ marginRight: "0.5rem" }} /> Subcategories
+        </button>
+
+        <button
+          onClick={() => navigate("/sub-subcategory-upload")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "0.9rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+            marginLeft: "1rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FaFolderOpen style={{ marginRight: "0.5rem" }} /> Sub-Subcategories
         </button>
 
         <button

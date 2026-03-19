@@ -1,214 +1,322 @@
 const express = require("express");
+
 const cors = require("cors");
+
 const dotenv = require("dotenv");
+
 const path = require("path");
 
-// Load environment variables first
-dotenv.config({ path: ".env.local" });
-// Also try .env.production for Vercel
-if (!process.env.SUPABASE_URL) {
-  dotenv.config({ path: ".env.production" });
-}
 
-// Debug: show whether Supabase env vars are loaded
-console.log("Loaded env:", {
-  SUPABASE_URL: process.env.SUPABASE_URL ? "SET" : "MISSING",
-  SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY ? "SET" : "MISSING",
-  NODE_ENV: process.env.NODE_ENV || "MISSING"
-});
+
+// Load environment variables first
+
+dotenv.config();
+
+
 
 // Import database connection module
-const { testConnection, getConnectionStatus } = require("./config/supabase");
+
+const { testConnection, getConnectionStatus } = require('./config/supabase');
+
+
 
 // Import routes (only product and auth routes are migrated to Supabase)
-const authRoutes = require("./routes/auth");
-const adminRoutes = require("./routes/adminNoAuth"); // Temporarily using no-auth for testing
-const productRoutes = require("./routes/products");
-const categoryRoutes = require("./routes/categories");
-const contentRoutes = require("./routes/content");
-const bulkUploadRoutes = require("./routes/bulkUpload");
+
+const authRoutes = require('./routes/auth');
+
+const adminRoutes = require('./routes/adminNoAuth'); // Temporarily using no-auth for testing
+
+const productRoutes = require('./routes/products');
+
+const categoryRoutes = require('./routes/categories');
+
+const contentRoutes = require('./routes/content');
+
+const categoryBulkRoutes = require('./controllers/categoryBulkController');
+
+const categoryUploadRoutes = require('./controllers/categoryUploadController');
+
+const subcategoryUploadRoutes = require('./controllers/subcategoryUploadController');
+
+const subSubcategoryUploadRoutes = require('./controllers/subSubcategoryUploadController');
+
+const categoryUploadDirectRoutes = require('./controllers/categoryUploadDirectController');
+
+const categoryUploadCSVRoutes = require('./controllers/categoryUploadCSVController');
+
+const subcategoryUploadCSVRoutes = require('./controllers/subcategoryUploadCSVController');
+
+const subSubcategoryUploadCSVRoutes = require('./controllers/subSubcategoryUploadCSVController');
+
+
+
+// Initialize database connection
+
+testConnection().then((result) => {
+
+  if (result.success) {
+
+    console.log('🚀 Database initialization completed');
+
+  } else {
+
+    console.error('💥 Database initialization failed:', result.error);
+
+    process.exit(1);
+
+  }
+
+}).catch((error) => {
+
+  console.error('💥 Database initialization failed:', error.message);
+
+  process.exit(1);
+
+});
+
+
 
 const app = express();
 
-// Test database connection asynchronously (don't block startup)
-testConnection()
-  .then((result) => {
-    if (result.success) {
-      console.log("🚀 Database initialization completed");
-    } else {
-      console.error("💥 Database initialization failed:", result.error);
-      // Don't exit, just log the error
-    }
-  })
-  .catch((error) => {
-    console.error("💥 Database initialization failed:", error.message);
-    // Don't exit, just log the error
-  });
+
 
 // Middleware
+
 app.use(
+
   cors({
+
     origin: [
-      "https://alcant.in",
-      "https://www.alcant.in",
-      "https://admin.alcant.in",
-      "https://api.alcant.in",
-      "https://alcannt.in",
-      "https://www.alcannt.in",
-      "https://admin.alcannt.in",
-      "https://api.alcannt.in",
-      "https://alcant-website.vercel.app",
+
+      "https://example.com",
+
+      "https://www.example.com", 
+
+      "https://admin.example.com",
+
       "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:3002",
+
+      "http://localhost:3001"
+
     ],
+
     credentials: true,
+
   }),
+
 );
 
-// Add cache control headers for API responses
-app.use((req, res, next) => {
-  // Prevent caching for API routes
-  if (req.path.startsWith('/api/')) {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-  }
-  next();
-});
-app.use(express.json({ limit: "100mb" })); // Increased payload limit for videos
-app.use(express.urlencoded({ extended: true, limit: "100mb" })); // Increased payload limit for videos
+app.use(express.json({ limit: '100mb' })); // Increased payload limit for videos
+
+app.use(express.urlencoded({ extended: true, limit: '100mb' })); // Increased payload limit for videos
+
+
 
 // API Routes (only product and auth routes are migrated to Supabase)
-app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/categories", categoryRoutes);
-app.use("/api/content", contentRoutes);
-app.use("/api/bulk-upload", bulkUploadRoutes);
+
+app.use('/api/auth', authRoutes);
+
+app.use('/api/admin', adminRoutes);
+
+app.use('/api/products', productRoutes);
+
+app.use('/api/categories', categoryRoutes);
+
+app.use('/api/content', contentRoutes);
+
+app.use('/api/categories/bulk', categoryBulkRoutes);
+
+app.use('/api/categories/upload', categoryUploadRoutes);
+
+app.use('/api/subcategories/upload', subcategoryUploadRoutes);
+
+app.use('/api/sub-subcategories/upload', subSubcategoryUploadRoutes);
+
+app.use('/api/categories/direct', categoryUploadDirectRoutes);
+
+app.use('/api/categories/csv', categoryUploadCSVRoutes);
+
+app.use('/api/subcategories/csv', subcategoryUploadCSVRoutes);
+
+app.use('/api/sub-subcategories/csv', subSubcategoryUploadCSVRoutes);
+
+
 
 // Health check with database status
+
 app.get("/api/health", (req, res) => {
+
   const dbStatus = getConnectionStatus();
-  res.json({
+
+  res.json({ 
+
     status: "Server is running",
+
     database: dbStatus,
-    timestamp: new Date().toISOString(),
+
+    timestamp: new Date().toISOString()
+
   });
+
 });
 
-// Root route for backend
-app.get("/", (req, res) => {
-  res.json({
-    message: "Alcant Backend API is running",
-    version: "1.0.0",
-    status: "Active",
-    endpoints: {
-      health: "/api/health",
-      products: "/api/products",
-      categories: "/api/categories",
-      content: "/api/content",
-      auth: "/api/auth"
-    },
-    timestamp: new Date().toISOString()
-  });
-});
+
 
 // Temporary endpoint to fix content table
+
 app.post("/api/fix-content-table", async (req, res) => {
+
   try {
-    const { supabaseService } = require("./config/supabase");
+
+    const { supabaseService } = require('./config/supabase');
+
+    
 
     // Try to insert sample data to see what columns exist
+
     const { data, error } = await supabaseService
-      .from("content")
-      .insert([
-        {
-          page_key: "home-hero",
-          title: "Welcome to Alcantara",
-          subtitle: "Premium luxury materials for your lifestyle",
-          content:
-            "Experience the finest Alcantara products crafted with precision and care.",
-          button_text: "Shop Now",
-          button_link: "/products",
-          is_published: true,
-        },
-      ])
+
+      .from('content')
+
+      .insert([{
+
+        page_key: 'home-hero',
+
+        title: 'Welcome to Alcantara',
+
+        subtitle: 'Premium luxury materials for your lifestyle',
+
+        content: 'Experience the finest Alcantara products crafted with precision and care.',
+
+        button_text: 'Shop Now',
+
+        button_link: '/products',
+
+        is_published: true
+
+      }])
+
       .select()
+
       .single();
 
+    
+
     if (error) {
-      console.error("Error inserting content:", error);
+
+      console.error('Error inserting content:', error);
+
+      
 
       // Try with camelCase fields
+
       const { data: camelData, error: camelError } = await supabaseService
-        .from("content")
-        .insert([
-          {
-            pageKey: "home-hero",
-            title: "Welcome to Alcantara",
-            subtitle: "Premium luxury materials for your lifestyle",
-            content:
-              "Experience the finest Alcantara products crafted with precision and care.",
-            buttonText: "Shop Now",
-            buttonLink: "/products",
-            isPublished: true,
-          },
-        ])
+
+        .from('content')
+
+        .insert([{
+
+          pageKey: 'home-hero',
+
+          title: 'Welcome to Alcantara',
+
+          subtitle: 'Premium luxury materials for your lifestyle',
+
+          content: 'Experience the finest Alcantara products crafted with precision and care.',
+
+          buttonText: 'Shop Now',
+
+          buttonLink: '/products',
+
+          isPublished: true
+
+        }])
+
         .select()
+
         .single();
 
+        
+
       if (camelError) {
-        console.error("Error with camelCase:", camelError);
-        res.status(500).json({
-          error:
-            "Table schema issue. Please manually create content table in Supabase.",
-          details:
-            "Both snake_case and camelCase field names failed. Table may not exist or has different schema.",
+
+        console.error('Error with camelCase:', camelError);
+
+        res.status(500).json({ 
+
+          error: 'Table schema issue. Please manually create content table in Supabase.',
+
+          details: 'Both snake_case and camelCase field names failed. Table may not exist or has different schema.',
+
           snakeError: error.message,
-          camelError: camelError.message,
+
+          camelError: camelError.message
+
         });
+
       } else {
-        console.log(
-          "Success with camelCase fields! Table created with camelCase schema.",
-        );
-        res.json({
-          message: "Content table fixed with camelCase schema",
-          data: camelData,
-        });
+
+        console.log('Success with camelCase fields! Table created with camelCase schema.');
+
+        res.json({ message: "Content table fixed with camelCase schema", data: camelData });
+
       }
+
     } else {
-      console.log(
-        "Success with snake_case fields! Table exists with snake_case schema.",
-      );
-      res.json({
-        message: "Content table working with snake_case schema",
-        data,
-      });
+
+      console.log('Success with snake_case fields! Table exists with snake_case schema.');
+
+      res.json({ message: "Content table working with snake_case schema", data });
+
     }
+
   } catch (error) {
-    console.error("Error fixing content table:", error);
+
+    console.error('Error fixing content table:', error);
+
     res.status(500).json({ error: error.message });
+
   }
+
 });
+
+
 
 // Error handling middleware
+
 app.use((err, req, res, next) => {
+
   console.error(err.stack);
+
   res.status(err.status || 500).json({
+
     error: err.message || "Internal server error",
+
   });
+
 });
+
+
 
 // 404 handler
+
 app.use((req, res) => {
+
   res.status(404).json({ error: "Route not found" });
+
 });
 
-// Start server
+
+
 const PORT = process.env.PORT || 5001;
+
 app.listen(PORT, () => {
-  console.log(`🚀 Backend server running on http://localhost:${PORT}`);
+
+  console.log(`Server running on port ${PORT}`);
+
 });
+
+
 
 module.exports = app;
+
