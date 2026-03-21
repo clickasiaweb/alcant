@@ -327,6 +327,7 @@ const AlcantaraHeader = () => {
             DEBUG: Categories loaded: {categories.length}, Loading: {loading.toString()}, Active Dropdown: {activeDropdown}
           </div>
         )}
+        <nav className="flex items-center space-x-1">
               {categories.map((category) => (
                 <button 
                   key={category.id}
@@ -374,60 +375,6 @@ const AlcantaraHeader = () => {
                     }, 50);
                   }}
                 >
-              <div className="flex space-x-2">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-8 w-20 bg-gray-100 rounded-lg animate-pulse"></div>
-                ))}
-              </div>
-            ) : (
-              <>
-                {categories.map((category) => (
-                  <button 
-                    key={category.id}
-                    ref={(el) => categoryButtonRefs.current[category.name] = el}
-                    className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-primary-600 font-medium text-sm rounded-lg hover:bg-gray-50 transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 whitespace-nowrap cursor-pointer hover:scale-105 hover:shadow-md"
-                    onKeyDown={(e) => handleKeyDown(e, category.name)}
-                    aria-expanded={activeDropdown === category.name}
-                    aria-haspopup="true"
-                    onMouseEnter={async () => {
-                      console.log('Hovering on:', category.name);
-                      await handleDropdownEnter(category.name);
-                    }}
-                  >
-                    <span className="text-gray-500 group-hover:text-primary-600 transition-colors duration-200">
-                      {getCategoryIcon(category.name)}
-                    </span>
-                    <span>{category.name}</span>
-                    <ChevronDown className={`w-4 h-4 transition-all duration-200 ml-1 ${
-                      activeDropdown === category.name ? 'rotate-180 text-primary-600' : 'text-gray-400'
-                    }`} />
-                  </button>
-                ))}
-
-                {/* Static Mega Menu Dropdown */}
-                {activeDropdown && (
-                  <div 
-                    className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 transition-all duration-300 ease-out"
-                    style={{
-                      opacity: activeDropdown ? 1 : 0,
-                      transform: activeDropdown ? 'translateX(-50%) translateY(0) scale(1)' : 'translateX(-50%) translateY(-10px) scale(0.95)',
-                      pointerEvents: activeDropdown ? 'auto' : 'none'
-                    }}
-                    onMouseEnter={() => {
-                      console.log('Hovering on dropdown content');
-                      if (dropdownTimeoutRef.current) {
-                        clearTimeout(dropdownTimeoutRef.current);
-                      }
-                    }}
-                    onMouseLeave={() => {
-                      console.log('Leaving dropdown content');
-                      dropdownTimeoutRef.current = setTimeout(() => {
-                        setActiveDropdown(null);
-                        setActiveCategory(null);
-                        setHoveredSubcategory(null);
-                      }, 50);
-                    }}
-                  >
                     <div 
                       className="bg-white shadow-xl border border-gray-200 rounded-xl transition-all duration-300 ease-out"
                       style={{ 
