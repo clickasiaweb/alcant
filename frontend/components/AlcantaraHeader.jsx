@@ -584,7 +584,6 @@ const AlcantaraHeader = () => {
                   </div>
                 )}
               </>
-            )}
           </nav>
 
           {/* Right Side Icons */}
