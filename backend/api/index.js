@@ -7,7 +7,7 @@ const path = require("path");
 // On Vercel, env vars are automatically available
 // For local development, load from .env.local
 if (process.env.NODE_ENV !== 'production') {
-  dotenv.config({ path: ".env.local" });
+  dotenv.config({ path: ".env.production" });
 }
 
 // Debug: show whether Supabase env vars are loaded

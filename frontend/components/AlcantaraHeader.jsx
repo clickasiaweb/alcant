@@ -12,6 +12,21 @@ import { useCart } from '../contexts/CartContext';
 import { useSearch } from '../contexts/SearchContext';
 import { useWishlist } from '../contexts/WishlistContext';
 
+// Logo component
+const Logo = ({ size = "default", className = "" }) => {
+  const sizeClasses = {
+    small: "text-lg",
+    default: "text-xl",
+    large: "text-2xl"
+  };
+  
+  return (
+    <div className={`font-bold text-primary-600 ${sizeClasses[size]} ${className}`}>
+      ALCANT
+    </div>
+  );
+};
+
 const AlcantaraHeader = () => {
   const router = useRouter();
   const { openCart, calculateTotalItems } = useCart();
@@ -78,14 +93,14 @@ const AlcantaraHeader = () => {
         setLoading(true);
         console.log('🔄 AlcantaraHeader: Fetching categories with hierarchy...');
         
-        // Use the hierarchy endpoint to get all data at once
+        // Use hierarchy endpoint to get all data at once
         const categoriesData = await categoryService.getCategoriesWithHierarchy();
         console.log('📊 AlcantaraHeader: Categories data received:', categoriesData);
         
         const categoriesList = categoriesData.data || [];
         setCategories(categoriesList);
 
-        // Extract subcategories from the hierarchy data
+        // Extract subcategories from hierarchy data
         const subcategoriesData = {};
         const subSubcategoriesData = {};
         
@@ -320,14 +335,22 @@ const AlcantaraHeader = () => {
         }
       `}</style>
       <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
-      <div className="container">
-        {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="bg-yellow-100 text-yellow-800 p-2 text-xs mb-2">
-            DEBUG: Categories loaded: {categories.length}, Loading: {loading.toString()}, Active Dropdown: {activeDropdown}
-          </div>
-        )}
-        <nav className="flex items-center space-x-1">
+        <div className="container">
+          {/* Debug Info */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="bg-yellow-100 text-yellow-800 p-2 text-xs mb-2">
+              DEBUG: Categories loaded: {categories.length}, Loading: {loading.toString()}, Active Dropdown: {activeDropdown}
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between py-4">
+            {/* Logo */}
+            <Link href="/" className="flex items-center space-x-2">
+              <Logo size="default" className="group-hover:scale-105" />
+            </Link>
+
+            {/* Navigation */}
+            <nav className="hidden lg:flex items-center space-x-1 mega-menu-container">
               {categories.map((category) => (
                 <button 
                   key={category.id}
@@ -375,307 +398,305 @@ const AlcantaraHeader = () => {
                     }, 50);
                   }}
                 >
-                    <div 
-                      className="bg-white shadow-xl border border-gray-200 rounded-xl transition-all duration-300 ease-out"
-                      style={{ 
-                        width: '90vw',
-                        maxWidth: '1200px',
-                        maxHeight: '70vh',
-                        transform: 'translateY(0)',
-                        opacity: 1
-                      }}
-                      role="menu"
-                      aria-label={`${activeCategory} menu`}
-                    >
-                      <div className="w-full h-full px-6 sm:px-8 lg:px-10 xl:px-12 overflow-y-auto">
+                  <div 
+                    className="bg-white shadow-xl border border-gray-200 rounded-xl transition-all duration-300 ease-out"
+                    style={{ 
+                      width: '90vw',
+                      maxWidth: '1200px',
+                      maxHeight: '70vh',
+                      transform: 'translateY(0)',
+                      opacity: 1
+                    }}
+                    role="menu"
+                    aria-label={`${activeCategory} menu`}
+                  >
+                    <div className="w-full h-full px-6 sm:px-8 lg:px-10 xl:px-12 overflow-y-auto">
+                      <div 
+                        className="flex flex-row gap-0 py-8"
+                        style={{ 
+                          minHeight: '400px', 
+                          maxHeight: '70vh',
+                          width: '100%'
+                        }}
+                      >
+                        {/* Column 1 - Subcategories (Reduced Width) */}
                         <div 
-                          className="flex flex-row gap-0 py-8"
+                          className="flex-shrink-0 border-r border-gray-100"
                           style={{ 
-                            minHeight: '400px', 
-                            maxHeight: '70vh',
-                            width: '100%'
+                            width: '35%',
+                            minWidth: '280px',
+                            maxWidth: '350px',
+                            flexBasis: '35%'
                           }}
                         >
-                          {/* Column 1 - Subcategories (Reduced Width) */}
-                          <div 
-                            className="flex-shrink-0 border-r border-gray-100"
-                            style={{ 
-                              width: '35%',
-                              minWidth: '280px',
-                              maxWidth: '350px',
-                              flexBasis: '35%'
-                            }}
-                          >
-                            <div className="px-6">
-                              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 whitespace-nowrap">
-                                {(() => {
-                                  const currentCategory = categories.find(cat => cat.name === activeCategory);
-                                  return currentCategory ? `${currentCategory.name} Subcategories` : 'Subcategories';
-                                })()}
-                              </h3>
-                              
+                          <div className="px-6">
+                            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 whitespace-nowrap">
                               {(() => {
                                 const currentCategory = categories.find(cat => cat.name === activeCategory);
-                                if (!currentCategory) return null;
-                                
-                                return subcategories[currentCategory.slug] && subcategories[currentCategory.slug].length > 0 ? (
-                                  <div className="space-y-4" role="menu">
-                                    {subcategories[currentCategory.slug].map((subcategory, index) => (
-                                      <div key={subcategory.slug} className="min-w-0">
-                                        <button
-                                          className={`block w-full py-2 text-sm text-left transition-all duration-300 ease-out group hover:translate-x-2 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded whitespace-nowrap overflow-hidden text-ellipsis ${
-                                            hoveredSubcategory?.slug === subcategory.slug 
-                                              ? 'text-primary-600 bg-primary-50 border-l-2 border-primary-600' 
-                                              : 'text-gray-700 hover:text-primary-600'
-                                          }`}
-                                          style={{ 
-                                            animationDelay: `${index * 50}ms`,
-                                            opacity: 0,
-                                            transform: 'translateX(-10px)',
-                                            animation: 'slideInFade 0.3s ease-out forwards',
-                                            animationDelay: `${index * 50}ms`
-                                          }}
-                                          onMouseEnter={() => {
-                                            console.log('Hovering on subcategory:', subcategory.name);
-                                            console.log('Available sub-subcategories for this subcategory:', subSubcategories[subcategory.slug]);
-                                            setHoveredSubcategory(subcategory);
-                                          }}
-                                          role="menuitem"
-                                        >
-                                          <div className="flex items-center space-x-2">
-                                            <ChevronRight className={`w-3 h-3 transition-all duration-200 group-hover:translate-x-1 flex-shrink-0 ${
-                                              hoveredSubcategory?.slug === subcategory.slug 
-                                                ? 'text-primary-600' 
-                                                : 'text-gray-400 group-hover:text-primary-600'
-                                            }`} />
-                                            <span className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{subcategory.name}</span>
-                                          </div>
-                                        </button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="text-sm text-gray-500 py-4 animate-in fade-in duration-200">
-                                    No subcategories available
-                                  </div>
-                                );
+                                return currentCategory ? `${currentCategory.name} Subcategories` : 'Subcategories';
                               })()}
+                            </h3>
+                            
+                            {(() => {
+                              const currentCategory = categories.find(cat => cat.name === activeCategory);
+                              if (!currentCategory) return null;
                               
-                              <div className="mt-6 pt-6 border-t border-gray-100">
-                                {(() => {
-                                  const currentCategory = categories.find(cat => cat.name === activeCategory);
-                                  if (!currentCategory) return null;
-                                  return (
-                                    <Link
-                                      href={`/category/${currentCategory.slug}`}
-                                      className="flex items-center justify-between px-3 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded whitespace-nowrap"
-                                      onClick={() => setActiveDropdown(null)}
-                                      role="menuitem"
-                                    >
-                                      <span className="whitespace-nowrap">Shop All {currentCategory.name}</span>
-                                      <ArrowRight className="w-4 h-4 flex-shrink-0" />
-                                    </Link>
-                                  );
-                                })()}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Column 2 - Sub-subcategories (Expanded Width) */}
-                          <div 
-                            className="flex-shrink-0"
-                            style={{ 
-                              width: '65%',
-                              minWidth: '450px',
-                              maxWidth: '750px',
-                              flexBasis: '65%'
-                            }}
-                          >
-                            <div className="px-6">
+                              return subcategories[currentCategory.slug] && subcategories[currentCategory.slug].length > 0 ? (
+                                <div className="space-y-4" role="menu">
+                                  {subcategories[currentCategory.slug].map((subcategory, index) => (
+                                    <div key={subcategory.slug} className="min-w-0">
+                                      <button
+                                        className={`block w-full py-2 text-sm text-left transition-all duration-300 ease-out group hover:translate-x-2 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded whitespace-nowrap overflow-hidden text-ellipsis ${
+                                          hoveredSubcategory?.slug === subcategory.slug 
+                                            ? 'text-primary-600 bg-primary-50 border-l-2 border-primary-600' 
+                                            : 'text-gray-700 hover:text-primary-600'
+                                        }`}
+                                        style={{ 
+                                          animationDelay: `${index * 50}ms`,
+                                          opacity: 0,
+                                          transform: 'translateX(-10px)',
+                                          animation: 'slideInFade 0.3s ease-out forwards',
+                                          animationDelay: `${index * 50}ms`
+                                        }}
+                                        onMouseEnter={() => {
+                                          console.log('Hovering on subcategory:', subcategory.name);
+                                          console.log('Available sub-subcategories for this subcategory:', subSubcategories[subcategory.slug]);
+                                          setHoveredSubcategory(subcategory);
+                                        }}
+                                        role="menuitem"
+                                      >
+                                        <div className="flex items-center space-x-2">
+                                          <ChevronRight className={`w-3 h-3 transition-all duration-200 group-hover:translate-x-1 flex-shrink-0 ${
+                                            hoveredSubcategory?.slug === subcategory.slug 
+                                              ? 'text-primary-600' 
+                                              : 'text-gray-400 group-hover:text-primary-600'
+                                          }`} />
+                                          <span className="font-medium whitespace-nowrap overflow-hidden text-ellipsis">{subcategory.name}</span>
+                                        </div>
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-sm text-gray-500 py-4 animate-in fade-in duration-200">
+                                  No subcategories available
+                                </div>
+                              );
+                            })()}
+                            
+                            <div className="mt-6 pt-6 border-t border-gray-100">
                               {(() => {
                                 const currentCategory = categories.find(cat => cat.name === activeCategory);
                                 if (!currentCategory) return null;
-                                
-                                // Show only the hovered subcategory's sub-subcategories
-                                if (hoveredSubcategory && subSubcategories[hoveredSubcategory.slug] && subSubcategories[hoveredSubcategory.slug].length > 0) {
-                                  console.log('Displaying sub-subcategories for:', hoveredSubcategory.name, subSubcategories[hoveredSubcategory.slug]);
-                                  return (
-                                    <div className="animate-in fade-in slide-in-from-right-2 duration-300">
-                                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 whitespace-nowrap">
-                                        {hoveredSubcategory.name}
-                                      </h3>
-                                      <GenericSubcategoryGrid 
-                                        subSubcategories={subSubcategories[hoveredSubcategory.slug]}
-                                        onLinkClick={() => setActiveDropdown(null)}
-                                        subcategoryName={hoveredSubcategory.name}
-                                      />
-                                    </div>
-                                  );
-                                }
-                                
-                                // Show placeholder when no subcategory is hovered
                                 return (
-                                  <div className="flex items-center justify-center h-full text-gray-400">
-                                    <div className="text-center">
-                                      <Grid3x3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                                      <p className="text-sm">Hover over a subcategory to view items</p>
-                                    </div>
-                                  </div>
+                                  <Link
+                                    href={`/category/${currentCategory.slug}`}
+                                    className="flex items-center justify-between px-3 py-2 text-sm font-semibold text-primary-600 hover:text-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded whitespace-nowrap"
+                                    onClick={() => setActiveDropdown(null)}
+                                    role="menuitem"
+                                  >
+                                    <span className="whitespace-nowrap">Shop All {currentCategory.name}</span>
+                                    <ArrowRight className="w-4 h-4 flex-shrink-0" />
+                                  </Link>
                                 );
                               })()}
                             </div>
                           </div>
                         </div>
+
+                        {/* Column 2 - Sub-subcategories (Expanded Width) */}
+                        <div 
+                          className="flex-shrink-0"
+                          style={{ 
+                            width: '65%',
+                            minWidth: '450px',
+                            maxWidth: '750px',
+                            flexBasis: '65%'
+                          }}
+                        >
+                          <div className="px-6">
+                            {(() => {
+                              const currentCategory = categories.find(cat => cat.name === activeCategory);
+                              if (!currentCategory) return null;
+                              
+                              // Show only the hovered subcategory's sub-subcategories
+                              if (hoveredSubcategory && subSubcategories[hoveredSubcategory.slug] && subSubcategories[hoveredSubcategory.slug].length > 0) {
+                                console.log('Displaying sub-subcategories for:', hoveredSubcategory.name, subSubcategories[hoveredSubcategory.slug]);
+                                return (
+                                  <div className="animate-in fade-in slide-in-from-right-2 duration-300">
+                                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 whitespace-nowrap">
+                                      {hoveredSubcategory.name}
+                                    </h3>
+                                    <GenericSubcategoryGrid 
+                                      subSubcategories={subSubcategories[hoveredSubcategory.slug]}
+                                      onLinkClick={() => setActiveDropdown(null)}
+                                      subcategoryName={hoveredSubcategory.name}
+                                    />
+                                  </div>
+                                );
+                              }
+                              
+                              // Show placeholder when no subcategory is hovered
+                              return (
+                                <div className="flex items-center justify-center h-full text-gray-400">
+                                  <div className="text-center">
+                                    <Grid3x3 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                                    <p className="text-sm">Hover over a subcategory to view items</p>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+                </div>
+              )}
+            </nav>
+
+            {/* Right Side Icons */}
+            <div className="flex items-center space-x-2">
+              {/* Search Icon */}
+              <button 
+                className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                onClick={openSearch}
+                aria-label="Open search"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              
+              {/* Favorites/Wishlist Icon */}
+              <button 
+                className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200 relative"
+                onClick={openWishlist}
+                aria-label="View wishlist"
+              >
+                <Heart className="w-5 h-5" />
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
+                    {wishlistCount > 9 ? '9+' : wishlistCount}
+                  </span>
                 )}
-              </>
-          </nav>
+              </button>
+              
+              {/* Shopping Cart Icon */}
+              <button 
+                className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200 relative"
+                onClick={openCart}
+                aria-label="View shopping cart"
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
+                    {cartItemCount > 9 ? '9+' : cartItemCount}
+                  </span>
+                )}
+              </button>
+              
+              {/* User Profile Icon */}
+              <button 
+                className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                onClick={() => setIsProfileOpen(true)}
+                aria-label="Open user profile"
+              >
+                <User className="w-5 h-5" />
+              </button>
 
-          {/* Right Side Icons */}
-          <Logo size="default" className="group-hover:scale-105" />
-          <div className="flex items-center space-x-2">
-            {/* Search Icon */}
-            <button 
-              className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
-              onClick={openSearch}
-              aria-label="Open search"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-            
-            {/* Favorites/Wishlist Icon */}
-            <button 
-              className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200 relative"
-              onClick={openWishlist}
-              aria-label="View wishlist"
-            >
-              <Heart className="w-5 h-5" />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
-                  {wishlistCount > 9 ? '9+' : wishlistCount}
-                </span>
-              )}
-            </button>
-            
-            {/* Shopping Cart Icon */}
-            <button 
-              className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200 relative"
-              onClick={openCart}
-              aria-label="View shopping cart"
-            >
-              <ShoppingCart className="w-5 h-5" />
-              {cartItemCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
-                  {cartItemCount > 9 ? '9+' : cartItemCount}
-                </span>
-              )}
-            </button>
-            
-            {/* User Profile Icon */}
-            <button 
-              className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
-              onClick={() => setIsProfileOpen(true)}
-              aria-label="Open user profile"
-            >
-              <User className="w-5 h-5" />
-            </button>
-
-            {/* Mobile Menu Toggle */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
-            >
-              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+              {/* Mobile Menu Toggle */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Mobile Menu - Accordion Style */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden border-t border-gray-100 bg-white animate-in slide-in-from-top-2 duration-200">
-          <div className="container py-4 max-h-96 overflow-y-auto">
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse"></div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {categories.map((category) => (
-                  <div key={category.id} className="border border-gray-100 rounded-xl overflow-hidden transition-all duration-200">
-                    <button
-                      onClick={() => handleMobileCategoryToggle(category.name)}
-                      className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
-                      aria-expanded={expandedMobileCategory === category.name}
-                      aria-controls={`mobile-menu-${category.slug}`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <span className={`text-gray-500 group-hover:text-primary-600 transition-colors duration-200 ${
-                          getCategoryIcon(category.name).props.className || ''
-                        }`}>
-                          {getCategoryIcon(category.name)}
-                        </span>
-                        <span className="font-medium text-gray-900 group-hover:text-primary-600 transition-colors duration-200">{category.name}</span>
-                      </div>
-                      <ChevronDown className={`w-4 h-4 text-gray-400 transition-all duration-200 ${
-                        expandedMobileCategory === category.name ? 'rotate-180 text-primary-600' : ''
-                      }`} />
-                    </button>
-                    
-                    {/* Mobile Subcategories - Accordion */}
-                    {expandedMobileCategory === category.name && (
-                      <div 
-                        id={`mobile-menu-${category.slug}`}
-                        className="bg-gray-50 px-4 py-3 space-y-1 animate-in slide-in-from-top-1 duration-200"
-                        role="region"
-                        aria-label={`${category.name} subcategories`}
+        {/* Mobile Menu - Accordion Style */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden border-t border-gray-100 bg-white animate-in slide-in-from-top-2 duration-200">
+            <div className="container py-4 max-h-96 overflow-y-auto">
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse"></div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {categories.map((category) => (
+                    <div key={category.id} className="border border-gray-100 rounded-xl overflow-hidden transition-all duration-200">
+                      <button
+                        onClick={() => handleMobileCategoryToggle(category.name)}
+                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
+                        aria-expanded={expandedMobileCategory === category.name}
+                        aria-controls={`mobile-menu-${category.slug}`}
                       >
-                        {subcategories[category.slug] && subcategories[category.slug].length > 0 && (
-                          <>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Subcategories</p>
-                            {subcategories[category.slug].map((subcategory, index) => (
-                              <Link
-                                key={subcategory.slug}
-                                href={`/category/${category.slug}?subcategory=${subcategory.slug}`}
-                                className="flex items-center space-x-2 py-2 pl-4 text-sm text-gray-700 hover:text-primary-600 transition-all duration-200 hover:translate-x-1 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded"
-                                style={{ animationDelay: `${index * 50}ms` }}
-                                onClick={() => setIsMobileMenuOpen(false)}
-                              >
-                                <ChevronRight className="w-3 h-3 text-gray-400 transition-all duration-200" />
-                                <span className="font-medium">{subcategory.name}</span>
-                              </Link>
-                            ))}
-                            <div className="border-t border-gray-200 my-3"></div>
-                          </>
-                        )}
-                        
-                        <Link
-                          href={`/category/${category.slug}`}
-                          className="flex items-center justify-between py-2 pl-4 text-sm text-gray-700 hover:text-primary-600 transition-all duration-200 hover:translate-x-1 group focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded"
-                          onClick={() => setIsMobileMenuOpen(false)}
+                        <div className="flex items-center space-x-3">
+                          <span className={`text-gray-500 group-hover:text-primary-600 transition-colors duration-200 ${
+                            getCategoryIcon(category.name).props.className || ''
+                          }`}>
+                            {getCategoryIcon(category.name)}
+                          </span>
+                          <span className="font-medium text-gray-900 group-hover:text-primary-600 transition-colors duration-200">{category.name}</span>
+                        </div>
+                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-all duration-200 ${
+                          expandedMobileCategory === category.name ? 'rotate-180 text-primary-600' : ''
+                        }`} />
+                      </button>
+                      
+                      {/* Mobile Subcategories - Accordion */}
+                      {expandedMobileCategory === category.name && (
+                        <div 
+                          id={`mobile-menu-${category.slug}`}
+                          className="bg-gray-50 px-4 py-3 space-y-1 animate-in slide-in-from-top-1 duration-200"
+                          role="region"
+                          aria-label={`${category.name} subcategories`}
                         >
-                          <span className="font-medium group-hover:text-primary-600">View All {category.name}</span>
-                          <ArrowRight className="w-4 h-4 text-gray-400 transition-all duration-200 group-hover:text-primary-600 group-hover:translate-x-1" />
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+                          {subcategories[category.slug] && subcategories[category.slug].length > 0 && (
+                            <>
+                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Subcategories</p>
+                              {subcategories[category.slug].map((subcategory, index) => (
+                                <Link
+                                  key={subcategory.slug}
+                                  href={`/category/${category.slug}?subcategory=${subcategory.slug}`}
+                                  className="flex items-center space-x-2 py-2 pl-4 text-sm text-gray-700 hover:text-primary-600 transition-all duration-200 hover:translate-x-1 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded"
+                                  style={{ animationDelay: `${index * 50}ms` }}
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                  <ChevronRight className="w-3 h-3 text-gray-400 transition-all duration-200" />
+                                  <span className="font-medium">{subcategory.name}</span>
+                                </Link>
+                              ))}
+                              <div className="border-t border-gray-200 my-3"></div>
+                            </>
+                          )}
+                          
+                          <Link
+                            href={`/category/${category.slug}`}
+                            className="flex items-center justify-between py-2 pl-4 text-sm text-gray-700 hover:text-primary-600 transition-all duration-200 hover:translate-x-1 group focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            <span className="font-medium group-hover:text-primary-600">View All {category.name}</span>
+                            <ArrowRight className="w-4 h-4 text-gray-400 transition-all duration-200 group-hover:text-primary-600 group-hover:translate-x-1" />
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </header>
       
       {/* Dropdown Components */}
       <SearchDropdown />
       <WishlistDropdown />
       <CartDrawer />
-    </header>
     </>
   );
 };
