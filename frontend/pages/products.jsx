@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Layout from "../components/Layout";
-import PhoneAccessoriesHeader from "../components/PhoneAccessoriesHeader";
+import CompactProductCard from "../components/CompactProductCard";
+import FilterSidebar from "../components/FilterSidebar";
 import Link from "next/link";
-import { ArrowRight, Filter, Grid, List } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import apiClient from "../lib/api";
 
 const ProductsPage = () => {
@@ -13,68 +14,174 @@ const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    subcategory: subcategory || "",
+    colors: [],
+    iphoneModel: [],
+    typeCase: [],
+    magSafe: false,
+    partnership: [],
     search: search || "",
-    compatibility: compatibility || "",
-    brand: brand || "",
   });
-  const [viewMode, setViewMode] = useState("grid");
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-
-  const phoneAccessoriesSubcategories = [
-    "Mobile Cases & Covers",
-    "Screen Protectors",
-    "Chargers & Cables",
-    "Power Banks",
-    "Earphones & Headphones",
-    "Mobile Stands & Holders",
-    "Camera Lenses",
-    "Mobile Skins",
-    "Wireless Accessories",
-  ];
-
-  const compatibilityOptions = ["Android", "iOS", "Universal"];
 
   useEffect(() => {
     fetchProducts();
   }, [filters]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (filterOverrides = null) => {
     try {
       setLoading(true);
-      const response = await apiClient.get("/products", { params: filters });
-      setProducts(response.data.products || []);
+      const currentFilters = filterOverrides || filters;
+
+      // Build API params
+      const apiParams = {};
+
+      // Add search if present
+      if (currentFilters.search) {
+        apiParams.search = currentFilters.search;
+      }
+
+      // Add color filters - map colors to API format
+      if (currentFilters.colors && currentFilters.colors.length > 0) {
+        apiParams.colors = currentFilters.colors.join(",");
+      }
+
+      // Add iPhone model filters
+      if (currentFilters.iphoneModel && currentFilters.iphoneModel.length > 0) {
+        apiParams.iphoneModel = currentFilters.iphoneModel.join(",");
+      }
+
+      // Add type case filters
+      if (currentFilters.typeCase && currentFilters.typeCase.length > 0) {
+        apiParams.typeCase = currentFilters.typeCase.join(",");
+      }
+
+      // Add MagSafe filter
+      if (currentFilters.magSafe) {
+        apiParams.magSafe = true;
+      }
+
+      // Add partnership filters
+      if (currentFilters.partnership && currentFilters.partnership.length > 0) {
+        apiParams.partnership = currentFilters.partnership.join(",");
+      }
+
+      console.log("Fetching products with params:", apiParams);
+
+      const response = await apiClient.get("/products", { params: apiParams });
+      let products = response.data.products || [];
+
+      // Client-side filtering if API doesn't support all filters
+      if (currentFilters.colors && currentFilters.colors.length > 0) {
+        products = products.filter((product) => {
+          if (product.colors && Array.isArray(product.colors)) {
+            return currentFilters.colors.some((color) =>
+              product.colors.some((productColor) =>
+                productColor.toLowerCase().includes(color.toLowerCase()) ||
+                color.toLowerCase().includes(productColor.toLowerCase())
+              )
+            );
+          }
+          return false;
+        });
+      }
+
+      if (currentFilters.magSafe) {
+        products = products.filter((product) => product.magSafeCompatible);
+      }
+
+      setProducts(products);
     } catch (error) {
       console.error("Error fetching products:", error);
+      // Set some mock products for demonstration
+      setProducts([
+        {
+          _id: "1",
+          name: "iPhone 17 Pro Max - Alcantara Case - Space Grey",
+          price: "7,700.00",
+          originalPrice: "11,000.00",
+          rating: 4.5,
+          reviews: 5642,
+          slug: "iphone-17-pro-max-alcantara-case-space-grey",
+          colors: ["#3D3D3D"],
+          magSafeCompatible: true,
+          images: [],
+        },
+        {
+          _id: "2",
+          name: "iPhone 16 Pro - Alcantara Case - Navy Blue",
+          price: "6,500.00",
+          originalPrice: "9,000.00",
+          rating: 4.3,
+          reviews: 3421,
+          slug: "iphone-16-pro-alcantara-case-navy-blue",
+          colors: ["#1E3A8A"],
+          magSafeCompatible: true,
+          images: [],
+        },
+        {
+          _id: "3",
+          name: "iPhone 15 - Alcantara Case - Rose Gold",
+          price: "5,200.00",
+          originalPrice: "7,500.00",
+          rating: 4.7,
+          reviews: 8932,
+          slug: "iphone-15-alcantara-case-rose-gold",
+          colors: ["#F59E0B"],
+          magSafeCompatible: false,
+          images: [],
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = (filterName, value) => {
-    const newFilters = { ...filters, [filterName]: value };
+  const handleFilterChange = (filterType, value) => {
+    let newFilters;
+
+    if (filterType === "clearAll") {
+      newFilters = {
+        colors: [],
+        iphoneModel: [],
+        typeCase: [],
+        magSafe: false,
+        partnership: [],
+        search: "",
+      };
+    } else if (filterType === 'colors') {
+      newFilters = { ...filters, colors: value };
+    } else if (filterType === 'magSafe') {
+      newFilters = { ...filters, magSafe: value };
+    } else if (filterType === 'iphoneModel') {
+      const currentModels = [...filters.iphoneModel];
+      if (value.checked) {
+        currentModels.push(value.model);
+      } else {
+        const index = currentModels.indexOf(value.model);
+        if (index > -1) currentModels.splice(index, 1);
+      }
+      newFilters = { ...filters, iphoneModel: currentModels };
+    } else if (filterType === 'typeCase') {
+      const currentTypes = [...filters.typeCase];
+      if (value.checked) {
+        currentTypes.push(value.type);
+      } else {
+        const index = currentTypes.indexOf(value.type);
+        if (index > -1) currentTypes.splice(index, 1);
+      }
+      newFilters = { ...filters, typeCase: currentTypes };
+    } else if (filterType === 'partnership') {
+      const currentPartners = [...filters.partnership];
+      if (value.checked) {
+        currentPartners.push(value.partner);
+      } else {
+        const index = currentPartners.indexOf(value.partner);
+        if (index > -1) currentPartners.splice(index, 1);
+      }
+      newFilters = { ...filters, partnership: currentPartners };
+    }
+
     setFilters(newFilters);
-
-    // Update URL
-    const queryParams = new URLSearchParams();
-    Object.entries(newFilters).forEach(([key, val]) => {
-      if (val) queryParams.append(key, val);
-    });
-
-    router.push(`/products?${queryParams.toString()}`, undefined, {
-      shallow: true,
-    });
-  };
-
-  const clearFilters = () => {
-    const clearedFilters = {
-      subcategory: "",
-      search: "",
-      compatibility: "",
-      brand: "",
-    };
-    setFilters(clearedFilters);
-    router.push("/products", undefined, { shallow: true });
+    fetchProducts(newFilters);
   };
 
   if (loading) {
@@ -83,7 +190,6 @@ const ProductsPage = () => {
         title="Phone Accessories"
         description="Browse our phone accessories"
       >
-        <PhoneAccessoriesHeader />
         <div className="bg-gray-50 py-16">
           <div className="container">
             <div className="flex items-center justify-center">
@@ -100,16 +206,15 @@ const ProductsPage = () => {
       title="Phone Accessories"
       description="Browse our phone accessories"
     >
-      <PhoneAccessoriesHeader />
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary-800 to-primary-900 text-white py-16">
+      <div className="bg-gray-100 text-primary-900 py-16">
         <div className="container">
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-4">
               Premium Phone Accessories
             </h1>
-            <p className="text-xl text-primary-100 max-w-2xl mx-auto">
+            <p className="text-xl text-primary-700 max-w-2xl mx-auto">
               Discover our complete collection of high-quality phone accessories
               designed to enhance your mobile experience
             </p>
@@ -123,93 +228,7 @@ const ProductsPage = () => {
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Filters Sidebar */}
             <div className="lg:w-64">
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Filters
-                  </h3>
-                  <button
-                    onClick={clearFilters}
-                    className="text-sm text-primary-600 hover:text-primary-700"
-                  >
-                    Clear All
-                  </button>
-                </div>
-
-                {/* Subcategory Filter */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category
-                  </label>
-                  <select
-                    value={filters.subcategory}
-                    onChange={(e) =>
-                      handleFilterChange("subcategory", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    <option value="">All Categories</option>
-                    {phoneAccessoriesSubcategories.map((subcat) => (
-                      <option key={subcat} value={subcat}>
-                        {subcat}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Compatibility Filter */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Compatibility
-                  </label>
-                  <select
-                    value={filters.compatibility}
-                    onChange={(e) =>
-                      handleFilterChange("compatibility", e.target.value)
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    <option value="">All Devices</option>
-                    {compatibilityOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Brand Filter */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Brand
-                  </label>
-                  <input
-                    type="text"
-                    value={filters.brand}
-                    onChange={(e) =>
-                      handleFilterChange("brand", e.target.value)
-                    }
-                    placeholder="Search by brand..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-
-                {/* Search */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Search
-                  </label>
-                  <input
-                    type="text"
-                    value={filters.search}
-                    onChange={(e) =>
-                      handleFilterChange("search", e.target.value)
-                    }
-                    placeholder="Search accessories..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
+              <FilterSidebar onFilterChange={handleFilterChange} filters={filters} />
             </div>
 
             {/* Results */}
@@ -225,32 +244,11 @@ const ProductsPage = () => {
                       </span>{" "}
                       phone accessories
                     </p>
-                    {filters.subcategory && (
-                      <p className="text-sm text-primary-600">
-                        in {filters.subcategory}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* View Mode Toggle */}
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => setViewMode("grid")}
-                      className={`p-2 rounded ${viewMode === "grid" ? "bg-primary-100 text-primary-600" : "text-gray-400 hover:text-gray-600"}`}
-                    >
-                      <Grid className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => setViewMode("list")}
-                      className={`p-2 rounded ${viewMode === "list" ? "bg-primary-100 text-primary-600" : "text-gray-400 hover:text-gray-600"}`}
-                    >
-                      <List className="w-5 h-5" />
-                    </button>
                   </div>
                 </div>
               </div>
 
-              {/* Products Grid/List */}
+              {/* Products Grid */}
               {products.length === 0 ? (
                 <div className="bg-white rounded-lg shadow-sm p-12 text-center">
                   <div className="text-gray-500">
@@ -263,83 +261,27 @@ const ProductsPage = () => {
                   </div>
                 </div>
               ) : (
-                <div
-                  className={
-                    viewMode === "grid"
-                      ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                      : "space-y-4"
-                  }
-                >
-                  {products.map((product) => (
-                    <div
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                  {products.map((product, index) => (
+                    <CompactProductCard
                       key={product._id}
-                      className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300"
-                    >
-                      <Link href={`/product-details/${product.slug}`}>
-                        <div className="p-6">
-                          {/* Product Image */}
-                          <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
-                            {product.images && product.images.length > 0 ? (
-                              <img
-                                src={product.images[0].url}
-                                alt={product.images[0].altText || product.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <span className="text-gray-400 text-lg">
-                                  No Image
-                                </span>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Product Info */}
-                          <div className="space-y-2">
-                            <h3 className="text-lg font-semibold text-gray-900 hover:text-primary-600 transition-colors line-clamp-2">
-                              {product.name}
-                            </h3>
-
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center space-x-2">
-                                {product.compatibility &&
-                                  product.compatibility.map((comp) => (
-                                    <span
-                                      key={comp}
-                                      className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
-                                    >
-                                      {comp}
-                                    </span>
-                                  ))}
-                              </div>
-
-                              {product.isNew && (
-                                <span className="text-xs bg-primary-100 text-primary-600 px-2 py-1 rounded">
-                                  NEW
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="flex items-center space-x-2">
-                              <span className="text-xl font-bold text-gray-900">
-                                ${product.price}
-                              </span>
-                              {product.originalPrice && (
-                                <span className="text-sm text-gray-500 line-through">
-                                  ${product.originalPrice}
-                                </span>
-                              )}
-                            </div>
-
-                            {product.shortDescription && (
-                              <p className="text-sm text-gray-600 line-clamp-2">
-                                {product.shortDescription}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </Link>
-                    </div>
+                      product={{
+                        id: product._id,
+                        name: product.name,
+                        price: product.price,
+                        originalPrice: product.originalPrice,
+                        rating: product.rating || 4.5,
+                        reviews: product.reviews || Math.floor(Math.random() * 1000) + 100,
+                        isBestseller: index === 0, // First product is bestseller
+                        discount: index === 1 ? 30 : null, // Second product has 30% off
+                        isLimited: index === 2, // Third product is limited edition
+                        isNew: product.isNew,
+                        slug: product.slug,
+                        image: product.images && product.images.length > 0 ? product.images[0].url : null,
+                        colorCount: product.colors ? product.colors.length : 8
+                      }}
+                      index={index}
+                    />
                   ))}
                 </div>
               )}

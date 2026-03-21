@@ -1,6 +1,7 @@
 const SupabaseCategory = require('../models/SupabaseCategory');
 const SupabaseSubCategory = require('../models/SupabaseSubCategory');
 const SupabaseSubSubCategory = require('../models/SupabaseSubSubCategory');
+const SupabaseSub3Category = require('../models/SupabaseSub3Category');
 
 // Get complete iPhone categories hierarchy
 exports.getIPhoneHierarchy = async (req, res) => {
@@ -54,29 +55,58 @@ exports.getIPhoneHierarchy = async (req, res) => {
   }
 };
 
-// Get all categories (for navigation)
+// Get all categories (for navigation) - Updated for 4-level hierarchy
 exports.getAllCategories = async (req, res) => {
   try {
-    const categories = await SupabaseCategory.find({ isActive: true });
+    // Fetch all categories
+    const categoriesResult = await SupabaseCategory.find({ is_active: true });
+    const categories = categoriesResult.data || [];
     
-    // For each category, get its subcategories
-    const categoriesWithSubcategories = await Promise.all(
-      categories.data.map(async (category) => {
-        const subcategories = await SupabaseSubCategory.find({ 
-          categoryId: category.id, 
-          isActive: true 
-        });
-        
-        return {
-          ...category,
-          subcategories: subcategories.data
-        };
-      })
-    );
+    // Fetch all subcategories
+    const subcategoriesResult = await SupabaseSubCategory.find({ is_active: true });
+    const subcategories = subcategoriesResult.data || [];
+    
+    // Fetch all sub-subcategories
+    const subSubcategoriesResult = await SupabaseSubSubCategory.find({ is_active: true });
+    const subSubcategories = subSubcategoriesResult.data || [];
+    
+    // Fetch all sub3 categories (optional - may not exist yet)
+    let sub3Categories = [];
+    try {
+      const sub3CategoriesResult = await SupabaseSub3Category.find({ is_active: true });
+      sub3Categories = sub3CategoriesResult.data || [];
+    } catch (error) {
+      console.log('⚠️ Sub3 categories table not found, skipping level 4 categories');
+      // Continue without sub3 categories
+    }
+    
+    // Build the hierarchy
+    const categoriesWithHierarchy = categories.map(category => {
+      const categorySubcategories = subcategories.filter(sub => sub.category_id === category.id);
+      
+      return {
+        ...category,
+        subcategories: categorySubcategories.map(sub => {
+          const subSubcategoriesForSub = subSubcategories.filter(subSub => subSub.subcategory_id === sub.id);
+          
+          return {
+            ...sub,
+            sub_subcategories: subSubcategoriesForSub.map(subSub => {
+              const sub3CategoriesForSubSub = sub3Categories.filter(sub3 => sub3.sub_subcategory_id === subSub.id);
+              
+              return {
+                ...subSub,
+                sub3_categories: sub3CategoriesForSubSub
+              };
+            })
+          };
+        })
+      };
+    });
     
     res.json({
       success: true,
-      data: categoriesWithSubcategories
+      data: categoriesWithHierarchy
     });
   } catch (error) {
     console.error('Error fetching categories:', error);

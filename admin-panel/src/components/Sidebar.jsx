@@ -12,7 +12,21 @@ import {
   FaLayerGroup,
   FaFolderPlus,
   FaFolderOpen,
-} from "react-icons/fa";
+  FiHome,
+  FiBox,
+  FiShoppingBag,
+  FiPlus,
+  FiEdit2,
+  FiTrash2,
+  FiGrid,
+  FiList,
+  FiSettings,
+  FiUpload,
+  FiFolder,
+  FiPackage,
+  FiTag,
+  FiLayers
+} from "react-icons/fi";
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -156,6 +170,24 @@ export default function Sidebar() {
           className="sidebar-btn"
         >
           <FaFolderOpen style={{ marginRight: "0.5rem" }} /> Sub-Subcategories
+        </button>
+
+        <button
+          onClick={() => navigate("/sub3-categories-upload")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "0.9rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+            marginLeft: "1rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FiLayers style={{ marginRight: "0.5rem" }} /> Sub3 Categories
         </button>
 
         <button

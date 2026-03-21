@@ -23,6 +23,7 @@ import {
   Truck,
   Shield
 } from "lucide-react";
+import { categoryService } from "../services/categoryService";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -32,11 +33,32 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [cartCount, setCartCount] = useState(3);
   const [wishlistCount, setWishlistCount] = useState(4);
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const router = useRouter();
   const megaMenuRef = useRef(null);
   const searchRef = useRef(null);
 
-  // Navigation structure with mega menu data
+  // Fetch categories on component mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setCategoriesLoading(true);
+        const response = await categoryService.getCategoriesWithHierarchy();
+        console.log('📁 Header: Categories loaded:', response.data);
+        setCategories(response.data || []);
+      } catch (error) {
+        console.error('❌ Header: Error loading categories:', error);
+        setCategories([]);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Transform categories data for navigation
   const navigationItems = [
     {
       name: "Products",
@@ -44,261 +66,24 @@ export default function Header() {
       hasMegaMenu: true,
       megaMenu: {
         title: "Product Categories",
-        categories: [
-          {
-            title: "Phone Cases",
-            href: "/category/phone-cases",
-            description: "Premium Alcantara cases for your smartphones",
-            image: "https://via.placeholder.com/300x200/1a365d/ffffff?text=Phone+Cases",
-            subcategories: [
-              { 
-                name: "iPhone Cases", 
-                href: "/category/phone-cases?filter=iphone",
-                subSubcategories: [
-                  { name: "iPhone 15", href: "/category/phone-cases?filter=iphone-15" },
-                  { name: "iPhone 14", href: "/category/phone-cases?filter=iphone-14" },
-                  { name: "iPhone 13", href: "/category/phone-cases?filter=iphone-13" }
-                ]
-              },
-              { 
-                name: "Samsung Cases", 
-                href: "/category/phone-cases?filter=samsung",
-                subSubcategories: [
-                  { name: "Galaxy S24", href: "/category/phone-cases?filter=galaxy-s24" },
-                  { name: "Galaxy S23", href: "/category/phone-cases?filter=galaxy-s23" },
-                  { name: "Galaxy Z", href: "/category/phone-cases?filter=galaxy-z" }
-                ]
-              },
-              { name: "Universal Cases", href: "/category/phone-cases?filter=universal" }
-            ]
-          },
-          {
-            title: "Accessories",
-            href: "/category/accessories",
-            description: "Premium Alcantara accessories for your devices",
-            image: "https://via.placeholder.com/300x200/2c5282/ffffff?text=Accessories",
-            subcategories: [
-              { name: "Screen Protectors", href: "/category/accessories?filter=screen-protectors" },
-              { name: "Chargers & Cables", href: "/category/accessories?filter=chargers" },
-              { name: "Phone Stands", href: "/category/accessories?filter=stands" }
-            ]
-          },
-          {
-            title: "Wallets",
-            href: "/category/wallets",
-            description: "Premium Alcantara wallets and card holders",
-            image: "https://via.placeholder.com/300x200/2b6cb0/ffffff?text=Wallets",
-            subcategories: [
-              { 
-                name: "Card Holders", 
-                href: "/category/wallets?filter=card-holders",
-                subSubcategories: [
-                  { name: "Slim Card Holders", href: "/category/wallets?filter=slim-card" },
-                  { name: "RFID Card Holders", href: "/category/wallets?filter=rfid-card" },
-                  { name: "Multi Card Holders", href: "/category/wallets?filter=multi-card" }
-                ]
-              },
-              { 
-                name: "Bifold Wallets", 
-                href: "/category/wallets?filter=bifold",
-                subSubcategories: [
-                  { name: "Classic Bifold", href: "/category/wallets?filter=classic-bifold" },
-                  { name: "Minimalist Bifold", href: "/category/wallets?filter=minimalist-bifold" },
-                  { name: "Premium Bifold", href: "/category/wallets?filter=premium-bifold" }
-                ]
-              },
-              { name: "Travel Wallets", href: "/category/wallets?filter=travel" }
-            ]
-          },
-          {
-            title: "Car & Travel",
-            href: "/category/car-travel",
-            description: "Premium Alcantara car and travel accessories",
-            image: "https://via.placeholder.com/300x200/3182ce/ffffff?text=Car+Travel",
-            subcategories: [
-              { name: "Car Accessories", href: "/category/car-travel?filter=car" },
-              { name: "Travel Cases", href: "/category/car-travel?filter=travel" },
-              { name: "Luggage Tags", href: "/category/car-travel?filter=luggage" }
-            ]
-          },
-          {
-            title: "Office",
-            href: "/category/office",
-            description: "Premium Alcantara office accessories",
-            image: "https://via.placeholder.com/300x200/2d3748/ffffff?text=Office",
-            subcategories: [
-              { name: "Desk Mats", href: "/category/office?filter=desk-mats" },
-              { name: "Mouse Pads", href: "/category/office?filter=mouse-pads" },
-              { name: "Organizers", href: "/category/office?filter=organizers" }
-            ]
-          },
-          {
-            title: "Sale",
-            href: "/category/sale",
-            description: "Special offers and discounted items",
-            image: "https://via.placeholder.com/300x200/dc2626/ffffff?text=Sale",
-            subcategories: [
-              { name: "Blue Monday Sale", href: "/category/sale?filter=blue-monday" },
-              { name: "Clearance Items", href: "/category/sale?filter=clearance" },
-              { name: "Limited Offers", href: "/category/sale?filter=limited" }
-            ]
-          }
-        ],
-        featured: {
-          title: "Featured Products",
-          products: [
-            {
-              name: "Premium Phone Case - iPhone 17 Pro",
-              price: "$89.99",
-              image: "https://via.placeholder.com/200x150/1a365d/ffffff?text=iPhone+Case",
-              href: "/category/phone-cases/iphone-17-pro"
-            },
-            {
-              name: "Alcantara Wallet - Classic Black",
-              price: "$129.99",
-              image: "https://via.placeholder.com/200x150/2c5282/ffffff?text=Wallet",
-              href: "/category/wallets/classic-black"
-            },
-            {
-              name: "Car Seat Cover Set - Premium",
-              price: "$299.99",
-              image: "https://via.placeholder.com/200x150/2b6cb0/ffffff?text=Car+Cover",
-              href: "/category/car-travel/seat-covers"
-            }
-          ]
-        }
-      }
-    },
-    {
-      name: "Collections",
-      href: "/collections",
-      hasMegaMenu: true,
-      megaMenu: {
-        title: "Product Collections",
-        categories: [
-          {
-            title: "New Arrivals",
-            href: "/category/accessories?filter=new",
-            description: "Latest Alcantara products",
-            image: "https://via.placeholder.com/300x200/1a365d/ffffff?text=New+Arrivals",
-            subcategories: [
-              { name: "This Week", href: "/category/accessories?filter=this-week" },
-              { name: "This Month", href: "/category/accessories?filter=this-month" },
-              { name: "Limited Edition", href: "/category/accessories?filter=limited" }
-            ]
-          },
-          {
-            title: "Best Sellers",
-            href: "/products?filter=best-sellers",
-            description: "Most popular Alcantara items",
-            image: "https://via.placeholder.com/300x200/2c5282/ffffff?text=Best+Sellers",
-            subcategories: [
-              { name: "Phone Cases", href: "/category/phone-cases?filter=best-sellers" },
-              { name: "Wallets", href: "/category/wallets?filter=best-sellers" },
-              { name: "Car Accessories", href: "/category/car-travel?filter=best-sellers" }
-            ]
-          },
-          {
-            title: "Gift Sets",
-            href: "/collections/gift-sets",
-            description: "Curated Alcantara gift collections",
-            image: "https://via.placeholder.com/300x200/2b6cb0/ffffff?text=Gift+Sets",
-            subcategories: [
-              { name: "Premium Sets", href: "/collections/gift-sets?filter=premium" },
-              { name: "Corporate Gifts", href: "/collections/gift-sets?filter=corporate" },
-              { name: "Personal Gifts", href: "/collections/gift-sets?filter=personal" }
-            ]
-          }
-        ],
-        featured: {
-          title: "Featured Collections",
-          products: [
-            {
-              name: "Complete Phone Protection Kit",
-              description: "Full Alcantara phone accessory set",
-              image: "https://via.placeholder.com/200x150/1a365d/ffffff?text=Phone+Kit",
-              href: "/collections/phone-protection"
-            },
-            {
-              name: "Executive Office Set",
-              description: "Premium Alcantara office collection",
-              image: "https://via.placeholder.com/200x150/2c5282/ffffff?text=Office+Set",
-              href: "/collections/executive-office"
-            },
-            {
-              name: "Car Interior Premium Pack",
-              description: "Complete Alcantara car accessories",
-              image: "https://via.placeholder.com/200x150/2b6cb0/ffffff?text=Car+Pack",
-              href: "/collections/car-premium"
-            }
-          ]
-        }
-      }
-    },
-    {
-      name: "Support",
-      href: "/support",
-      hasMegaMenu: true,
-      megaMenu: {
-        title: "Customer Support & Resources",
-        categories: [
-          {
-            title: "Product Care",
-            href: "/support/product-care",
-            description: "How to care for your Alcantara products",
-            image: "https://via.placeholder.com/300x200/1a365d/ffffff?text=Product+Care",
-            subcategories: [
-              { name: "Cleaning Guide", href: "/support/product-care/cleaning" },
-              { name: "Maintenance Tips", href: "/support/product-care/maintenance" },
-              { name: "Warranty Info", href: "/support/product-care/warranty" }
-            ]
-          },
-          {
-            title: "Shipping & Returns",
-            href: "/support/shipping",
-            description: "Delivery and return policies",
-            image: "https://via.placeholder.com/300x200/2c5282/ffffff?text=Shipping",
-            subcategories: [
-              { name: "Delivery Options", href: "/support/shipping/delivery" },
-              { name: "Return Policy", href: "/support/shipping/returns" },
-              { name: "Track Order", href: "/support/shipping/tracking" }
-            ]
-          },
-          {
-            title: "Contact Us",
-            href: "/contact",
-            description: "Get in touch with our team",
-            image: "https://via.placeholder.com/300x200/2b6cb0/ffffff?text=Contact",
-            subcategories: [
-              { name: "Customer Service", href: "/contact/customer-service" },
-              { name: "Technical Support", href: "/contact/technical" },
-              { name: "Partnership Inquiries", href: "/contact/partnerships" }
-            ]
-          }
-        ],
-        featured: {
-          title: "Popular Resources",
-          products: [
-            {
-              name: "Alcantara Care Guide",
-              description: "Complete care instructions",
-              image: "https://via.placeholder.com/200x150/1a365d/ffffff?text=Care+Guide",
-              href: "/support/care-guide"
-            },
-            {
-              name: "Size Guide",
-              description: "Find the perfect fit",
-              image: "https://via.placeholder.com/200x150/2c5282/ffffff?text=Size+Guide",
-              href: "/support/size-guide"
-            },
-            {
-              name: "FAQs",
-              description: "Frequently asked questions",
-              image: "https://via.placeholder.com/200x150/2b6cb0/ffffff?text=FAQ",
-              href: "/support/faq"
-            }
-          ]
-        }
+        categories: categories.map(category => ({
+          title: category.name,
+          href: `/category/${category.slug}`,
+          description: `Premium Alcantara ${category.name.toLowerCase()}`,
+          image: `https://via.placeholder.com/300x200/1a365d/ffffff?text=${encodeURIComponent(category.name)}`,
+          subcategories: category.subcategories?.map(subcategory => ({
+            name: subcategory.name,
+            href: `/category/${category.slug}?subcategory=${subcategory.slug}`,
+            subSubcategories: subcategory.sub_subcategories?.map(subSub => ({
+              name: subSub.name,
+              href: `/category/${category.slug}?subcategory=${subcategory.slug}&subsubcategory=${subSub.slug}`,
+              sub3Categories: subSub.sub3_categories?.map(sub3 => ({
+                name: sub3.name,
+                href: `/category/${category.slug}?subcategory=${subcategory.slug}&subsubcategory=${subSub.slug}&sub3=${sub3.slug}`
+              }))
+            })) || []
+          })) || []
+        }))
       }
     },
     {
@@ -397,13 +182,30 @@ export default function Header() {
                             {sub.subSubcategories && (
                               <div className="ml-4 mt-1 space-y-1 opacity-0 group-hover/sub:opacity-100 transition-opacity duration-200">
                                 {sub.subSubcategories.map((subSub) => (
-                                  <Link
-                                    key={subSub.name}
-                                    href={subSub.href}
-                                    className="text-xs text-gray-500 hover:text-primary-500 transition-colors block"
-                                  >
-                                    {subSub.name}
-                                  </Link>
+                                  <div key={subSub.name} className="group/subsub">
+                                    <Link
+                                      href={subSub.href}
+                                      className="text-xs text-gray-500 hover:text-primary-500 transition-colors block flex items-center"
+                                    >
+                                      {subSub.name}
+                                      {subSub.sub3Categories && (
+                                        <ChevronDown className="w-2 h-2 text-gray-400 group-hover/subsub:text-primary-600 transition-colors ml-1" />
+                                      )}
+                                    </Link>
+                                    {subSub.sub3Categories && (
+                                      <div className="ml-4 mt-1 space-y-1 opacity-0 group-hover/subsub:opacity-100 transition-opacity duration-200">
+                                        {subSub.sub3Categories.map((sub3) => (
+                                          <Link
+                                            key={sub3.name}
+                                            href={sub3.href}
+                                            className="text-xs text-gray-400 hover:text-primary-500 transition-colors block"
+                                          >
+                                            {sub3.name}
+                                          </Link>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
                                 ))}
                               </div>
                             )}
@@ -630,13 +432,27 @@ export default function Header() {
                               {sub.subSubcategories && (
                                 <div className="ml-4 space-y-1">
                                   {sub.subSubcategories.map((subSub) => (
-                                    <Link
-                                      key={subSub.name}
-                                      href={subSub.href}
-                                      className="block text-xs text-gray-500 hover:text-primary-500 transition-colors"
-                                    >
-                                      {subSub.name}
-                                    </Link>
+                                    <div key={subSub.name}>
+                                      <Link
+                                        href={subSub.href}
+                                        className="block text-xs text-gray-500 hover:text-primary-500 transition-colors"
+                                      >
+                                        {subSub.name}
+                                      </Link>
+                                      {subSub.sub3Categories && (
+                                        <div className="ml-4 space-y-1">
+                                          {subSub.sub3Categories.map((sub3) => (
+                                            <Link
+                                              key={sub3.name}
+                                              href={sub3.href}
+                                              className="block text-xs text-gray-400 hover:text-primary-500 transition-colors"
+                                            >
+                                              {sub3.name}
+                                            </Link>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
                                   ))}
                                 </div>
                               )}

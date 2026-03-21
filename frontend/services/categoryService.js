@@ -1,5 +1,5 @@
 // API service for fetching categories and products
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 console.log('🔧 CategoryService initialized with API URL:', API_BASE_URL);
 
@@ -49,7 +49,7 @@ const mockCategories = [
         id: 4,
         name: 'Card Holders',
         slug: 'card-holders',
-        sub_subcategories: [
+        subcategories: [
           { id: 8, name: 'Minimal Card Holder', slug: 'minimal-card-holder' }
         ]
       }
@@ -77,12 +77,12 @@ export const categoryService = {
   // Get all categories with subcategories and sub-subcategories
   async getCategoriesWithHierarchy() {
     try {
-      const url = `${API_BASE_URL}/categories/hierarchy?t=${Date.now()}`;
+      const url = `${API_BASE_URL}/categories/all/with-subcategories`;
       console.log('📡 CategoryService: Fetching categories from:', url);
       
       const response = await fetch(url);
       console.log('📊 CategoryService: Response status:', response.status);
-      console.log('📊 CategoryService: Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log('� CategoryService: Response headers:', Object.fromEntries(response.headers.entries()));
       
       if (!response.ok) {
         const errorText = await response.text();

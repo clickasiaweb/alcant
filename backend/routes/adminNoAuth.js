@@ -16,15 +16,19 @@ router.patch("/product/status/:id", adminController.updateProductStatus);
 router.get("/categories", adminController.getAdminCategories);
 router.get("/subcategories", adminController.getSubCategories);
 router.get("/sub-subcategories", adminController.getSubSubCategories);
+router.get("/sub3-categories", adminController.getSub3Categories);
 router.post("/category", adminController.createCategory);
 router.post("/subcategory", adminController.createSubCategory);
 router.post("/sub-subcategory", adminController.createSubSubCategory);
+router.post("/sub3-category", adminController.createSub3Category);
 router.put("/category/:id", adminController.updateCategory);
 router.put("/subcategory/:id", adminController.updateSubCategory);
 router.put("/sub-subcategory/:id", adminController.updateSubSubCategory);
+router.put("/sub3-category/:id", adminController.updateSub3Category);
 router.delete("/category/:id", adminController.deleteCategory);
 router.delete("/subcategory/:id", adminController.deleteSubCategory);
 router.delete("/sub-subcategory/:id", adminController.deleteSubSubCategory);
+router.delete("/sub3-category/:id", adminController.deleteSub3Category);
 
 // Content - No auth for testing
 router.get("/content/:page", adminController.getContent);

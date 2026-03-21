@@ -195,6 +195,47 @@ export const deleteAdminSubSubCategory = async (id) => {
   return data;
 };
 
+// Sub3 Categories
+export const getAdminSub3Categories = async () => {
+  const { data } = await apiClient.get("/admin/sub3-categories");
+  return data;
+};
+
+export const createAdminSub3Category = async (categoryData) => {
+  console.log('🔍 API: Creating sub3 category with data:', categoryData);
+  console.log('🌐 API: Base URL:', apiClient.defaults.baseURL);
+  
+  try {
+    const response = await apiClient.post("/admin/sub3-category", categoryData);
+    console.log('✅ API: Create response:', response.data);
+    console.log('📊 API: Response status:', response.status);
+    return response.data;
+  } catch (error) {
+    console.error('❌ API: Create error:', error);
+    console.error('❌ API: Error response:', error.response?.data);
+    console.error('❌ API: Error status:', error.response?.status);
+    console.error('❌ API: Error message:', error.message);
+    
+    if (error.code === 'ECONNREFUSED') {
+      console.error('🔌 Connection refused - backend might not be running');
+    } else if (error.code === 'ERR_NETWORK') {
+      console.error('🌐 Network error - CORS or connectivity issue');
+    }
+    
+    throw error;
+  }
+};
+
+export const updateAdminSub3Category = async (id, categoryData) => {
+  const { data } = await apiClient.put(`/admin/sub3-category/${id}`, categoryData);
+  return data;
+};
+
+export const deleteAdminSub3Category = async (id) => {
+  const { data } = await apiClient.delete(`/admin/sub3-category/${id}`);
+  return data;
+};
+
 // Admin Inquiries
 export const getAdminInquiries = async (params) => {
   const { data } = await apiClient.get("/admin/inquiries", { params });

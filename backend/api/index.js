@@ -26,6 +26,7 @@ const adminRoutes = require("../routes/adminNoAuth"); // Temporarily using no-au
 const productRoutes = require("../routes/products");
 const categoryRoutes = require("../routes/categories");
 const contentRoutes = require("../routes/content");
+const categoryBulkRoutes = require("../controllers/categoryBulkController");
 
 const app = express();
 
@@ -76,6 +77,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/content", contentRoutes);
+app.use("/api/categories/bulk", categoryBulkRoutes);
 
 // Health check with database status
 app.get("/api/health", (req, res) => {

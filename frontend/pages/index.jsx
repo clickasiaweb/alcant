@@ -9,7 +9,7 @@ const NewProductsSection = dynamic(() => import("../components/NewProductsSectio
   loading: () => (
     <section className="py-16 bg-white">
       <div className="container">
-        <h2 className="text-3xl md:text-4xl font-bold text-primary-900 mb-12 text-center">
+        <h2 className="text-2xl md:text-3xl font-bold text-primary-900 mb-12 text-center">
           New Arrivals
         </h2>
         <div className="flex justify-center items-center h-64">
@@ -129,19 +129,19 @@ const AlcantaraHome = ({ homeContent = {} }) => {
         
         {/* Content */}
         <div className="relative z-10 text-left space-y-4 px-6 md:px-12 max-w-2xl">
-          <p className=" font-semibold text-white uppercase tracking-wider drop-shadow-lg text-4xl">
+          <p className="font-semibold text-white uppercase tracking-wider drop-shadow-lg text-2xl">
             {homeContent.hero?.subtitle}
           </p>
-          <h2 className="text-4xl md:text-6xl font-bold leading-tight text-white drop-shadow-2xl">
+          <h2 className="text-3xl md:text-4xl font-bold leading-tight text-white drop-shadow-2xl">
             {homeContent.hero?.title}
           </h2>
-          <p className="text-xl text-white drop-shadow-lg max-w-lg">
+          <p className="text-base text-white drop-shadow-lg max-w-lg">
             {homeContent.hero?.content}
           </p>
           <div className="pt-4">
             <Link
               href={homeContent.hero?.buttonLink || "/products"}
-              className="inline-block bg-white text-blue-700 hover:bg-blue-50 text-lg font-semibold px-8 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+              className="inline-block bg-white text-blue-700 hover:bg-blue-50 text-base font-semibold px-6 py-2.5 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
             >
               {homeContent.hero?.buttonText}
             </Link>
@@ -157,7 +157,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
       {/* As Seen In Section */}
       <section className="py-12 bg-gray-50">
         <div className="container">
-          <h3 className="text-center text-lg font-semibold text-gray-600 mb-8">
+          <h3 className="text-center text-sm font-semibold text-gray-600 mb-8">
             {homeContent.asSeenIn?.title || "As seen in"}
           </h3>
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
@@ -169,10 +169,10 @@ const AlcantaraHome = ({ homeContent = {} }) => {
               ))
             ) : (
               <>
-                <div className="text-gray-400 font-bold text-xl">REDLINE</div>
-                <div className="text-gray-400 font-bold text-xl">MTAY</div>
-                <div className="text-gray-400 font-bold text-xl">ONDERNEMER</div>
-                <div className="text-gray-400 font-bold text-xl">TopGear</div>
+                <div className="text-gray-400 font-bold text-lg">REDLINE</div>
+                <div className="text-gray-400 font-bold text-lg">MTAY</div>
+                <div className="text-gray-400 font-bold text-lg">ONDERNEMER</div>
+                <div className="text-gray-400 font-bold text-lg">TopGear</div>
               </>
             )}
           </div>
@@ -184,7 +184,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
       {/* Shop Our Collections */}
       <section className="py-16 bg-gray-50">
         <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary-900 mb-12 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-primary-900 mb-12 text-center">
             {homeContent.collections?.title || "Shop Our Collections"}
           </h2>
 
@@ -216,7 +216,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
                       </span>
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-primary-900 mt-4">
+                  <h3 className="text-base font-semibold text-primary-900 mt-4">
                     {item.title || "Collection"}
                   </h3>
                 </Link>
@@ -246,7 +246,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
                       </span>
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-primary-900 mt-4">
+                  <h3 className="text-base font-semibold text-primary-900 mt-4">
                     {collection.title}
                   </h3>
                 </Link>
@@ -261,15 +261,15 @@ const AlcantaraHome = ({ homeContent = {} }) => {
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-primary-900 mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-primary-900 mb-6">
                 {homeContent.newWeHave?.title || "New We Have"}
               </h2>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-base text-gray-600 mb-8">
                 {homeContent.newWeHave?.content || "Discover our latest collection of premium Alcantara accessories, designed to elevate your everyday luxury experience."}
               </p>
               <Link
                 href={homeContent.newWeHave?.buttonLink || "/products"}
-                className="inline-flex items-center bg-primary-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-800 transition-colors"
+                className="inline-flex items-center bg-primary-900 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-primary-800 transition-colors"
               >
                 {homeContent.newWeHave?.buttonText || "Shop Now"}
                 <ChevronRight className="w-5 h-5 ml-2" />
@@ -299,15 +299,15 @@ const AlcantaraHome = ({ homeContent = {} }) => {
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
-              <h2 className="text-3xl md:text-4xl font-bold text-primary-900 mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-primary-900 mb-6">
                 {homeContent.automotive?.title || "ALCANTARA FOR AUTOMOTIVE"}
               </h2>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-base text-gray-600 mb-8">
                 {homeContent.automotive?.content || "Experience the luxury of Alcantara in your vehicle. Our premium automotive accessories provide the perfect combination of style, comfort, and durability for discerning car enthusiasts."}
               </p>
               <Link
                 href={homeContent.automotive?.buttonLink || "/solutions/automotive"}
-                className="inline-flex items-center bg-primary-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-800 transition-colors"
+                className="inline-flex items-center bg-primary-900 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-primary-800 transition-colors"
               >
                 {homeContent.automotive?.buttonText || "Discover More"}
                 <ChevronRight className="w-5 h-5 ml-2" />
@@ -335,7 +335,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
       {/* Tuned by the world's top tuners */}
       <section className="py-16 bg-gray-50">
         <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary-900 mb-12 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-primary-900 mb-12 text-center">
             {homeContent.tuners?.title || "Tuned by the world's top tuners"}
           </h2>
 
@@ -356,13 +356,13 @@ const AlcantaraHome = ({ homeContent = {} }) => {
                       </div>
                     )}
                     <div>
-                      <h3 className="text-lg font-semibold text-primary-900">
+                      <h3 className="text-base font-semibold text-primary-900">
                         {item.title || "Tuner Name"}
                       </h3>
-                      <p className="text-sm text-gray-600">{item.description || "Professional Title"}</p>
+                      <p className="text-xs text-gray-600">{item.description || "Professional Title"}</p>
                     </div>
                   </div>
-                  <p className="text-gray-700">{item.link || "Tuner description"}</p>
+                  <p className="text-sm text-gray-700">{item.link || "Tuner description"}</p>
                 </div>
               ))
             ) : (
@@ -381,13 +381,13 @@ const AlcantaraHome = ({ homeContent = {} }) => {
                       </div>
                     )}
                     <div>
-                      <h3 className="text-lg font-semibold text-primary-900">
+                      <h3 className="text-base font-semibold text-primary-900">
                         {tuner.name}
                       </h3>
-                      <p className="text-sm text-gray-600">{tuner.title}</p>
+                      <p className="text-xs text-gray-600">{tuner.title}</p>
                     </div>
                   </div>
-                  <p className="text-gray-700">{tuner.description}</p>
+                  <p className="text-sm text-gray-700">{tuner.description}</p>
                 </div>
               ))
             )}
@@ -400,20 +400,20 @@ const AlcantaraHome = ({ homeContent = {} }) => {
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold mb-6">
                 {homeContent.partner?.title || "Proud partner of Conkero.com"}
               </h2>
-              <p className="text-lg text-primary-100 mb-8">
+              <p className="text-base text-primary-100 mb-8">
                 {homeContent.partner?.content || "We are honored to partner with Conkero.com to bring you the finest Alcantara products and accessories. Together, we deliver exceptional quality and service to our valued customers."}
               </p>
               <div className="flex space-x-4">
                 <Link
                   href={homeContent.partner?.buttonLink || "/partners"}
-                  className="bg-white text-primary-900 px-6 py-3 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
+                  className="bg-white text-primary-900 px-5 py-2.5 rounded-lg font-semibold hover:bg-primary-50 transition-colors"
                 >
                   {homeContent.partner?.buttonText || "Learn More"}
                 </Link>
-                <button className="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-primary-900 transition-colors">
+                <button className="border-2 border-white text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-white hover:text-primary-900 transition-colors">
                   Contact Us
                 </button>
               </div>
@@ -476,18 +476,18 @@ const AlcantaraHome = ({ homeContent = {} }) => {
               )}
             </div>
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-primary-900 mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-primary-900 mb-6">
                 {homeContent.team?.title || "Team Alcantara"}
               </h2>
-              <p className="text-lg text-gray-600 mb-6">
+              <p className="text-base text-gray-600 mb-6">
                 {homeContent.team?.content || "Our dedicated team of professionals is committed to bringing you the finest Alcantara products and exceptional customer service. With years of experience in the luxury goods industry, we understand what it takes to deliver excellence."}
               </p>
-              <p className="text-lg text-gray-600 mb-8">
+              <p className="text-base text-gray-600 mb-8">
                 From our skilled craftsmen to our knowledgeable sales team, every member of Team Alcantara shares a passion for quality and a commitment to customer satisfaction.
               </p>
               <Link
                 href={homeContent.team?.buttonLink || "/about"}
-                className="inline-flex items-center bg-primary-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-800 transition-colors"
+                className="inline-flex items-center bg-primary-900 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-primary-800 transition-colors"
               >
                 {homeContent.team?.buttonText || "Meet the Team"}
                 <ChevronRight className="w-5 h-5 ml-2" />
@@ -500,7 +500,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
       {/* Join our community */}
       <section className="py-16 bg-gray-50">
         <div className="container">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary-900 mb-12 text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-primary-900 mb-12 text-center">
             {homeContent.community?.title || "Join our community"}
           </h2>
 
@@ -523,7 +523,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
                     </div>
                   )}
                   <div className="p-4">
-                    <h3 className="text-sm font-semibold text-gray-900 mb-2">
+                    <h3 className="text-xs font-semibold text-gray-900 mb-2">
                       {item.title || `Community Post ${index + 1}`}
                     </h3>
                     <p className="text-xs text-gray-600 mb-3">
@@ -531,7 +531,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
                     </p>
                     <Link
                       href={item.link || "/community"}
-                      className="text-primary-600 hover:text-primary-800 text-sm font-medium"
+                      className="text-primary-600 hover:text-primary-800 text-xs font-medium"
                     >
                       View More
                     </Link>
@@ -570,10 +570,10 @@ const AlcantaraHome = ({ homeContent = {} }) => {
               <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <ShoppingBag className="w-8 h-8 text-primary-900" />
               </div>
-              <h3 className="text-xl font-semibold text-primary-900 mb-2">
+              <h3 className="text-base font-semibold text-primary-900 mb-2">
                 Free Shipping
               </h3>
-              <p className="text-gray-600">
+              <p className="text-sm text-gray-600">
                 Free shipping on all orders over $100
               </p>
             </div>
@@ -581,19 +581,19 @@ const AlcantaraHome = ({ homeContent = {} }) => {
               <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Phone className="w-8 h-8 text-primary-900" />
               </div>
-              <h3 className="text-xl font-semibold text-primary-900 mb-2">
+              <h3 className="text-base font-semibold text-primary-900 mb-2">
                 Support
               </h3>
-              <p className="text-gray-600">24/7 customer support available</p>
+              <p className="text-sm text-gray-600">24/7 customer support available</p>
             </div>
             <div className="text-center">
               <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <MapPin className="w-8 h-8 text-primary-900" />
               </div>
-              <h3 className="text-xl font-semibold text-primary-900 mb-2">
+              <h3 className="text-base font-semibold text-primary-900 mb-2">
                 Safe Shopping
               </h3>
-              <p className="text-gray-600">100% secure payment processing</p>
+              <p className="text-sm text-gray-600">100% secure payment processing</p>
             </div>
           </div>
         </div>

@@ -6,7 +6,9 @@ import Link from 'next/link';
 import Star from 'lucide-react/dist/esm/icons/star';
 import Filter from 'lucide-react/dist/esm/icons/filter';
 import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
 import { productsAPI } from '../../services/api';
+import { categoryService } from '../../services/categoryService';
 
 const CategoryPage = () => {
   const router = useRouter();
@@ -17,6 +19,9 @@ const CategoryPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState({});
   const [subcategories, setSubcategories] = useState([]);
+  const [allCategories, setAllCategories] = useState([]);
+  const [expandedCategories, setExpandedCategories] = useState({});
+  const [expandedSubcategories, setExpandedSubcategories] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -100,11 +105,16 @@ const CategoryPage = () => {
         if (sort) options.sort = sort;
         
         const productsData = await productsAPI.getByCategory(category, options);
-        setProducts(productsData.products || []);
+        setProducts(productsData.data?.data || productsData.products || []);
         
         // Load all categories for navigation
         const categoriesData = await productsAPI.getCategories();
         setCategories(categoriesData.categories || {});
+        
+        // Load full category hierarchy with all 4 levels
+        const hierarchyData = await categoryService.getCategoriesWithHierarchy();
+        console.log(' Full category hierarchy loaded:', hierarchyData);
+        setAllCategories(hierarchyData.data || []);
         
         // Load subcategories for this category
         const subcategoriesData = await productsAPI.getSubcategories(category);
@@ -245,6 +255,138 @@ const CategoryPage = () => {
 
       {/* Header */}
       <div className="container py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar - 4 Level Category Hierarchy */}
+          <div className="lg:w-64 flex-shrink-0">
+            <div className="bg-white rounded-lg border border-gray-200 p-4 sticky top-8">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">
+                {pageData.title} SUBCATEGORIES
+              </h2>
+              
+              {/* Current Category Subcategories */}
+              {subcategories.length > 0 && (
+                <div className="mb-6">
+                  <Link
+                    href={`/category/${category}`}
+                    className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors mb-1 ${
+                      !subcategory 
+                        ? 'bg-primary-600 text-white' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    Shop All {pageData.title}
+                  </Link>
+                  {subcategories.map((sub) => (
+                    <Link
+                      key={sub.slug}
+                      href={`/category/${category}?subcategory=${sub.slug}`}
+                      className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors mb-1 ${
+                        subcategory === sub.slug 
+                          ? 'bg-primary-600 text-white' 
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {sub.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+
+              {/* Full Category Hierarchy */}
+              <div className="border-t border-gray-200 pt-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">All Categories</h3>
+                <div className="space-y-1">
+                  {allCategories.map((cat) => (
+                    <div key={cat.id} className="border border-gray-100 rounded-md">
+                      {/* Level 1 - Category */}
+                      <button
+                        onClick={() => setExpandedCategories(prev => ({
+                          ...prev,
+                          [cat.id]: !prev[cat.id]
+                        }))}
+                        className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors flex items-center justify-between"
+                      >
+                        <span className="font-medium text-gray-900">{cat.name}</span>
+                        {(cat.subcategories && cat.subcategories.length > 0) && (
+                          <ChevronRight 
+                            className={`w-4 h-4 text-gray-400 transition-transform ${
+                              expandedCategories[cat.id] ? 'rotate-90' : ''
+                            }`}
+                          />
+                        )}
+                      </button>
+                      
+                      {/* Level 2 - Subcategories */}
+                      {expandedCategories[cat.id] && cat.subcategories && (
+                        <div className="ml-4 mt-1 space-y-1">
+                          {cat.subcategories.map((sub) => (
+                            <div key={sub.id} className="border border-gray-100 rounded-md">
+                              <button
+                                onClick={() => setExpandedSubcategories(prev => ({
+                                  ...prev,
+                                  [sub.id]: !prev[sub.id]
+                                }))}
+                                className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors flex items-center justify-between"
+                              >
+                                <span className="text-sm text-gray-800">{sub.name}</span>
+                                {(sub.sub_subcategories && sub.sub_subcategories.length > 0) && (
+                                  <ChevronRight 
+                                    className={`w-3 h-3 text-gray-400 transition-transform ${
+                                      expandedSubcategories[sub.id] ? 'rotate-90' : ''
+                                    }`}
+                                  />
+                                )}
+                              </button>
+                              
+                              {/* Level 3 - Sub-subcategories */}
+                              {expandedSubcategories[sub.id] && sub.sub_subcategories && (
+                                <div className="ml-4 mt-1 space-y-1">
+                                  {sub.sub_subcategories.map((subSub) => (
+                                    <div key={subSub.id} className="border border-gray-100 rounded-md">
+                                      <button
+                                        className="w-full text-left px-3 py-1 hover:bg-gray-50 transition-colors flex items-center justify-between"
+                                      >
+                                        <span className="text-xs text-gray-700">{subSub.name}</span>
+                                        {(subSub.sub3_categories && subSub.sub3_categories.length > 0) && (
+                                          <ChevronRight 
+                                            className={`w-2 h-2 text-gray-400 transition-transform ${
+                                              expandedSubcategories[`${sub.id}-${subSub.id}`] ? 'rotate-90' : ''
+                                            }`}
+                                          />
+                                        )}
+                                      </button>
+                                      
+                                      {/* Level 4 - Sub3 Categories */}
+                                      {expandedSubcategories[`${sub.id}-${subSub.id}`] && subSub.sub3_categories && (
+                                        <div className="ml-4 mt-1 space-y-1">
+                                          {subSub.sub3_categories.map((sub3) => (
+                                            <Link
+                                              key={sub3.id}
+                                              href={`/category/${cat.slug}?subcategory=${sub.slug}&subsubcategory=${subSub.slug}&sub3=${sub3.slug}`}
+                                              className="block w-full text-left px-3 py-1 text-xs text-gray-600 hover:text-primary-600 transition-colors"
+                                            >
+                                              {sub3.name}
+                                            </Link>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
         {/* Breadcrumb for subcategory */}
         {subcategory && (
           <div className="mb-4">
@@ -341,10 +483,16 @@ const CategoryPage = () => {
                   {/* Product Image */}
                   <div className="relative">
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-4">
-                      {product.images && product.images.length > 0 ? (
+                      {product.image ? (
                         <img
-                          src={product.images[0].url}
-                          alt={product.images[0].altText || product.name}
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : product.images && product.images.length > 0 ? (
+                        <img
+                          src={Array.isArray(product.images) ? product.images[0] : product.images}
+                          alt={product.name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -485,6 +633,8 @@ const CategoryPage = () => {
               </div>
             </div>
           </div>
+        </div>
+        </div>
         </div>
       </div>
     </Layout>

@@ -42,11 +42,7 @@ const subSubcategoryUploadRoutes = require('./controllers/subSubcategoryUploadCo
 
 const categoryUploadDirectRoutes = require('./controllers/categoryUploadDirectController');
 
-const categoryUploadCSVRoutes = require('./controllers/categoryUploadCSVController');
-
-const subcategoryUploadCSVRoutes = require('./controllers/subcategoryUploadCSVController');
-
-const subSubcategoryUploadCSVRoutes = require('./controllers/subSubcategoryUploadCSVController');
+const setupRoutes = require("./routes/setup");
 
 
 
@@ -83,27 +79,17 @@ const app = express();
 // Middleware
 
 app.use(
-
   cors({
-
     origin: [
-
-      "https://example.com",
-
-      "https://www.example.com", 
-
-      "https://admin.example.com",
-
+      "https://alcant12.vercel.app",
+      "https://alcant-backend.vercel.app", 
+      "https://admin.alcant.in",
       "http://localhost:3000",
-
-      "http://localhost:3001"
-
+      "http://localhost:3001",
+      "http://localhost:3002"
     ],
-
     credentials: true,
-
   }),
-
 );
 
 app.use(express.json({ limit: '100mb' })); // Increased payload limit for videos
@@ -134,11 +120,7 @@ app.use('/api/sub-subcategories/upload', subSubcategoryUploadRoutes);
 
 app.use('/api/categories/direct', categoryUploadDirectRoutes);
 
-app.use('/api/categories/csv', categoryUploadCSVRoutes);
-
-app.use('/api/subcategories/csv', subcategoryUploadCSVRoutes);
-
-app.use('/api/sub-subcategories/csv', subSubcategoryUploadCSVRoutes);
+app.use('/api/setup', setupRoutes);
 
 
 

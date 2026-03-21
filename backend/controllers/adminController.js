@@ -2,6 +2,7 @@ const SupabaseProduct = require("../models/SupabaseProduct");
 const SupabaseCategory = require("../models/SupabaseCategory");
 const SupabaseSubCategory = require("../models/SupabaseSubCategory");
 const SupabaseSubSubCategory = require("../models/SupabaseSubSubCategory");
+const SupabaseSub3Category = require("../models/SupabaseSub3Category");
 
 // GET /api/admin/dashboard-summary
 exports.getDashboardSummary = async (req, res) => {
@@ -746,5 +747,156 @@ exports.deleteSubSubCategory = async (req, res) => {
   } catch (error) {
     console.error("Delete sub-subcategory error:", error);
     res.status(500).json({ error: "Failed to delete sub-subcategory" });
+  }
+};
+
+// GET /api/admin/sub3-categories
+exports.getSub3Categories = async (req, res) => {
+  try {
+    const sub3CategoriesResult = await SupabaseSub3Category.find({ is_active: true });
+    const sub3Categories = sub3CategoriesResult.data || [];
+    
+    // Get sub-subcategory, subcategory, and category names for each sub3 category
+    const sub3CategoriesWithNames = await Promise.all(
+      sub3Categories.map(async (sub3Category) => {
+        let category_name = 'Unknown';
+        let subcategory_name = 'Unknown';
+        let sub_subcategory_name = 'Unknown';
+        
+        // Only try to get parent if sub_subcategory_id is not null
+        if (sub3Category.sub_subcategory_id) {
+          try {
+            // Get parent sub-subcategory
+            const subSubCategory = await SupabaseSubSubCategory.findById(sub3Category.sub_subcategory_id);
+            
+            if (subSubCategory) {
+              sub_subcategory_name = subSubCategory.name;
+              
+              // Get parent subcategory
+              if (subSubCategory.subcategory_id) {
+                try {
+                  const subcategory = await SupabaseSubCategory.findById(subSubCategory.subcategory_id);
+                  
+                  if (subcategory) {
+                    subcategory_name = subcategory.name;
+                    
+                    // Get parent category
+                    if (subcategory.category_id) {
+                      try {
+                        const category = await SupabaseCategory.findById(subcategory.category_id);
+                        if (category) {
+                          category_name = category.name;
+                        }
+                      } catch (catError) {
+                        console.log('Error fetching category:', catError.message);
+                      }
+                    }
+                  }
+                } catch (subError) {
+                  console.log('Error fetching subcategory:', subError.message);
+                }
+              }
+            }
+          } catch (subSubError) {
+            console.log('Error fetching sub-subcategory:', subSubError.message);
+          }
+        }
+        
+        return {
+          ...sub3Category,
+          category_name,
+          subcategory_name,
+          sub_subcategory_name
+        };
+      })
+    );
+
+    res.json({ data: sub3CategoriesWithNames });
+  } catch (error) {
+    console.error("Get sub3 categories error:", error);
+    res.status(500).json({ error: "Failed to fetch sub3 categories" });
+  }
+};
+
+// POST /api/admin/sub3-category
+exports.createSub3Category = async (req, res) => {
+  try {
+    const { name, slug, subSubCategoryId, description, sortOrder = 0, isActive = true } = req.body;
+
+    // Generate slug if not provided
+    const sub3CategorySlug = slug || name
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "");
+
+    const sub3CategoryData = {
+      name,
+      slug: sub3CategorySlug,
+      sub_subcategory_id: subSubCategoryId,
+      description,
+      sort_order: sortOrder,
+      is_active: isActive
+    };
+
+    const sub3Category = await SupabaseSub3Category.create(sub3CategoryData);
+
+    res.status(201).json({
+      message: "Sub3 category created successfully",
+      sub3Category
+    });
+  } catch (error) {
+    console.error("Create sub3 category error:", error);
+    res.status(500).json({ error: "Failed to create sub3 category" });
+  }
+};
+
+// PUT /api/admin/sub3-category/:id
+exports.updateSub3Category = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, slug, description, sortOrder, isActive } = req.body;
+
+    const updateData = {
+      name,
+      slug,
+      description,
+      sort_order: sortOrder,
+      is_active: isActive
+    };
+
+    const sub3Category = await SupabaseSub3Category.findByIdAndUpdate(id, updateData);
+
+    if (!sub3Category) {
+      return res.status(404).json({ error: "Sub3 category not found" });
+    }
+
+    res.json({
+      message: "Sub3 category updated successfully",
+      sub3Category
+    });
+  } catch (error) {
+    console.error("Update sub3 category error:", error);
+    res.status(500).json({ error: "Failed to update sub3 category" });
+  }
+};
+
+// DELETE /api/admin/sub3-category/:id
+exports.deleteSub3Category = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { error } = await require('../config/supabase').supabaseService
+      .from('sub3_categories')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+
+    res.json({
+      message: "Sub3 category deleted successfully"
+    });
+  } catch (error) {
+    console.error("Delete sub3 category error:", error);
+    res.status(500).json({ error: "Failed to delete sub3 category" });
   }
 };

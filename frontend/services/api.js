@@ -42,8 +42,8 @@ export const productsAPI = {
     if (options.limit) params.append('limit', options.limit);
 
     const url = params.toString() 
-      ? `/categories/${category}/products?${params}`
-      : `/categories/${category}/products`;
+      ? `/products/category/${category}?${params}`
+      : `/products/category/${category}`;
     
     const response = await api.get(url);
     return response.data;
@@ -60,7 +60,12 @@ export const productsAPI = {
   // Get featured products
   getFeatured: async () => {
     const response = await api.get('/products/featured');
-    return response.data;
+    return response.data.map((product) => {
+      if (product.images && product.images.length > 0) {
+        product.image = Array.isArray(product.images) ? product.images[0] : product.images;
+      }
+      return product;
+    });
   },
 
   // Get new products
@@ -78,7 +83,12 @@ export const productsAPI = {
   // Get limited edition products
   getLimitedEdition: async () => {
     const response = await api.get('/products/limited-edition');
-    return response.data;
+    return response.data.map((product) => {
+      if (product.images && product.images.length > 0) {
+        product.image = Array.isArray(product.images) ? product.images[0] : product.images;
+      }
+      return product;
+    });
   },
 
   // Search products

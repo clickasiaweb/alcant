@@ -203,6 +203,41 @@ export default function SidebarNoAuth() {
         </button>
 
         <button
+          onClick={() => navigate("/sub3-categories-upload")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "0.9rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+            marginLeft: "1rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FaLayerGroup style={{ marginRight: "0.5rem" }} /> Sub3 Categories
+        </button>
+
+        <button
+          onClick={() => navigate("/sub3-categories")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "1rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FaFolderOpen style={{ marginRight: "0.5rem" }} /> Sub3 Categories
+        </button>
+
+        <button
           onClick={() => navigate("/inquiries")}
           style={{
             background: "none",
