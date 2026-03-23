@@ -16,22 +16,53 @@ const CategoryMegaMenu = () => {
     let mounted = true;
     const fetchData = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
+        // Fetch hierarchical categories including Level 4
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/hierarchy`);
         const data = await res.json();
         if (!mounted) return;
-        const items = (data.categories || []).map((c) => ({
-          id: c._id,
+        
+        const items = (data.data || []).map((c) => ({
+          id: c.id,
           name: c.name,
           icon: "📁",
-          subcategories: (c.subcategories || []).map((s) => s.name),
+          subcategories: (c.subcategories || []).map((s) => ({
+            name: s.name,
+            slug: s.slug,
+            sub_subcategories: (s.sub_subcategories || []).map((ss) => ({
+              name: ss.name,
+              slug: ss.slug,
+              sub3_categories: (ss.sub3_categories || []).map((s3) => ({
+                name: s3.name,
+                slug: s3.slug
+              }))
+            }))
+          })),
           image: "/api/placeholder/400/300",
           color: "#1a365d",
           slug: c.slug,
-          subcategorySlugs: (c.subcategories || []).map((s) => s.slug),
         }));
         setCategories(items);
       } catch (e) {
-        // fail silently to not block header UI
+        console.error('Failed to fetch categories:', e);
+        // Fallback to simple categories
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
+          const data = await res.json();
+          if (!mounted) return;
+          const items = (data.categories || []).map((c) => ({
+            id: c._id,
+            name: c.name,
+            icon: "📁",
+            subcategories: (c.subcategories || []).map((s) => s.name),
+            image: "/api/placeholder/400/300",
+            color: "#1a365d",
+            slug: c.slug,
+            subcategorySlugs: (c.subcategories || []).map((s) => s.slug),
+          }));
+          setCategories(items);
+        } catch (fallbackError) {
+          console.error('Fallback also failed:', fallbackError);
+        }
       }
     };
     fetchData();
@@ -172,21 +203,59 @@ const CategoryMegaMenu = () => {
                   </div>
                 </div>
 
-                {/* Middle Columns - Subcategories */}
+                {/* Middle Columns - Subcategories with Level 4 support */}
                 <div className="col-span-6">
                   <h3 className="text-base font-semibold text-primary-900 mb-4">{activeCategoryData.name}</h3>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-4">
                     {activeCategoryData.subcategories.map((subcategory, index) => (
-                      <Link
-                        key={index}
-                        href={`/category/${activeCategoryData.slug}/${activeCategoryData.subcategorySlugs[index]}`}
-                        className="group flex items-center space-x-2 text-gray-600 hover:text-primary-900 transition-colors duration-200 py-1"
-                      >
-                        <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                        <span className="border-b border-transparent group-hover:border-primary-900 transition-colors duration-200 text-sm">
-                          {subcategory}
-                        </span>
-                      </Link>
+                      <div key={index} className="border-b border-gray-100 pb-3">
+                        <Link
+                          href={`/category/${activeCategoryData.slug}/${subcategory.slug}`}
+                          className="group flex items-center space-x-2 text-gray-800 hover:text-primary-900 transition-colors duration-200 py-1 font-medium"
+                        >
+                          <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                          <span className="border-b border-transparent group-hover:border-primary-900 transition-colors duration-200">
+                            {subcategory.name}
+                          </span>
+                        </Link>
+                        
+                        {/* Level 3 Sub-subcategories */}
+                        {subcategory.sub_subcategories && subcategory.sub_subcategories.length > 0 && (
+                          <div className="ml-4 mt-2 space-y-1">
+                            {subcategory.sub_subcategories.map((subSubcategory, subIndex) => (
+                              <div key={subIndex} className="py-1">
+                                <Link
+                                  href={`/category/${activeCategoryData.slug}/${subcategory.slug}/${subSubcategory.slug}`}
+                                  className="group flex items-center space-x-2 text-gray-600 hover:text-primary-900 transition-colors duration-200 text-sm"
+                                >
+                                  <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                  <span className="border-b border-transparent group-hover:border-primary-900 transition-colors duration-200">
+                                    {subSubcategory.name}
+                                  </span>
+                                </Link>
+                                
+                                {/* Level 4 Sub-sub-subcategories */}
+                                {subSubcategory.sub3_categories && subSubcategory.sub3_categories.length > 0 && (
+                                  <div className="ml-4 mt-1 space-y-1">
+                                    {subSubcategory.sub3_categories.map((sub3Category, sub3Index) => (
+                                      <Link
+                                        key={sub3Index}
+                                        href={`/category/${activeCategoryData.slug}/${subcategory.slug}/${subSubcategory.slug}/${sub3Category.slug}`}
+                                        className="group flex items-center space-x-2 text-gray-500 hover:text-primary-900 transition-colors duration-200 text-xs"
+                                      >
+                                        <ChevronRight className="w-2 h-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                        <span className="border-b border-transparent group-hover:border-primary-900 transition-colors duration-200">
+                                          {sub3Category.name}
+                                        </span>
+                                      </Link>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>

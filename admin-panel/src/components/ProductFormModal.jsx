@@ -126,6 +126,34 @@ const ProductFormModal = ({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sub-Sub-Category
+                </label>
+                <input
+                  type="text"
+                  name="subSubcategory"
+                  value={formData.subSubcategory || ''}
+                  onChange={handleInputChange}
+                  placeholder="Enter sub-sub-category"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sub-Sub-Sub-Category (Level 4)
+                </label>
+                <input
+                  type="text"
+                  name="subSubSubcategory"
+                  value={formData.subSubSubcategory || ''}
+                  onChange={handleInputChange}
+                  placeholder="Enter sub-sub-sub-category"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
           </div>
 

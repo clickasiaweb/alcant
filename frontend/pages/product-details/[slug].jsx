@@ -27,6 +27,7 @@ const ProductDetailPage = ({ slugFromServer }) => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [currentImages, setCurrentImages] = useState([]);
 
   useEffect(() => {
     if (!slug) return;
@@ -64,6 +65,11 @@ const ProductDetailPage = ({ slugFromServer }) => {
     console.log('Added to cart:', product?.name, 'Quantity:', quantity);
   };
 
+  const handleColorChange = (newImages) => {
+    setCurrentImages(newImages);
+    setSelectedImage(0); // Reset to first image when color changes
+  };
+
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -77,6 +83,11 @@ const ProductDetailPage = ({ slugFromServer }) => {
   };
 
   const getImages = () => {
+    // Use color-specific images if available, otherwise use default product images
+    const imagesToUse = currentImages.length > 0 ? currentImages : [];
+    
+    if (imagesToUse.length > 0) return imagesToUse;
+    
     if (!product?.images) return [];
     if (typeof product.images === 'string') {
       try {
@@ -133,6 +144,8 @@ const ProductDetailPage = ({ slugFromServer }) => {
               handleQuantityChange={handleQuantityChange}
               handleAddToCart={handleAddToCart}
               handleShare={handleShare}
+              onColorChange={handleColorChange}
+              images={images}
             />
           </div>
         </div>

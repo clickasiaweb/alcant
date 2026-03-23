@@ -45,6 +45,8 @@ const categoryUploadDirectRoutes = require('./controllers/categoryUploadDirectCo
 
 const setupRoutes = require("./routes/setup");
 
+const bulkUploadRoutes = require('./routes/bulkUpload');
+
 
 
 // Initialize database connection
@@ -122,6 +124,8 @@ app.use('/api/sub-subcategories/upload', subSubcategoryUploadRoutes);
 app.use('/api/categories/direct', categoryUploadDirectRoutes);
 
 app.use('/api/setup', setupRoutes);
+
+app.use('/api/products/bulk-upload', bulkUploadRoutes);
 
 
 

@@ -19,10 +19,10 @@ const BulkUploadPage = () => {
     setIsDownloading(true);
     console.log('Starting template download...');
     console.log('API_BASE_URL:', API_BASE_URL);
-    console.log('Full URL:', `${API_BASE_URL}/bulk-upload/template`);
+    console.log('Full URL:', `${API_BASE_URL}/products/bulk-upload/template`);
     
     try {
-      const response = await axios.get(`${API_BASE_URL}/bulk-upload/template`, {
+      const response = await axios.get(`${API_BASE_URL}/products/bulk-upload/template`, {
         responseType: 'blob'
       });
       
@@ -83,7 +83,7 @@ const BulkUploadPage = () => {
     formData.append('file', file);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/bulk-upload/parse`, formData, {
+      const response = await axios.post(`${API_BASE_URL}/products/bulk-upload/parse`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -111,7 +111,7 @@ const BulkUploadPage = () => {
     setUploadStep('importing');
     
     try {
-      const response = await axios.post(`${API_BASE_URL}/bulk-upload/import`, {
+      const response = await axios.post(`${API_BASE_URL}/products/bulk-upload/import`, {
         products: parsedData.products
       });
 

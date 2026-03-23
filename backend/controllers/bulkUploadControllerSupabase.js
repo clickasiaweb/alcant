@@ -32,6 +32,7 @@ const REQUIRED_COLUMNS = [
   'category',
   'sub_category',
   'sub_sub_category',
+  'sub_sub_sub_category',
   'price',
   'sale_price',
   'stock',
@@ -74,6 +75,7 @@ const generateTemplate = async (req, res) => {
       'Electronics',
       'Mobile Accessories',
       'Phone Cases',
+      'Premium Cases',
       799,
       599,
       100,
@@ -385,14 +387,50 @@ const parseVariants = (rowData) => {
 
     for (let i = 0; i < maxLength; i++) {
       if (colors[i] && sizes[i] && !isNaN(prices[i]) && !isNaN(stocks[i])) {
+        // Extract color-specific images
+        const variantImages = [];
+        for (let imgIndex = 1; imgIndex <= 4; imgIndex++) {
+          const imageField = `image_${imgIndex}`;
+          if (rowData[imageField] && rowData[imageField].toString().trim() !== '') {
+            // Check if image is color-specific (e.g., "black_image1.jpg" or contains color name)
+            const imageUrl = rowData[imageField].toString().trim();
+            if (imageUrl.toLowerCase().includes(colors[i].toLowerCase()) || 
+                rowData[`variant_${colors[i].toLowerCase()}_image_${imgIndex}`]) {
+              variantImages.push(imageUrl);
+            }
+          }
+        }
+        
         variants.push({
           color: colors[i],
           size: sizes[i],
           price: prices[i],
-          stock: stocks[i]
+          stock: stocks[i],
+          images: variantImages.length > 0 ? variantImages : [
+            rowData.image_1, 
+            rowData.image_2, 
+            rowData.image_3, 
+            rowData.image_4
+          ].filter(img => img && img.toString().trim() !== '')
         });
       }
     }
+  } else if (rowData.color) {
+    // Single color variant
+    const variantImages = [
+      rowData.image_1, 
+      rowData.image_2, 
+      rowData.image_3, 
+      rowData.image_4
+    ].filter(img => img && img.toString().trim() !== '');
+    
+    variants.push({
+      color: rowData.color.toString().trim(),
+      size: rowData.size?.toString().trim() || 'Standard',
+      price: rowData.price || 0,
+      stock: rowData.stock || 0,
+      images: variantImages
+    });
   }
 
   return variants;
@@ -483,6 +521,12 @@ const importProducts = async (req, res) => {
           final_price: productData.sale_price || productData.price,
           category: categoryId,
           subcategory: productData.sub_category || null,
+          sub_subcategory: productData.sub_sub_category || null,
+          sub_sub_subcategory: productData.sub_sub_sub_category || null,
+          brand: productData.brand || null,
+          short_description: productData.short_description || null,
+          sku: productData.sku,
+          weight: productData.weight || null,
           images: images.length > 0 ? images : [productData.image_1 || ''],
           image: productData.image_1 || '',
           stock: productData.stock,

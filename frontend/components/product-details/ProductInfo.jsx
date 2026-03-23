@@ -10,28 +10,66 @@ const ProductInfo = ({
   quantity, 
   handleQuantityChange, 
   handleAddToCart, 
-  handleShare 
+  handleShare,
+  onColorChange,
+  images = []
 }) => {
   const [selectedColor, setSelectedColor] = useState(null);
   
   const discountPercentage = oldPrice && oldPrice > currentPrice ? 
     Math.round(((oldPrice - currentPrice) / oldPrice) * 100) : 0;
 
-  // Available colors for this product
-  const availableColors = [
-    { name: 'Space Grey', hex: '#3D3D3D' },
-    { name: 'Navy Blue', hex: '#1E3A8A' },
-    { name: 'Rose Gold', hex: '#F59E0B' },
-    { name: 'Forest Green', hex: '#1A5C2A' },
-    { name: 'Maroon', hex: '#7B1C1C' },
-    { name: 'Light Grey', hex: '#9CA3AF' },
-    { name: 'Burgundy', hex: '#8B0000' },
-    { name: 'Midnight Black', hex: '#000000' }
-  ];
+  // Extract available colors from product variants or use defaults
+  const availableColors = product.variants ? 
+    product.variants.map(variant => ({
+      name: variant.color || variant.name || 'Standard',
+      hex: variant.hex || getDefaultColor(variant.color),
+      variantId: variant.id,
+      images: variant.images || [],
+      price: variant.price || currentPrice,
+      stock: variant.stock || product.stock || 0
+    })).filter((color, index, arr) => arr.findIndex(c => c.name === color.name) === index) : 
+    [
+      { name: 'Space Grey', hex: '#3D3D3D' },
+      { name: 'Navy Blue', hex: '#1E3A8A' },
+      { name: 'Rose Gold', hex: '#F59E0B' },
+      { name: 'Forest Green', hex: '#1A5C2A' },
+      { name: 'Maroon', hex: '#7B1C1C' },
+      { name: 'Light Grey', hex: '#9CA3AF' },
+      { name: 'Burgundy', hex: '#8B0000' },
+      { name: 'Midnight Black', hex: '#000000' }
+    ];
+
+  // Helper function to get default hex color for color names
+  const getDefaultColor = (colorName) => {
+    const colorMap = {
+      'black': '#000000',
+      'white': '#FFFFFF',
+      'red': '#FF0000',
+      'blue': '#0000FF',
+      'green': '#00FF00',
+      'yellow': '#FFFF00',
+      'brown': '#8B4513',
+      'pink': '#FFC0CB',
+      'purple': '#800080',
+      'orange': '#FFA500',
+      'grey': '#808080',
+      'gray': '#808080'
+    };
+    return colorMap[colorName?.toLowerCase()] || '#666666';
+  };
 
   const handleColorSelect = (color) => {
     setSelectedColor(color);
     console.log('Selected color:', color.name, color.hex);
+    
+    // Update images when color changes
+    if (onColorChange && color.images && color.images.length > 0) {
+      onColorChange(color.images);
+    } else if (onColorChange) {
+      // Fallback to default images if no color-specific images
+      onColorChange(images);
+    }
   };
 
   const features = [
