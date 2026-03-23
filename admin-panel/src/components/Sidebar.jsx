@@ -173,24 +173,6 @@ export default function Sidebar() {
         </button>
 
         <button
-          onClick={() => navigate("/sub3-categories-upload")}
-          style={{
-            background: "none",
-            border: "none",
-            color: "white",
-            textAlign: "left",
-            cursor: "pointer",
-            fontSize: "0.9rem",
-            padding: "0.5rem 1rem",
-            borderRadius: "0.5rem",
-            marginLeft: "1rem",
-          }}
-          className="sidebar-btn"
-        >
-          <FiLayers style={{ marginRight: "0.5rem" }} /> Sub3 Categories
-        </button>
-
-        <button
           onClick={() => navigate("/categories")}
           style={{
             background: "none",
