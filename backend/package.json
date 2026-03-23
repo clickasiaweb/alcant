@@ -1,7 +1,7 @@
 {
   "name": "industrial-solutions-backend",
-  "version": "1.0.0",
-  "description": "Backend API for Industrial Solutions Product Website",
+  "version": "1.0.1",
+  "description": "Alcant Backend API - Production Deployment v2.1",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
