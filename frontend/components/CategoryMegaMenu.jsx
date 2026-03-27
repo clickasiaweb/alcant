@@ -3,15 +3,35 @@ import Link from "next/link";
 import ChevronRight from "lucide-react/dist/esm/icons/chevron-right";
 import X from "lucide-react/dist/esm/icons/x";
 
-const CategoryMegaMenu = () => {
+// Helper function to generate link URL based on link configuration
+const generateLinkUrl = (category, subcategory, subSubcategory) => {
+  if (!subSubcategory) return '#';
+  
+  const linkType = subSubcategory.link_type || 'auto';
+  
+  switch (linkType) {
+    case 'custom':
+      return subSubcategory.custom_url || '#';
+    
+    case 'product':
+      return `/product/${subSubcategory.custom_url || subSubcategory.slug}`;
+    
+    case 'collection':
+      return `/collection/${subSubcategory.custom_url || subSubcategory.slug}`;
+    
+    case 'auto':
+    default:
+      return `/category/${category.slug}/${subcategory.slug}/${subSubcategory.slug}`;
+  }
+};
+
+  const CategoryMegaMenu = () => {
   const [activeCategory, setActiveCategory] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState(null);
   const [categories, setCategories] = useState([]);
   const dropdownRef = useRef(null);
   const timeoutRef = useRef(null);
-
-  // Fetch categories from backend
   useEffect(() => {
     let mounted = true;
     const fetchData = async () => {
@@ -235,7 +255,7 @@ const CategoryMegaMenu = () => {
                             {subcategory.sub_subcategories.map((subSubcategory, subIndex) => (
                               <div key={subIndex} className="py-1">
                                 <Link
-                                  href={`/category/${activeCategoryData.slug}/${subcategory.slug}/${subSubcategory.slug}`}
+                                  href={generateLinkUrl(activeCategoryData, subcategory, subSubcategory)}
                                   className="group flex items-center space-x-2 text-gray-600 hover:text-primary-900 transition-colors duration-200 text-sm"
                                 >
                                   <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
@@ -374,7 +394,7 @@ const CategoryMegaMenu = () => {
                                       {subcategory.sub_subcategories.map((subSubcategory, subIndex) => (
                                         <div key={subIndex} className="py-1">
                                           <Link
-                                            href={`/category/${category.slug}/${subcategory.slug}/${subSubcategory.slug}`}
+                                            href={generateLinkUrl(category, subcategory, subSubcategory)}
                                             className="block py-2 text-gray-600 hover:text-primary-900 transition-colors duration-200 text-sm"
                                             onClick={closeMobileMenu}
                                           >

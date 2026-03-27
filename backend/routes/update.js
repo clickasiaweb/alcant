@@ -1,10 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { seedIPhoneSubSubCategories } = require("../controllers/seedIPhoneCategories");
 const { updateIPhoneLinks } = require("../controllers/updateLinksController");
-
-// POST /api/seed/iphone-sub-subcategories
-router.post("/iphone-sub-subcategories", seedIPhoneSubSubCategories);
 
 // POST /api/update/iphone-links
 router.post("/iphone-links", updateIPhoneLinks);

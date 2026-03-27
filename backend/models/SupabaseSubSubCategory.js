@@ -88,7 +88,9 @@ class SupabaseSubSubCategory {
       subcategory_id: subSubCategoryData.subcategory_id,
       description: subSubCategoryData.description || null,
       sort_order: subSubCategoryData.sort_order || 0,
-      is_active: subSubCategoryData.is_active !== undefined ? subSubCategoryData.is_active : true
+      is_active: subSubCategoryData.is_active !== undefined ? subSubCategoryData.is_active : true,
+      link_type: subSubCategoryData.link_type || 'auto',
+      custom_url: subSubCategoryData.custom_url || null
     };
     
     const { data, error } = await supabaseService

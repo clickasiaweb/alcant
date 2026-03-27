@@ -49,6 +49,8 @@ const bulkUploadRoutes = require('./routes/bulkUpload');
 
 const seedRoutes = require('./routes/seed');
 
+const updateRoutes = require('./routes/update');
+
 
 
 // Initialize database connection
@@ -130,6 +132,8 @@ app.use('/api/setup', setupRoutes);
 app.use('/api/products/bulk-upload', bulkUploadRoutes);
 
 app.use('/api/seed', seedRoutes);
+
+app.use('/api/update', updateRoutes);
 
 
 

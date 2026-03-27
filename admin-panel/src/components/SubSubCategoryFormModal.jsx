@@ -156,6 +156,67 @@ const SubSubCategoryFormModal = ({
             />
           </div>
 
+          <div className="border-t pt-4">
+            <h3 className="text-lg font-semibold mb-4">Link Configuration</h3>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Link Type *
+              </label>
+              <select
+                name="linkType"
+                value={formData.linkType || 'auto'}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="auto">Auto-generate Category Page</option>
+                <option value="custom">Custom URL</option>
+                <option value="product">Specific Product Page</option>
+                <option value="collection">Product Collection</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Choose how this sub-subcategory should link to products
+              </p>
+            </div>
+
+            {(formData.linkType === 'custom' || formData.linkType === 'product' || formData.linkType === 'collection') && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {formData.linkType === 'custom' ? 'Custom URL' : 
+                   formData.linkType === 'product' ? 'Product Slug' : 
+                   'Collection Path'} *
+                </label>
+                <input
+                  type="text"
+                  name="customUrl"
+                  value={formData.customUrl || ''}
+                  onChange={handleInputChange}
+                  required={formData.linkType !== 'auto'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder={
+                    formData.linkType === 'custom' ? 'https://example.com/custom-page' :
+                    formData.linkType === 'product' ? 'product-slug-name' :
+                    'custom-collection-path'
+                  }
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {formData.linkType === 'custom' ? 'Enter the full URL or path' :
+                   formData.linkType === 'product' ? 'Enter the product slug to link directly' :
+                   'Enter the collection path for filtered products'}
+                </p>
+              </div>
+            )}
+
+            {formData.linkType === 'auto' && (
+              <div className="bg-blue-50 p-3 rounded-md">
+                <p className="text-sm text-blue-800">
+                  <strong>Auto-generated link:</strong> This will create a link to 
+                  /category/{formData.categorySlug || 'category'}/{formData.subcategorySlug || 'subcategory'}/{formData.slug || 'slug'}
+                </p>
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
