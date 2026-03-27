@@ -5,24 +5,31 @@ import X from "lucide-react/dist/esm/icons/x";
 
 // Helper function to generate link URL based on link configuration
 const generateLinkUrl = (category, subcategory, subSubcategory) => {
-  if (!subSubcategory) return '#';
+  if (!subSubcategory) {
+    console.log('❌ No subSubcategory provided');
+    return '#';
+  }
   
   const linkType = subSubcategory.link_type || 'auto';
+  const generatedUrl = (() => {
+    switch (linkType) {
+      case 'custom':
+        return subSubcategory.custom_url || '#';
+      
+      case 'product':
+        return `/product/${subSubcategory.custom_url || subSubcategory.slug}`;
+      
+      case 'collection':
+        return `/collection/${subSubcategory.custom_url || subSubcategory.slug}`;
+      
+      case 'auto':
+      default:
+        return `/category/${category.slug}/${subcategory.slug}/${subSubcategory.slug}`;
+    }
+  })();
   
-  switch (linkType) {
-    case 'custom':
-      return subSubcategory.custom_url || '#';
-    
-    case 'product':
-      return `/product/${subSubcategory.custom_url || subSubcategory.slug}`;
-    
-    case 'collection':
-      return `/collection/${subSubcategory.custom_url || subSubcategory.slug}`;
-    
-    case 'auto':
-    default:
-      return `/category/${category.slug}/${subcategory.slug}/${subSubcategory.slug}`;
-  }
+  console.log(`🔗 Generating link for: ${subSubcategory.name} -> ${generatedUrl} (type: ${linkType})`);
+  return generatedUrl;
 };
 
 // Helper function to ensure sub-subcategory has proper link structure
@@ -280,37 +287,42 @@ const ensureSubSubcategoryLinks = (subSubcategories) => {
                         {/* Level 3 Sub-subcategories */}
                         {subcategory.sub_subcategories && subcategory.sub_subcategories.length > 0 && (
                           <div className="ml-4 mt-2 space-y-1">
-                            {subcategory.sub_subcategories.map((subSubcategory, subIndex) => (
-                              <div key={subIndex} className="py-1">
-                                <Link
-                                  href={generateLinkUrl(activeCategoryData, subcategory, subSubcategory)}
-                                  className="group flex items-center space-x-2 text-gray-600 hover:text-primary-900 transition-colors duration-200 text-sm"
-                                >
-                                  <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                                  <span className="border-b border-transparent group-hover:border-primary-900 transition-colors duration-200">
-                                    {subSubcategory.name}
-                                  </span>
-                                </Link>
-                                
-                                {/* Level 4 Sub-sub-subcategories */}
-                                {subSubcategory.sub3_categories && subSubcategory.sub3_categories.length > 0 && (
-                                  <div className="ml-4 mt-1 space-y-1">
-                                    {subSubcategory.sub3_categories.map((sub3Category, sub3Index) => (
-                                      <Link
-                                        key={sub3Index}
-                                        href={`/category/${activeCategoryData.slug}/${subcategory.slug}/${subSubcategory.slug}/${sub3Category.slug}`}
-                                        className="group flex items-center space-x-2 text-gray-500 hover:text-primary-900 transition-colors duration-200 text-xs"
-                                      >
-                                        <ChevronRight className="w-2 h-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                                        <span className="border-b border-transparent group-hover:border-primary-900 transition-colors duration-200">
-                                          {sub3Category.name}
-                                        </span>
-                                      </Link>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
+                            {subcategory.sub_subcategories.map((subSubcategory, subIndex) => {
+                              const linkUrl = generateLinkUrl(activeCategoryData, subcategory, subSubcategory);
+                              console.log(`🎯 Rendering Link component for: ${subSubcategory.name} with href: ${linkUrl}`);
+                              
+                              return (
+                                <div key={subIndex} className="py-1">
+                                  <Link
+                                    href={linkUrl}
+                                    className="group flex items-center space-x-2 text-gray-600 hover:text-primary-900 transition-colors duration-200 text-sm"
+                                  >
+                                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                    <span className="border-b border-transparent group-hover:border-primary-900 transition-colors duration-200">
+                                      {subSubcategory.name}
+                                    </span>
+                                  </Link>
+                                  
+                                  {/* Level 4 Sub-sub-subcategories */}
+                                  {subSubcategory.sub3_categories && subSubcategory.sub3_categories.length > 0 && (
+                                    <div className="ml-4 mt-1 space-y-1">
+                                      {subSubcategory.sub3_categories.map((sub3Category, sub3Index) => (
+                                        <Link
+                                          key={sub3Index}
+                                          href={`/category/${activeCategoryData.slug}/${subcategory.slug}/${subSubcategory.slug}/${sub3Category.slug}`}
+                                          className="group flex items-center space-x-2 text-gray-500 hover:text-primary-900 transition-colors duration-200 text-xs"
+                                        >
+                                          <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                                          <span className="border-b border-transparent group-hover:border-primary-900 transition-colors duration-200">
+                                            {sub3Category.name}
+                                          </span>
+                                        </Link>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
