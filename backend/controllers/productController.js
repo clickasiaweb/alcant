@@ -31,6 +31,7 @@ exports.getProducts = async (req, res) => {
       category,
       subcategory,
       subcategory_id,
+      sub_subcategory_id,
       min_price,
       max_price,
       page = 1,
@@ -55,6 +56,10 @@ exports.getProducts = async (req, res) => {
 
     if (subcategory_id) {
       query.subcategoryId = subcategory_id;
+    }
+
+    if (sub_subcategory_id) {
+      query.subSubcategoryId = sub_subcategory_id;
     }
 
     if (min_price || max_price) {
@@ -455,6 +460,7 @@ exports.getRecommendedProducts = async (req, res) => {
   try {
     const {
       subcategory_id,
+      sub_subcategory_id,
       exclude,
       limit = 4
     } = req.query;
@@ -463,6 +469,10 @@ exports.getRecommendedProducts = async (req, res) => {
 
     if (subcategory_id) {
       query.subcategoryId = subcategory_id;
+    }
+
+    if (sub_subcategory_id) {
+      query.subSubcategoryId = sub_subcategory_id;
     }
 
     if (exclude) {
