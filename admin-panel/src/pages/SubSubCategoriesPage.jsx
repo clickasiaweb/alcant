@@ -141,6 +141,8 @@ export default function SubSubCategoriesPage() {
       description: subSubCategory.description || "",
       sortOrder: subSubCategory.sort_order || 0,
       isActive: subSubCategory.is_active !== false,
+      linkType: subSubCategory.link_type || 'auto',
+      customUrl: subSubCategory.custom_url || null,
     });
     setShowForm(true);
   };

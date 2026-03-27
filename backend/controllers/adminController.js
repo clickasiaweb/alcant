@@ -619,7 +619,16 @@ exports.createSubCategory = async (req, res) => {
 // POST /api/admin/sub-subcategory
 exports.createSubSubCategory = async (req, res) => {
   try {
-    const { name, slug, subcategoryId, description, sortOrder = 0, isActive = true } = req.body;
+    const { 
+      name, 
+      slug, 
+      subcategoryId, 
+      description, 
+      sortOrder = 0, 
+      isActive = true,
+      linkType = 'auto',
+      customUrl = null
+    } = req.body;
 
     // Generate slug if not provided
     const subSubcategorySlug = slug || name
@@ -633,9 +642,12 @@ exports.createSubSubCategory = async (req, res) => {
       subcategory_id: subcategoryId,
       description,
       sort_order: sortOrder,
-      is_active: isActive
+      is_active: isActive,
+      link_type: linkType,
+      custom_url: customUrl
     };
 
+    console.log('🔧 Creating sub-subcategory with data:', subSubcategoryData);
     const subSubcategory = await SupabaseSubSubCategory.create(subSubcategoryData);
 
     res.status(201).json({
@@ -681,7 +693,7 @@ exports.updateSubCategory = async (req, res) => {
 exports.updateSubSubCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, slug, description, sortOrder, isActive } = req.body;
+    const { name, slug, description, sortOrder, isActive, linkType, customUrl } = req.body;
 
     const updateData = {
       name,
@@ -691,6 +703,15 @@ exports.updateSubSubCategory = async (req, res) => {
       is_active: isActive
     };
 
+    // Only update link fields if they are provided
+    if (linkType !== undefined) {
+      updateData.link_type = linkType;
+    }
+    if (customUrl !== undefined) {
+      updateData.custom_url = customUrl;
+    }
+
+    console.log('🔧 Updating sub-subcategory with data:', updateData);
     const subSubcategory = await SupabaseSubSubCategory.findByIdAndUpdate(id, updateData);
 
     if (!subSubcategory) {
