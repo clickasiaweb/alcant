@@ -44,7 +44,7 @@ const CategoryMegaMenu = () => {
         setCategories(items);
       } catch (e) {
         console.error('Failed to fetch categories:', e);
-        // Fallback to simple categories
+        // Fallback to simple categories but maintain proper structure
         try {
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories`);
           const data = await res.json();
@@ -53,11 +53,21 @@ const CategoryMegaMenu = () => {
             id: c._id,
             name: c.name,
             icon: "📁",
-            subcategories: (c.subcategories || []).map((s) => s.name),
+            subcategories: (c.subcategories || []).map((s) => ({
+              name: s.name || s,
+              slug: s.slug || s.toLowerCase().replace(/\s+/g, '-'),
+              sub_subcategories: (s.sub_subcategories || []).map((ss) => ({
+                name: ss.name || ss,
+                slug: ss.slug || ss.toLowerCase().replace(/\s+/g, '-'),
+                sub3_categories: (ss.sub3_categories || []).map((s3) => ({
+                  name: s3.name || s3,
+                  slug: s3.slug || s3.toLowerCase().replace(/\s+/g, '-')
+                }))
+              }))
+            })),
             image: "/api/placeholder/400/300",
             color: "#1a365d",
             slug: c.slug,
-            subcategorySlugs: (c.subcategories || []).map((s) => s.slug),
           }));
           setCategories(items);
         } catch (fallbackError) {
@@ -344,19 +354,53 @@ const CategoryMegaMenu = () => {
                           />
                         </button>
 
-                        {/* Subcategories Accordion */}
+                        {/* Subcategories Accordion with Level 3 and 4 support */}
                         {expandedMobileCategory === category.id && (
                           <div className="bg-gray-50 px-4 py-3 animate-fade-in">
                             <div className="space-y-3">
                               {category.subcategories.map((subcategory, index) => (
-                                <Link
-                                  key={index}
-                                  href={`/category/${category.slug}/${category.subcategorySlugs[index]}`}
-                                  className="block py-2 text-gray-600 hover:text-primary-900 transition-colors duration-200"
-                                  onClick={closeMobileMenu}
-                                >
-                                  {subcategory}
-                                </Link>
+                                <div key={index} className="border-b border-gray-100 pb-2">
+                                  <Link
+                                    href={`/category/${category.slug}/${subcategory.slug}`}
+                                    className="block py-2 text-gray-700 hover:text-primary-900 transition-colors duration-200 font-medium"
+                                    onClick={closeMobileMenu}
+                                  >
+                                    {subcategory.name}
+                                  </Link>
+                                  
+                                  {/* Level 3 Sub-subcategories */}
+                                  {subcategory.sub_subcategories && subcategory.sub_subcategories.length > 0 && (
+                                    <div className="ml-4 mt-2 space-y-1">
+                                      {subcategory.sub_subcategories.map((subSubcategory, subIndex) => (
+                                        <div key={subIndex} className="py-1">
+                                          <Link
+                                            href={`/category/${category.slug}/${subcategory.slug}/${subSubcategory.slug}`}
+                                            className="block py-2 text-gray-600 hover:text-primary-900 transition-colors duration-200 text-sm"
+                                            onClick={closeMobileMenu}
+                                          >
+                                            {subSubcategory.name}
+                                          </Link>
+                                          
+                                          {/* Level 4 Sub-sub-subcategories */}
+                                          {subSubcategory.sub3_categories && subSubcategory.sub3_categories.length > 0 && (
+                                            <div className="ml-4 mt-1 space-y-1">
+                                              {subSubcategory.sub3_categories.map((sub3Category, sub3Index) => (
+                                                <Link
+                                                  key={sub3Index}
+                                                  href={`/category/${category.slug}/${subcategory.slug}/${subSubcategory.slug}/${sub3Category.slug}`}
+                                                  className="block py-1 text-gray-500 hover:text-primary-900 transition-colors duration-200 text-xs"
+                                                  onClick={closeMobileMenu}
+                                                >
+                                                  {sub3Category.name}
+                                                </Link>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
                               ))}
                             </div>
 
