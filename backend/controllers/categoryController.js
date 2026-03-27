@@ -69,9 +69,22 @@ exports.getCategoriesWithHierarchy = async (req, res) => {
         subcategories: categorySubcategories.map(sub => {
           const subSubcategoriesForSub = subSubcategories.filter(subSub => subSub.subcategory_id === sub.id);
           
+          // If no sub-subcategories found in database, use mock data
+          let finalSubSubcategories = subSubcategoriesForSub;
+          if (subSubcategoriesForSub.length === 0) {
+            const mockSubSubs = getMockSubSubcategories(sub.slug);
+            finalSubSubcategories = mockSubSubs.map(mock => ({
+              id: mock.slug, // Use slug as temporary ID
+              name: mock.name,
+              slug: mock.slug,
+              subcategory_id: sub.id,
+              is_active: true
+            }));
+          }
+          
           return {
             ...sub,
-            sub_subcategories: subSubcategoriesForSub.map(subSub => {
+            sub_subcategories: finalSubSubcategories.map(subSub => {
               const sub3CategoriesForSubSub = sub3Categories.filter(sub3 => sub3.sub_subcategory_id === subSub.id);
               
               return {
@@ -287,6 +300,29 @@ function getMockSubcategories(categoryName) {
 // Helper function to generate mock sub-subcategories
 function getMockSubSubcategories(subcategorySlug) {
   const mockData = {
+    'iphone-cases': [
+      { name: '17 Pro Case', slug: '17-pro-case' },
+      { name: '16 Pro Case', slug: '16-pro-case' },
+      { name: '15 Pro Case', slug: '15-pro-case' },
+      { name: '14 Pro Case', slug: '14-pro-case' },
+      { name: '13 Pro Case', slug: '13-pro-case' },
+      { name: '12 Pro Case', slug: '12-pro-case' },
+      { name: 'iPhone 15 Case', slug: 'iphone-15-case' },
+      { name: 'iPhone 14 Case', slug: 'iphone-14-case' }
+    ],
+    'samsung-cases': [
+      { name: 'Galaxy S24 Case', slug: 'galaxy-s24-case' },
+      { name: 'Galaxy S23 Case', slug: 'galaxy-s23-case' },
+      { name: 'Galaxy S22 Case', slug: 'galaxy-s22-case' },
+      { name: 'Galaxy S21 Case', slug: 'galaxy-s21-case' },
+      { name: 'Galaxy Note Case', slug: 'galaxy-note-case' }
+    ],
+    'google-pixel-cases': [
+      { name: 'Pixel 8 Case', slug: 'pixel-8-case' },
+      { name: 'Pixel 7 Case', slug: 'pixel-7-case' },
+      { name: 'Pixel 6 Case', slug: 'pixel-6-case' },
+      { name: 'Pixel Pro Case', slug: 'pixel-pro-case' }
+    ],
     'watch-bands': [
       { name: 'Apple Watch Bands', slug: 'apple-watch-bands' },
       { name: 'Samsung Watch Bands', slug: 'samsung-watch-bands' },
