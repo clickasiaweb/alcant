@@ -1,6 +1,28 @@
 import React from 'react';
 import Link from 'next/link';
 
+// Helper function to generate link URL based on link configuration
+const generateLinkUrl = (category, subcategory, subSubcategory) => {
+  if (!subSubcategory) return '#';
+  
+  const linkType = subSubcategory.link_type || 'auto';
+  
+  switch (linkType) {
+    case 'custom':
+      return subSubcategory.custom_url || '#';
+    
+    case 'product':
+      return `/product/${subSubcategory.custom_url || subSubcategory.slug}`;
+    
+    case 'collection':
+      return `/collection/${subSubcategory.custom_url || subSubcategory.slug}`;
+    
+    case 'auto':
+    default:
+      return `/category/phone-cases/iphone-cases/${subSubcategory.slug}`;
+  }
+};
+
 const GenericSubcategoryGrid = ({ subSubcategories, onLinkClick, subcategoryName }) => {
   // Debug logging
   console.log('GenericSubcategoryGrid:', { subcategoryName, subSubcategories });
@@ -81,13 +103,17 @@ const GenericSubcategoryGrid = ({ subSubcategories, onLinkClick, subcategoryName
               <div className="space-y-4">
                 {groupedGenerations[generation].map((subSubcategory) => (
                   <div key={subSubcategory.slug} className="sub-subcategory-group">
-                    {/* Sub-subcategory as column header */}
-                    <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                    {/* Sub-subcategory as clickable link */}
+                    <Link
+                      href={generateLinkUrl(null, null, subSubcategory)}
+                      className="text-sm font-semibold text-gray-900 mb-3 hover:text-primary-900 transition-colors duration-200 border-b border-transparent hover:border-primary-900"
+                      onClick={onLinkClick}
+                    >
                       {subSubcategory.name
                         .replace(/iphone/gi, '')
                         .replace(/\s+/g, ' ')
                         .trim()}
-                    </h4>
+                    </Link>
                   </div>
                 ))}
               </div>
@@ -140,14 +166,18 @@ const GenericSubcategoryGrid = ({ subSubcategories, onLinkClick, subcategoryName
               {group}
             </h4>
             
-            {/* Sub-subcategories as headings only */}
+            {/* Sub-subcategories as clickable links */}
             <div className="space-y-3">
               {groupedItems[group].map((subSubcategory) => (
                 <div key={subSubcategory.slug} className="sub-subcategory-group">
-                  {/* Sub-subcategory as heading */}
-                  <h5 className="text-sm font-medium text-gray-800">
+                  {/* Sub-subcategory as clickable link */}
+                  <Link
+                    href={generateLinkUrl(null, null, subSubcategory)}
+                    className="text-sm font-medium text-gray-800 hover:text-primary-900 transition-colors duration-200 border-b border-transparent hover:border-primary-900"
+                    onClick={onLinkClick}
+                  >
                     {subSubcategory.name}
-                  </h5>
+                  </Link>
                 </div>
               ))}
             </div>
