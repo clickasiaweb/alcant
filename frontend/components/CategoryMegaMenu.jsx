@@ -25,6 +25,15 @@ const generateLinkUrl = (category, subcategory, subSubcategory) => {
   }
 };
 
+// Helper function to ensure sub-subcategory has proper link structure
+const ensureSubSubcategoryLinks = (subSubcategories) => {
+  return subSubcategories.map(subSub => ({
+    ...subSub,
+    link_type: subSub.link_type || 'auto',
+    custom_url: subSub.custom_url || null
+  }));
+};
+
   const CategoryMegaMenu = () => {
   const [activeCategory, setActiveCategory] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -48,14 +57,16 @@ const generateLinkUrl = (category, subcategory, subSubcategory) => {
           subcategories: (c.subcategories || []).map((s) => ({
             name: s.name,
             slug: s.slug,
-            sub_subcategories: (s.sub_subcategories || []).map((ss) => ({
+            sub_subcategories: ensureSubSubcategoryLinks((s.sub_subcategories || []).map((ss) => ({
               name: ss.name,
               slug: ss.slug,
+              link_type: ss.link_type || 'auto',
+              custom_url: ss.custom_url || null,
               sub3_categories: (ss.sub3_categories || []).map((s3) => ({
                 name: s3.name,
                 slug: s3.slug
               }))
-            }))
+            })))
           })),
           image: "/api/placeholder/400/300",
           color: "#1a365d",
@@ -76,14 +87,16 @@ const generateLinkUrl = (category, subcategory, subSubcategory) => {
             subcategories: (c.subcategories || []).map((s) => ({
               name: s.name || s,
               slug: s.slug || s.toLowerCase().replace(/\s+/g, '-'),
-              sub_subcategories: (s.sub_subcategories || []).map((ss) => ({
+              sub_subcategories: ensureSubSubcategoryLinks((s.sub_subcategories || []).map((ss) => ({
                 name: ss.name || ss,
                 slug: ss.slug || ss.toLowerCase().replace(/\s+/g, '-'),
+                link_type: ss.link_type || 'auto',
+                custom_url: ss.custom_url || null,
                 sub3_categories: (ss.sub3_categories || []).map((s3) => ({
                   name: s3.name || s3,
                   slug: s3.slug || s3.toLowerCase().replace(/\s+/g, '-')
                 }))
-              }))
+              })))
             })),
             image: "/api/placeholder/400/300",
             color: "#1a365d",
