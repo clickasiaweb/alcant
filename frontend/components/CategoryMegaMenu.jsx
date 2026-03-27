@@ -45,8 +45,9 @@ const ensureSubSubcategoryLinks = (subSubcategories) => {
     let mounted = true;
     const fetchData = async () => {
       try {
-        // Fetch hierarchical categories including Level 4
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/hierarchy`);
+        // Fetch hierarchical categories including Level 4 with cache busting
+        const timestamp = Date.now();
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/hierarchy?t=${timestamp}`);
         const data = await res.json();
         if (!mounted) return;
         
@@ -72,6 +73,20 @@ const ensureSubSubcategoryLinks = (subSubcategories) => {
           color: "#1a365d",
           slug: c.slug,
         }));
+        
+        // Debug logging for iPhone cases
+        const phoneCategory = items.find(cat => cat.name === "Phone Cases");
+        if (phoneCategory) {
+          const iphoneSub = phoneCategory.subcategories.find(sub => sub.name === "iPhone Cases");
+          if (iphoneSub) {
+            console.log('📱 iPhone Cases sub-subcategories:', iphoneSub.sub_subcategories);
+            console.log('🔗 Link generation test:', iphoneSub.sub_subcategories.map(ss => ({
+              name: ss.name,
+              link: generateLinkUrl(phoneCategory, iphoneSub, ss)
+            })));
+          }
+        }
+        
         setCategories(items);
       } catch (e) {
         console.error('Failed to fetch categories:', e);
