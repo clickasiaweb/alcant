@@ -2,7 +2,6 @@ const SupabaseCategory = require('../models/SupabaseCategory');
 const SupabaseProduct = require('../models/SupabaseProduct');
 const SupabaseSubCategory = require('../models/SupabaseSubCategory');
 const SupabaseSubSubCategory = require('../models/SupabaseSubSubCategory');
-const SupabaseSub3Category = require('../models/SupabaseSub3Category');
 
 // GET /api/categories - returns active categories with product counts
 exports.getCategories = async (req, res) => {
@@ -56,11 +55,7 @@ exports.getCategoriesWithHierarchy = async (req, res) => {
     const subSubcategoriesResult = await SupabaseSubSubCategory.find({ is_active: true });
     const subSubcategories = subSubcategoriesResult.data || [];
     
-    // Fetch all sub3 categories
-    const sub3CategoriesResult = await SupabaseSub3Category.find({ is_active: true });
-    const sub3Categories = sub3CategoriesResult.data || [];
-    
-    // Build the hierarchy
+    // Build the hierarchy (without Level 4 for now)
     const categoriesWithHierarchy = categories.map(category => {
       const categorySubcategories = subcategories.filter(sub => sub.category_id === category.id);
       
@@ -71,14 +66,10 @@ exports.getCategoriesWithHierarchy = async (req, res) => {
           
           return {
             ...sub,
-            sub_subcategories: subSubcategoriesForSub.map(subSub => {
-              const sub3CategoriesForSubSub = sub3Categories.filter(sub3 => sub3.sub_subcategory_id === subSub.id);
-              
-              return {
-                ...subSub,
-                sub3_categories: sub3CategoriesForSubSub
-              };
-            })
+            sub_subcategories: subSubcategoriesForSub.map(subSub => ({
+              ...subSub,
+              sub3_categories: [] // Empty array for Level 4
+            }))
           };
         })
       };
