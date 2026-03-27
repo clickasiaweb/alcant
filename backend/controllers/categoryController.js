@@ -69,22 +69,9 @@ exports.getCategoriesWithHierarchy = async (req, res) => {
         subcategories: categorySubcategories.map(sub => {
           const subSubcategoriesForSub = subSubcategories.filter(subSub => subSub.subcategory_id === sub.id);
           
-          // If no sub-subcategories found in database, use mock data
-          let finalSubSubcategories = subSubcategoriesForSub;
-          if (subSubcategoriesForSub.length === 0) {
-            const mockSubSubs = getMockSubSubcategories(sub.slug);
-            finalSubSubcategories = mockSubSubs.map(mock => ({
-              id: mock.slug, // Use slug as temporary ID
-              name: mock.name,
-              slug: mock.slug,
-              subcategory_id: sub.id,
-              is_active: true
-            }));
-          }
-          
           return {
             ...sub,
-            sub_subcategories: finalSubSubcategories.map(subSub => {
+            sub_subcategories: subSubcategoriesForSub.map(subSub => {
               const sub3CategoriesForSubSub = sub3Categories.filter(sub3 => sub3.sub_subcategory_id === subSub.id);
               
               return {
