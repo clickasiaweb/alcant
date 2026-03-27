@@ -33,19 +33,27 @@ const SubSubCategoryPage = () => {
   useEffect(() => {
     const resolveMetaAndId = async () => {
       try {
-        const data = await fetchCategories();
-        const categories = data.categories || [];
+        // Use hierarchy API to get the proper structure
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/categories/hierarchy`);
+        const data = await response.json();
+        const categories = data.data || [];
         setAllCategories(categories);
+        
         const catNode = categories.find((c) => c.slug === category);
         const subNode = catNode?.subcategories?.find((s) => s.slug === subcategory);
         const subSubNode = subNode?.sub_subcategories?.find((ss) => ss.slug === subsubcategory);
-        setSubSubCategoryId(subSubNode?._id || null);
+        
+        console.log('🔍 Finding sub-subcategory:', { category, subcategory, subsubcategory });
+        console.log('📁 Found nodes:', { catNode, subNode, subSubNode });
+        
+        setSubSubCategoryId(subSubNode?.id || null);
         const title = subSubNode?.name || subNode?.name || catNode?.name || 'Products';
         const description = subSubNode ? `${subSubNode.name} from ${subNode?.name} in ${catNode?.name}` : 
                              subNode ? `${subNode.name} from ${catNode?.name}` : 
                              catNode?.name || 'Browse our products';
         setMeta({ title, description });
       } catch (e) {
+        console.error('❌ Error resolving sub-subcategory:', e);
         setMeta({ title: 'Products', description: 'Browse our products' });
       }
     };
@@ -161,6 +169,21 @@ const SubSubCategoryPage = () => {
           )}
         </nav>
       </div>
+
+      {/* Error State */}
+      {!subSubCategoryId && category && subcategory && subsubcategory && (
+        <div className="container py-8">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <h2 className="text-lg font-semibold text-yellow-800 mb-2">Category Not Found</h2>
+            <p className="text-yellow-700 mb-4">
+              The sub-subcategory "{subsubcategory}" was not found in "{subcategory}" → "{category}".
+            </p>
+            <Link href="/category" className="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
+              Browse All Categories
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
       <div className="container py-8">
