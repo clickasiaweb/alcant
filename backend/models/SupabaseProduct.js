@@ -170,6 +170,8 @@ class SupabaseProduct {
     if (updateData.finalPrice !== undefined) dbData.final_price = updateData.finalPrice;
     if (updateData.category !== undefined) dbData.category = updateData.category;
     if (updateData.subcategory !== undefined) dbData.subcategory = updateData.subcategory;
+    if (updateData.sub_subcategory !== undefined) dbData.sub_subcategory = updateData.sub_subcategory;
+    if (updateData.sub_sub_subcategory !== undefined) dbData.sub_sub_subcategory = updateData.sub_sub_subcategory;
     if (updateData.images !== undefined) dbData.images = updateData.images;
     if (updateData.image !== undefined) dbData.image = updateData.image;
     if (updateData.rating !== undefined) dbData.rating = updateData.rating;
@@ -189,6 +191,8 @@ class SupabaseProduct {
     // Update timestamp
     dbData.updated_at = new Date().toISOString();
     
+    console.log('🔧 SupabaseProduct updating product:', { id, dbData });
+    
     const { data, error } = await supabaseService
       .from('products')
       .update(dbData)
@@ -196,8 +200,12 @@ class SupabaseProduct {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase update error:', error);
+      throw error;
+    }
     
+    console.log('✅ Supabase update successful:', data);
     return data;
   }
   
