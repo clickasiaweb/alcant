@@ -54,20 +54,33 @@ const ProductFormModal = ({
 
   const handleFormSubmit = (e) => {
     console.log('🚨 handleFormSubmit called!');
-    console.log('📝 Event object:', e);
-    console.log('🎯 Editing product:', editingProduct);
     e.preventDefault();
-    handleSubmit(e);
+    e.stopPropagation();
+    
+    // Force form submission
+    try {
+      const form = e.target;
+      if (form && form.requestSubmit) {
+        console.log('� Using requestSubmit');
+        form.requestSubmit();
+      } else {
+        console.log('📤 Calling handleSubmit directly');
+        handleSubmit(e);
+      }
+    } catch (error) {
+      console.error('❌ Form submission error:', error);
+      handleSubmit(e);
+    }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style={{ pointerEvents: 'auto' }}>
+      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative" style={{ pointerEvents: 'auto' }}>
         <h2 className="text-xl font-bold mb-4">
           {editingProduct ? "Edit Product" : "Add New Product"}
         </h2>
         
-        <form onSubmit={handleFormSubmit} className="space-y-6">
+        <form onSubmit={handleFormSubmit} className="space-y-6" style={{ pointerEvents: 'auto' }}>
           {/* Basic Information */}
           <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
@@ -84,6 +97,7 @@ const ProductFormModal = ({
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., Premium Phone Case"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
 
@@ -431,10 +445,15 @@ const ProductFormModal = ({
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
+              style={{ pointerEvents: 'auto', zIndex: 10 }}
               onClick={(e) => {
                 console.log('🔵 Submit button clicked!');
                 console.log('📝 Form data at click:', formData);
+                // Ensure the form submits
+                setTimeout(() => {
+                  e.target.form?.requestSubmit();
+                }, 100);
               }}
             >
               {editingProduct ? "Update" : "Create"} Product
@@ -445,7 +464,8 @@ const ProductFormModal = ({
                 console.log('❌ Cancel button clicked');
                 resetForm();
               }}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors"
+              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors cursor-pointer"
+              style={{ pointerEvents: 'auto', zIndex: 10 }}
             >
               Cancel
             </button>
