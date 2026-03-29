@@ -1,16 +1,57 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 
 const ProductFormModal = ({ 
   formData, 
   editingProduct, 
   categories, 
+  subcategories,
+  subSubcategories,
   handleInputChange, 
   handleSubmit, 
   resetForm, 
   handleImageUpload, 
   removeImage 
 }) => {
+  const [availableSubcategories, setAvailableSubcategories] = useState([]);
+  const [availableSubSubcategories, setAvailableSubSubcategories] = useState([]);
+
+  // Load subcategories when category changes
+  useEffect(() => {
+    if (formData.category && categories) {
+      const selectedCategory = categories.find(cat => cat.id === formData.category);
+      const subs = selectedCategory?.subcategories || [];
+      setAvailableSubcategories(subs);
+      
+      // Reset dependent fields
+      if (formData.subcategory && !subs.find(sub => sub.id === formData.subcategory)) {
+        handleInputChange({ target: { name: 'subcategory', value: '' } });
+        handleInputChange({ target: { name: 'subSubcategory', value: '' } });
+        handleInputChange({ target: { name: 'subSubSubcategory', value: '' } });
+      }
+    } else {
+      setAvailableSubcategories([]);
+      setAvailableSubSubcategories([]);
+    }
+  }, [formData.category, categories]);
+
+  // Load sub-subcategories when subcategory changes
+  useEffect(() => {
+    if (formData.subcategory && availableSubcategories) {
+      const selectedSubcategory = availableSubcategories.find(sub => sub.id === formData.subcategory);
+      const subSubs = selectedSubcategory?.sub_subcategories || [];
+      setAvailableSubSubcategories(subSubs);
+      
+      // Reset dependent field
+      if (formData.subSubcategory && !subSubs.find(subSub => subSub.id === formData.subSubcategory)) {
+        handleInputChange({ target: { name: 'subSubcategory', value: '' } });
+        handleInputChange({ target: { name: 'subSubSubcategory', value: '' } });
+      }
+    } else {
+      setAvailableSubSubcategories([]);
+    }
+  }, [formData.subcategory, availableSubcategories]);
+
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleSubmit(e);
@@ -117,28 +158,38 @@ const ProductFormModal = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Sub-Category
                 </label>
-                <input
-                  type="text"
+                <select
                   name="subcategory"
-                  value={formData.subcategory}
+                  value={formData.subcategory || ''}
                   onChange={handleInputChange}
-                  placeholder="Enter sub-category"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                >
+                  <option value="">Select Sub-Category</option>
+                  {availableSubcategories.map(subcategory => (
+                    <option key={subcategory.id} value={subcategory.id}>
+                      {subcategory.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Sub-Sub-Category
                 </label>
-                <input
-                  type="text"
+                <select
                   name="subSubcategory"
                   value={formData.subSubcategory || ''}
                   onChange={handleInputChange}
-                  placeholder="Enter sub-sub-category"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                >
+                  <option value="">Select Sub-Sub-Category</option>
+                  {availableSubSubcategories.map(subSubcategory => (
+                    <option key={subSubcategory.id} value={subSubcategory.id}>
+                      {subSubcategory.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div>

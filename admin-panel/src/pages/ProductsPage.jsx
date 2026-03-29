@@ -32,6 +32,8 @@ export default function ProductsPage() {
     description: "",
     category: "",
     subcategory: "",
+    subSubcategory: "",
+    subSubSubcategory: "",
     price: "",
     oldPrice: "",
     images: [],
@@ -72,24 +74,24 @@ export default function ProductsPage() {
       setLoading(true);
       const [productsData, categoriesData] = await Promise.all([
         getAdminProducts(),
-        getAdminCategories(),
+        fetch('http://localhost:5001/api/categories/hierarchy').then(res => res.json()),
       ]);
 
       console.log('Products data:', productsData);
       console.log('Categories data:', categoriesData);
 
       const products = productsData.products || productsData.data || [];
-      const categories = categoriesData.categories || categoriesData.data || [];
+      const categories = categoriesData.data || [];
       
       console.log('Processed products:', products);
       console.log('Processed categories:', categories);
       
       setProducts(Array.isArray(products) ? products : []);
       setCategories(Array.isArray(categories) ? categories : []);
+      setLoading(false);
     } catch (error) {
-      console.error("Error loading data:", error);
-      toast.error("Error loading data");
-    } finally {
+      console.error('Error loading data:', error);
+      toast.error('Failed to load data');
       setLoading(false);
     }
   };
@@ -106,7 +108,9 @@ export default function ProductsPage() {
           description: product.description || "",
           category: product.category || "",
           subcategory: product.subcategory || "",
-          price: product.price || "",
+          subSubcategory: product.sub_subcategory || "",
+          subSubSubcategory: product.sub_sub_subcategory || "",
+          price: product.price || product.final_price || "",
           oldPrice: product.old_price || "",
           images: product.images || [],
           stock: product.stock || "",
@@ -198,6 +202,8 @@ export default function ProductsPage() {
         final_price: parseFloat(formData.price) || 0, // Required field
         category: formData.category,
         subcategory: formData.subcategory || 'general', // Default value for required field
+        sub_subcategory: formData.subSubcategory || null, // Add sub-subcategory
+        sub_sub_subcategory: formData.subSubSubcategory || null, // Add level 4
         images: formData.images || [],
         image: formData.images?.[0]?.url || '', // Use first image as main image
         stock: parseInt(formData.stock) || 0,
@@ -236,6 +242,8 @@ export default function ProductsPage() {
       description: product.description || "",
       category: product.category || "",
       subcategory: product.subcategory || "",
+      subSubcategory: product.sub_subcategory || "",
+      subSubSubcategory: product.sub_sub_subcategory || "",
       price: product.price || product.final_price || "",
       oldPrice: product.old_price || "",
       images: product.images || [],
@@ -288,6 +296,8 @@ export default function ProductsPage() {
       description: "",
       category: "",
       subcategory: "",
+      subSubcategory: "",
+      subSubSubcategory: "",
       price: "",
       oldPrice: "",
       images: [],
@@ -504,6 +514,8 @@ export default function ProductsPage() {
             formData={formData}
             editingProduct={editingProduct}
             categories={categories}
+            subcategories={[]}
+            subSubcategories={[]}
             handleInputChange={handleInputChange}
             handleSubmit={handleSubmit}
             resetForm={resetForm}
