@@ -199,8 +199,6 @@ export default function ProductsPage() {
       
       // Get the correct product ID
       const productId = editingProduct?.id || editingProduct?._id;
-      console.log('🎯 Editing product ID:', productId);
-      console.log('🔍 Editing product object details:', JSON.stringify(editingProduct, null, 2));
       
       if (!productId && editingProduct) {
         console.error('❌ CRITICAL: Product ID is undefined and editingProduct exists');
@@ -208,12 +206,35 @@ export default function ProductsPage() {
         return;
       }
       
-      if (!productId) {
-        console.error('❌ CRITICAL: Product ID is undefined');
-        toast.error('Product ID is missing. Cannot update.');
-        return;
+      // ✅ FIX: Process images properly
+      let processedImages = [];
+      let mainImage = '';
+
+      if (formData.images && formData.images.length > 0) {
+        for (const img of formData.images) {
+          // If it's already a URL string (from existing product), keep it
+          if (typeof img === 'string' && img.startsWith('http')) {
+            processedImages.push(img);
+            if (!mainImage) mainImage = img;
+          }
+          // If it's an object with url property and not a blob, keep it
+          else if (typeof img === 'object' && img.url && !img.url.startsWith('blob:')) {
+            processedImages.push(img.url);
+            if (!mainImage) mainImage = img.url;
+          }
+          // Skip blob URLs and invalid objects
+          else {
+            console.log('⚠️ Skipping invalid image:', img);
+          }
+        }
       }
-      
+
+      // Fallback to existing product image if no new valid images
+      if (editingProduct && processedImages.length === 0 && editingProduct.image) {
+        mainImage = editingProduct.image;
+        processedImages = editingProduct.images || [mainImage];
+      }
+
       const productData = {
         name: formData.name,
         slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
@@ -226,8 +247,8 @@ export default function ProductsPage() {
         subcategory: formData.subcategory || 'general', // Default value for required field
         sub_subcategory: formData.subSubcategory || '',  // Don't send null
         sub_sub_subcategory: formData.subSubSubcategory || '',  // Don't send null
-        images: formData.images || [],
-        image: formData.images?.[0]?.url || formData.images?.[0] || '',  // Get first image properly
+        images: processedImages,  // ✅ Array of valid URLs
+        image: mainImage,  // ✅ Main image as string URL
         stock: parseInt(formData.stock) || 0,
         isActive: formData.isActive !== false,
         isNew: formData.isNew || false,
@@ -242,16 +263,18 @@ export default function ProductsPage() {
 
       console.log('🚀 Product data being sent:', JSON.stringify(productData, null, 2));
       console.log('🎯 Editing product ID:', productId);
+      console.log('📸 Final images:', processedImages);
+      console.log('🖼️ Main image:', mainImage);
 
       if (editingProduct) {
         console.log('📝 Updating product...');
         const result = await updateProduct(productId, productData);
-        console.log('✅ Update result:', JSON.stringify(result, null, 2));
+        console.log('✅ Update result:', result);
         toast.success("Product updated successfully!");
       } else {
         console.log('➕ Creating new product...');
         const result = await createProduct(productData);
-        console.log('✅ Create result:', JSON.stringify(result, null, 2));
+        console.log('✅ Create result:', result);
         toast.success("Product created successfully!");
       }
       resetForm();
