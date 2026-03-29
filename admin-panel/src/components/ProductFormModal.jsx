@@ -436,14 +436,6 @@ const ProductFormModal = ({
               type="submit"
               className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
               style={{ pointerEvents: 'auto', zIndex: 10 }}
-              onClick={(e) => {
-                console.log('🔵 Submit button clicked!');
-                console.log('📝 Form data at click:', formData);
-                // Ensure the form submits
-                setTimeout(() => {
-                  e.target.form?.requestSubmit();
-                }, 100);
-              }}
             >
               {editingProduct ? "Update" : "Create"} Product
             </button>
