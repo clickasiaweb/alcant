@@ -145,6 +145,8 @@ export default function ProductsPage() {
   const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     
+    console.log(`🔄 Input change: ${name} = ${value} (type: ${type})`);
+    
     if (type === "checkbox") {
       setFormData(prev => ({
         ...prev,
@@ -192,6 +194,9 @@ export default function ProductsPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log('🔥 Form submission started!');
+      console.log('📝 Form data before submission:', formData);
+      
       const productData = {
         name: formData.name,
         slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
@@ -218,17 +223,25 @@ export default function ProductsPage() {
         keywords: formData.keywords || '',
       };
 
+      console.log('🚀 Product data being sent:', productData);
+      console.log('🎯 Editing product ID:', editingProduct?._id);
+
       if (editingProduct) {
-        await updateProduct(editingProduct._id, productData);
+        console.log('📝 Updating product...');
+        const result = await updateProduct(editingProduct._id, productData);
+        console.log('✅ Update result:', result);
         toast.success("Product updated successfully!");
       } else {
-        await createProduct(productData);
+        console.log('➕ Creating new product...');
+        const result = await createProduct(productData);
+        console.log('✅ Create result:', result);
         toast.success("Product created successfully!");
       }
       resetForm();
       loadData();
     } catch (error) {
-      console.error('Product creation error:', error);
+      console.error('❌ Product creation error:', error);
+      console.error('❌ Error response:', error.response?.data);
       toast.error(error.response?.data?.message || "Error saving product");
     }
   };
