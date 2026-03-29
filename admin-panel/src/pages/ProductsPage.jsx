@@ -251,7 +251,8 @@ export default function ProductsPage() {
     console.log('📝 Editing product object:', product);
     console.log('🆔 Product ID fields:', { id: product.id, _id: product._id });
     
-    const productId = product._id || product.id;
+    // Use the correct ID field based on what's available
+    const productId = product.id || product._id;
     console.log('🎯 Using product ID:', productId);
     
     setEditingProduct(product);
