@@ -74,7 +74,7 @@ export default function ProductsPage() {
       setLoading(true);
       const [productsData, categoriesData] = await Promise.all([
         getAdminProducts(),
-        fetch('http://localhost:5001/api/categories/hierarchy').then(res => res.json()),
+        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/categories/hierarchy`).then(res => res.json()),
       ]);
 
       console.log('Products data:', productsData);
