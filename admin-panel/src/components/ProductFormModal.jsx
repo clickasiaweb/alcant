@@ -57,20 +57,9 @@ const ProductFormModal = ({
     e.preventDefault();
     e.stopPropagation();
     
-    // Force form submission
-    try {
-      const form = e.target;
-      if (form && form.requestSubmit) {
-        console.log('� Using requestSubmit');
-        form.requestSubmit();
-      } else {
-        console.log('📤 Calling handleSubmit directly');
-        handleSubmit(e);
-      }
-    } catch (error) {
-      console.error('❌ Form submission error:', error);
-      handleSubmit(e);
-    }
+    // Directly call the parent handleSubmit function
+    console.log('📤 Calling parent handleSubmit directly');
+    handleSubmit(e);
   };
 
   return (
