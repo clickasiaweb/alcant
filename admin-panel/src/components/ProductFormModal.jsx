@@ -53,6 +53,9 @@ const ProductFormModal = ({
   }, [formData.subcategory, availableSubcategories]);
 
   const handleFormSubmit = (e) => {
+    console.log('🚨 handleFormSubmit called!');
+    console.log('📝 Event object:', e);
+    console.log('🎯 Editing product:', editingProduct);
     e.preventDefault();
     handleSubmit(e);
   };
@@ -429,12 +432,19 @@ const ProductFormModal = ({
             <button
               type="submit"
               className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+              onClick={(e) => {
+                console.log('🔵 Submit button clicked!');
+                console.log('📝 Form data at click:', formData);
+              }}
             >
               {editingProduct ? "Update" : "Create"} Product
             </button>
             <button
               type="button"
-              onClick={resetForm}
+              onClick={() => {
+                console.log('❌ Cancel button clicked');
+                resetForm();
+              }}
               className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors"
             >
               Cancel
