@@ -387,7 +387,28 @@ export default function ProductsPage() {
                          (filterStatus === "active" && product.is_active) ||
                          (filterStatus === "inactive" && !product.is_active);
     const matchesCategory = filterCategory === "all" || product.category === filterCategory;
+    
+    console.log('🔍 Filtering product:', {
+      name: product.name,
+      is_active: product.is_active,
+      category: product.category,
+      matchesSearch,
+      matchesStatus,
+      matchesCategory,
+      searchTerm,
+      filterStatus,
+      filterCategory
+    });
+    
     return matchesSearch && matchesStatus && matchesCategory;
+  });
+
+  console.log('📊 Filter results:', {
+    totalProducts: products.length,
+    filteredProducts: filteredProducts.length,
+    searchTerm,
+    filterStatus,
+    filterCategory
   });
 
   if (loading) {
