@@ -19,13 +19,18 @@ const generateLinkUrl = (category, subcategory, subSubcategory) => {
     
     case 'auto':
     default:
+      // Generate dynamic URL based on actual category structure
+      if (category?.slug && subcategory?.slug) {
+        return `/category/${category.slug}/${subcategory.slug}/${subSubcategory.slug}`;
+      }
+      // Fallback for iPhone Cases (backward compatibility)
       return `/category/phone-cases/iphone-cases/${subSubcategory.slug}`;
   }
 };
 
-const GenericSubcategoryGrid = ({ subSubcategories, onLinkClick, subcategoryName }) => {
+const GenericSubcategoryGrid = ({ subSubcategories, onLinkClick, subcategoryName, category, subcategory }) => {
   // Debug logging
-  console.log('GenericSubcategoryGrid:', { subcategoryName, subSubcategories });
+  console.log('GenericSubcategoryGrid:', { subcategoryName, category, subcategory, subSubcategories });
   
   // For iPhone Cases, use the special grouping logic with clean layout
   if (subcategoryName === 'iPhone Cases') {
@@ -105,7 +110,7 @@ const GenericSubcategoryGrid = ({ subSubcategories, onLinkClick, subcategoryName
                   <div key={subSubcategory.slug} className="sub-subcategory-group">
                     {/* Sub-subcategory as clickable link */}
                     <Link
-                      href={generateLinkUrl(null, null, subSubcategory)}
+                      href={generateLinkUrl(category, subcategory, subSubcategory)}
                       className="text-sm font-semibold text-gray-900 mb-3 hover:text-primary-900 transition-colors duration-200 border-b border-transparent hover:border-primary-900"
                       onClick={onLinkClick}
                     >
@@ -172,7 +177,7 @@ const GenericSubcategoryGrid = ({ subSubcategories, onLinkClick, subcategoryName
                 <div key={subSubcategory.slug} className="sub-subcategory-group">
                   {/* Sub-subcategory as clickable link */}
                   <Link
-                    href={generateLinkUrl(null, null, subSubcategory)}
+                    href={generateLinkUrl(category, subcategory, subSubcategory)}
                     className="text-sm font-medium text-gray-800 hover:text-primary-900 transition-colors duration-200 border-b border-transparent hover:border-primary-900"
                     onClick={onLinkClick}
                   >

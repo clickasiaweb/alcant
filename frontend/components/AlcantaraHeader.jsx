@@ -531,6 +531,8 @@ const AlcantaraHeader = () => {
                                       subSubcategories={subSubcategories[hoveredSubcategory.slug]}
                                       onLinkClick={() => setActiveDropdown(null)}
                                       subcategoryName={hoveredSubcategory.name}
+                                      category={activeCategory}
+                                      subcategory={hoveredSubcategory}
                                     />
                                   </div>
                                 );
