@@ -24,20 +24,12 @@ class SupabaseProduct {
       supabaseQuery = supabaseQuery.eq('subcategory_id', query.subcategoryId);
     }
     
-    if (query.sub_subcategory_id) {
-      supabaseQuery = supabaseQuery.eq('sub_subcategory_id', query.sub_subcategory_id);
-    }
-    
-    if (query.sub_sub_subcategory_id) {
-      supabaseQuery = supabaseQuery.eq('sub_sub_subcategory_id', query.sub_sub_subcategory_id);
-    }
-    
     if (query.sub_subcategory) {
       supabaseQuery = supabaseQuery.eq('sub_subcategory', query.sub_subcategory);
     }
     
-    if (query.sub_sub_subcategory) {
-      supabaseQuery = supabaseQuery.eq('sub_sub_subcategory', query.sub_sub_subcategory);
+    if (query.sub_subcategory_id) {
+      supabaseQuery = supabaseQuery.eq('sub_subcategory_id', query.sub_subcategory_id);
     }
     
     if (query._id) {
@@ -128,6 +120,8 @@ class SupabaseProduct {
   }
   
   static async create(productData) {
+    console.log('🔧 SupabaseProduct.create called with:', JSON.stringify(productData, null, 2));
+    
     // Generate slug if not provided - use same logic as frontend
     if (!productData.slug) {
       productData.slug = productData.name
@@ -149,6 +143,7 @@ class SupabaseProduct {
       final_price: productData.final_price || productData.finalPrice || productData.price || 0,
       category: productData.category || null,
       subcategory: productData.subcategory || null,
+      sub_subcategory: productData.sub_subcategory || null, // ✅ Add missing field
       images: productData.images || [],
       image: productData.image || null,
       rating: productData.rating || 0,
@@ -160,14 +155,25 @@ class SupabaseProduct {
       is_active: productData.is_active !== undefined ? productData.is_active : (productData.isActive !== undefined ? productData.isActive : true)
     };
     
+    console.log('🚀 SupabaseProduct dbData:', JSON.stringify(dbData, null, 2));
+    
     const { data, error } = await supabaseService
       .from('products')
       .insert([dbData])
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase insert error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: 'This may be due to missing database columns. Run the migration in Supabase dashboard.'
+      });
+      throw error;
+    }
     
+    console.log('✅ SupabaseProduct created successfully:', data);
     return data;
   }
   
@@ -198,10 +204,8 @@ class SupabaseProduct {
     if (updateData.category !== undefined) dbData.category = updateData.category;
     if (updateData.subcategory !== undefined) dbData.subcategory = updateData.subcategory;
     if (updateData.sub_subcategory !== undefined) dbData.sub_subcategory = updateData.sub_subcategory;
-    if (updateData.sub_sub_subcategory !== undefined) dbData.sub_sub_subcategory = updateData.sub_sub_subcategory;
     if (updateData.subcategory_id !== undefined) dbData.subcategory_id = updateData.subcategory_id;
     if (updateData.sub_subcategory_id !== undefined) dbData.sub_subcategory_id = updateData.sub_subcategory_id;
-    if (updateData.sub_sub_subcategory_id !== undefined) dbData.sub_sub_subcategory_id = updateData.sub_sub_subcategory_id;
     if (updateData.images !== undefined) dbData.images = updateData.images;
     if (updateData.image !== undefined) dbData.image = updateData.image;
     if (updateData.rating !== undefined) dbData.rating = updateData.rating;

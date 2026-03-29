@@ -36,6 +36,41 @@ router.post("/add-test-product", async (req, res) => {
   }
 });
 
+// Test endpoint for product creation
+router.get("/test-create", async (req, res) => {
+  try {
+    console.log('🧪 Test create endpoint called');
+    
+    const testProduct = {
+      name: 'Test Product',
+      category: 'Phone Cases',
+      subcategory: 'iPhone Cases',
+      sub_subcategory: '15 Pro Case',
+      sub_sub_subcategory: 'Silicon Cases',
+      price: 99.99,
+      description: 'Test product for debugging'
+    };
+    
+    console.log('📦 Test product data:', JSON.stringify(testProduct, null, 2));
+    
+    const product = await SupabaseProduct.create(testProduct);
+    
+    console.log('✅ SupabaseProduct.create result:', product);
+    
+    res.json({
+      success: true,
+      product: product
+    });
+  } catch (error) {
+    console.error('❌ Test create error:', error);
+    res.status(500).json({ 
+      error: error.message,
+      details: error.details,
+      stack: error.stack 
+    });
+  }
+});
+
 // Test endpoint for sub-subcategory filtering
 router.get("/test-filter", async (req, res) => {
   try {
