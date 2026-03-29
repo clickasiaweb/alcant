@@ -199,8 +199,17 @@ export default function ProductsPage() {
       
       // Get the correct product ID
       const productId = editingProduct?.id || editingProduct?._id;
+      console.log('🎯 Editing product ID:', productId);
+      console.log('🔍 Editing product object details:', JSON.stringify(editingProduct, null, 2));
       
       if (!productId && editingProduct) {
+        console.error('❌ CRITICAL: Product ID is undefined and editingProduct exists');
+        toast.error('Product ID is missing. Cannot update.');
+        return;
+      }
+      
+      if (!productId) {
+        console.error('❌ CRITICAL: Product ID is undefined');
         toast.error('Product ID is missing. Cannot update.');
         return;
       }
