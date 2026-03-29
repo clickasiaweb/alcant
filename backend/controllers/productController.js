@@ -388,6 +388,21 @@ exports.createProduct = [
 
   async (req, res) => {
     try {
+      console.log('🔍 Create product request body:', JSON.stringify(req.body, null, 2));
+      
+      // ✅ DEBUG: Check if sub-subcategory fields are present
+      if (req.body.sub_subcategory) {
+        console.log('✅ sub_subcategory received:', req.body.sub_subcategory);
+      } else {
+        console.log('❌ sub_subcategory MISSING in request');
+      }
+      
+      if (req.body.sub_sub_subcategory) {
+        console.log('✅ sub_sub_subcategory received:', req.body.sub_sub_subcategory);
+      } else {
+        console.log('❌ sub_sub_subcategory MISSING in request');
+      }
+      
       const product = await SupabaseProduct.create({ ...req.body });
 
       res.status(201).json({

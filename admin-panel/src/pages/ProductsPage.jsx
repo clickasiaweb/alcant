@@ -245,6 +245,8 @@ export default function ProductsPage() {
         final_price: parseFloat(formData.price) || 0,
         category: formData.category,
         subcategory: formData.subcategory || 'uncategorized', // ✅ Required field, cannot be null
+        sub_subcategory: formData.subSubcategory || null, // ✅ Add sub-subcategory field
+        sub_sub_subcategory: formData.subSubSubcategory || null, // ✅ Add sub-sub-subcategory field
         images: processedImages,
         image: mainImage,
         stock: parseInt(formData.stock) || 0,
