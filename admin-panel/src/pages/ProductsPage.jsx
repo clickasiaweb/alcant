@@ -197,6 +197,14 @@ export default function ProductsPage() {
       console.log('🔥 Form submission started!');
       console.log('📝 Form data before submission:', JSON.stringify(formData, null, 2));
       
+      // Get the correct product ID
+      const productId = editingProduct?.id || editingProduct?._id;
+      
+      if (!productId && editingProduct) {
+        toast.error('Product ID is missing. Cannot update.');
+        return;
+      }
+      
       const productData = {
         name: formData.name,
         slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
@@ -207,10 +215,10 @@ export default function ProductsPage() {
         final_price: parseFloat(formData.price) || 0, // Required field
         category: formData.category,
         subcategory: formData.subcategory || 'general', // Default value for required field
-        sub_subcategory: formData.subSubcategory || null, // Add sub-subcategory
-        sub_sub_subcategory: formData.subSubSubcategory || null, // Add level 4
+        sub_subcategory: formData.subSubcategory || '',  // Don't send null
+        sub_sub_subcategory: formData.subSubSubcategory || '',  // Don't send null
         images: formData.images || [],
-        image: formData.images?.[0]?.url || '', // Use first image as main image
+        image: formData.images?.[0]?.url || formData.images?.[0] || '',  // Get first image properly
         stock: parseInt(formData.stock) || 0,
         isActive: formData.isActive !== false,
         isNew: formData.isNew || false,
@@ -224,11 +232,11 @@ export default function ProductsPage() {
       };
 
       console.log('🚀 Product data being sent:', JSON.stringify(productData, null, 2));
-      console.log('🎯 Editing product ID:', editingProduct?._id);
+      console.log('🎯 Editing product ID:', productId);
 
       if (editingProduct) {
         console.log('📝 Updating product...');
-        const result = await updateProduct(editingProduct._id, productData);
+        const result = await updateProduct(productId, productData);
         console.log('✅ Update result:', JSON.stringify(result, null, 2));
         toast.success("Product updated successfully!");
       } else {
@@ -242,7 +250,6 @@ export default function ProductsPage() {
     } catch (error) {
       console.error('❌ Product creation error:', error);
       console.error('❌ Error response:', error.response?.data);
-      console.error('❌ Full error object:', error);
       toast.error(error.response?.data?.message || "Error saving product");
     }
   };
