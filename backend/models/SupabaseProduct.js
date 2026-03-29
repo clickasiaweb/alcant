@@ -156,10 +156,21 @@ class SupabaseProduct {
   }
   
   static async findByIdAndUpdate(id, updateData) {
+    // Validate UUID format for Supabase
+    if (!id || typeof id !== 'string') {
+      throw new Error('Invalid product ID: ID must be a string');
+    }
+    
+    // Validate UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(id)) {
+      throw new Error(`Invalid product ID format: ${id}`);
+    }
+    
     // Convert field names to match database schema
     const dbData = {};
     
-    // Handle basic fields
+    // Handle basic fields that exist in Supabase schema
     if (updateData.name !== undefined) dbData.name = updateData.name;
     if (updateData.slug !== undefined) dbData.slug = updateData.slug;
     if (updateData.description !== undefined) dbData.description = updateData.description;
@@ -170,15 +181,13 @@ class SupabaseProduct {
     if (updateData.finalPrice !== undefined) dbData.final_price = updateData.finalPrice;
     if (updateData.category !== undefined) dbData.category = updateData.category;
     if (updateData.subcategory !== undefined) dbData.subcategory = updateData.subcategory;
-    if (updateData.sub_subcategory !== undefined) dbData.sub_subcategory = updateData.sub_subcategory;
-    if (updateData.sub_sub_subcategory !== undefined) dbData.sub_sub_subcategory = updateData.sub_sub_subcategory;
     if (updateData.images !== undefined) dbData.images = updateData.images;
     if (updateData.image !== undefined) dbData.image = updateData.image;
     if (updateData.rating !== undefined) dbData.rating = updateData.rating;
     if (updateData.reviews !== undefined) dbData.reviews = updateData.reviews;
     if (updateData.stock !== undefined) dbData.stock = updateData.stock;
     
-    // Handle boolean fields
+    // Handle boolean fields that exist in Supabase schema
     if (updateData.is_new !== undefined) dbData.is_new = updateData.is_new;
     if (updateData.isNew !== undefined) dbData.is_new = updateData.isNew;
     if (updateData.is_limited_edition !== undefined) dbData.is_limited_edition = updateData.is_limited_edition;
@@ -187,6 +196,9 @@ class SupabaseProduct {
     if (updateData.isBlueMondaySale !== undefined) dbData.is_blue_monday_sale = updateData.isBlueMondaySale;
     if (updateData.is_active !== undefined) dbData.is_active = updateData.is_active;
     if (updateData.isActive !== undefined) dbData.is_active = updateData.isActive;
+    
+    // ❌ REMOVED: Fields that don't exist in Supabase schema
+    // short_description, seo_meta_title, seo_meta_description, keywords, sub_subcategory, sub_sub_subcategory
     
     // Update timestamp
     dbData.updated_at = new Date().toISOString();

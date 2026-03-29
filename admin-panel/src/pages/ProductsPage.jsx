@@ -77,14 +77,8 @@ export default function ProductsPage() {
         fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/categories/hierarchy`).then(res => res.json()),
       ]);
 
-      console.log('Products data:', productsData);
-      console.log('Categories data:', categoriesData);
-
       const products = productsData.products || productsData.data || [];
       const categories = categoriesData.data || [];
-      
-      console.log('Processed products:', products);
-      console.log('Processed categories:', categories);
       
       setProducts(Array.isArray(products) ? products : []);
       setCategories(Array.isArray(categories) ? categories : []);
@@ -98,7 +92,8 @@ export default function ProductsPage() {
 
   const loadProductForEdit = async (id) => {
     try {
-      const product = products.find(p => (p._id || p.id) === id);
+      // ✅ FIX: Use consistent ID (Supabase uses 'id' only)
+      const product = products.find(p => p.id === id);
       if (product) {
         setEditingProduct(product);
         setFormData({
@@ -197,12 +192,17 @@ export default function ProductsPage() {
       console.log('🔥 Form submission started!');
       console.log('📝 Form data before submission:', JSON.stringify(formData, null, 2));
       
-      // Get the correct product ID
-      const productId = editingProduct?.id || editingProduct?._id;
+      // Get the correct product ID for Supabase (UUID format) - FORCE id only
+      const productId = editingProduct?.id;
       
-      if (!productId && editingProduct) {
-        console.error('❌ CRITICAL: Product ID is undefined and editingProduct exists');
+      if (!productId) {
         toast.error('Product ID is missing. Cannot update.');
+        return;
+      }
+      
+      // Validate UUID format for Supabase
+      if (productId && typeof productId === 'string' && !productId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+        toast.error('Invalid product ID format');
         return;
       }
       
@@ -235,30 +235,27 @@ export default function ProductsPage() {
         processedImages = editingProduct.images || [mainImage];
       }
 
+      // ✅ SCHEMA COMPLIANT: Only fields that exist in Supabase
       const productData = {
         name: formData.name,
         slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        description: formData.description || formData.shortDescription || '',
-        shortDescription: formData.shortDescription || '',
+        description: formData.description || formData.shortDescription || 'Product description', // ✅ Required field
         price: parseFloat(formData.price) || 0,
-        oldPrice: parseFloat(formData.oldPrice) || null,
-        final_price: parseFloat(formData.price) || 0, // Required field
+        old_price: parseFloat(formData.oldPrice) || null,
+        final_price: parseFloat(formData.price) || 0,
         category: formData.category,
-        subcategory: formData.subcategory || 'general', // Default value for required field
-        sub_subcategory: formData.subSubcategory || '',  // Don't send null
-        sub_sub_subcategory: formData.subSubSubcategory || '',  // Don't send null
-        images: processedImages,  // ✅ Array of valid URLs
-        image: mainImage,  // ✅ Main image as string URL
+        subcategory: formData.subcategory || 'uncategorized', // ✅ Required field, cannot be null
+        images: processedImages,
+        image: mainImage,
         stock: parseInt(formData.stock) || 0,
-        isActive: formData.isActive !== false,
-        isNew: formData.isNew || false,
-        isLimitedEdition: formData.isLimitedEdition || false,
-        isBlueMondaySale: formData.isBlueMondaySale || false,
+        is_active: formData.isActive !== false,
+        is_new: formData.isNew || false,
+        is_limited_edition: formData.isLimitedEdition || false,
+        is_blue_monday_sale: formData.isBlueMondaySale || false,
         rating: parseFloat(formData.rating) || 0,
         reviews: parseInt(formData.reviews) || 0,
-        seoMetaTitle: formData.seoMetaTitle || '',
-        seoMetaDescription: formData.seoMetaDescription || '',
-        keywords: formData.keywords || '',
+        // ❌ REMOVED: Fields not in Supabase schema
+        // short_description, seo_meta_title, seo_meta_description, keywords
       };
 
       console.log('🚀 Product data being sent:', JSON.stringify(productData, null, 2));
@@ -287,12 +284,13 @@ export default function ProductsPage() {
   };
 
   const handleEdit = (product) => {
-    console.log('📝 Editing product object:', product);
-    console.log('🆔 Product ID fields:', { id: product.id, _id: product._id });
+    // ✅ FIX: Force consistent ID usage (Supabase uses 'id' only)
+    const productId = product.id;
     
-    // Use the correct ID field based on what's available
-    const productId = product.id || product._id;
-    console.log('🎯 Using product ID:', productId);
+    if (!productId) {
+      toast.error('Invalid product ID');
+      return;
+    }
     
     setEditingProduct(product);
     setFormData({

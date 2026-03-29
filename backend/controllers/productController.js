@@ -410,19 +410,35 @@ exports.updateProduct = [
       const { id } = req.params;
       const updates = req.body;
 
+      // ✅ PRD MANDATORY: Add logging for debugging
+      console.log("🔍 Update payload:", JSON.stringify(updates, null, 2));
+      console.log("🎯 Product ID:", id);
+
       const product = await SupabaseProduct.findByIdAndUpdate(id, updates);
 
       if (!product) {
+        console.log("❌ Product not found for ID:", id);
         return res.status(404).json({ error: "Product not found" });
       }
 
+      console.log("✅ Product updated successfully:", JSON.stringify(product, null, 2));
+      
       res.json({
         message: "Product updated successfully",
         data: product,
       });
     } catch (error) {
-      console.error("Update product error:", error);
-      res.status(400).json({ error: error.message });
+      // ✅ PRD MANDATORY: Enhanced error logging
+      console.error("❌ Update product error:", error);
+      console.error("❌ Error details:", error.message);
+      console.error("❌ Error stack:", error.stack);
+      console.error("❌ Request body:", JSON.stringify(req.body, null, 2));
+      
+      // ✅ FIX: Return proper error response
+      res.status(400).json({ 
+        error: error.message,
+        details: error.details || null
+      });
     }
   },
 ];
