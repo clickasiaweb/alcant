@@ -248,6 +248,12 @@ export default function ProductsPage() {
   };
 
   const handleEdit = (product) => {
+    console.log('📝 Editing product object:', product);
+    console.log('🆔 Product ID fields:', { id: product.id, _id: product._id });
+    
+    const productId = product._id || product.id;
+    console.log('🎯 Using product ID:', productId);
+    
     setEditingProduct(product);
     setFormData({
       name: product.name || product.title || "",
