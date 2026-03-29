@@ -195,7 +195,7 @@ export default function ProductsPage() {
     e.preventDefault();
     try {
       console.log('🔥 Form submission started!');
-      console.log('📝 Form data before submission:', formData);
+      console.log('📝 Form data before submission:', JSON.stringify(formData, null, 2));
       
       const productData = {
         name: formData.name,
@@ -223,18 +223,18 @@ export default function ProductsPage() {
         keywords: formData.keywords || '',
       };
 
-      console.log('🚀 Product data being sent:', productData);
+      console.log('🚀 Product data being sent:', JSON.stringify(productData, null, 2));
       console.log('🎯 Editing product ID:', editingProduct?._id);
 
       if (editingProduct) {
         console.log('📝 Updating product...');
         const result = await updateProduct(editingProduct._id, productData);
-        console.log('✅ Update result:', result);
+        console.log('✅ Update result:', JSON.stringify(result, null, 2));
         toast.success("Product updated successfully!");
       } else {
         console.log('➕ Creating new product...');
         const result = await createProduct(productData);
-        console.log('✅ Create result:', result);
+        console.log('✅ Create result:', JSON.stringify(result, null, 2));
         toast.success("Product created successfully!");
       }
       resetForm();
@@ -242,6 +242,7 @@ export default function ProductsPage() {
     } catch (error) {
       console.error('❌ Product creation error:', error);
       console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Full error object:', error);
       toast.error(error.response?.data?.message || "Error saving product");
     }
   };

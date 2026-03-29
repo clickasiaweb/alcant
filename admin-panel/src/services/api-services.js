@@ -27,8 +27,18 @@ export const createProduct = async (productData) => {
 };
 
 export const updateProduct = async (id, productData) => {
-  const { data } = await apiClient.put(`/admin/products/${id}`, productData);
-  return data;
+  try {
+    console.log('🔄 API Service: Updating product with ID:', id);
+    console.log('📦 API Service: Product data:', JSON.stringify(productData, null, 2));
+    
+    const { data } = await apiClient.put(`/admin/products/${id}`, productData);
+    console.log('✅ API Service: Update response:', JSON.stringify(data, null, 2));
+    return data;
+  } catch (error) {
+    console.error('❌ API Service: Update error:', error);
+    console.error('❌ API Service: Error response:', error.response?.data);
+    throw error;
+  }
 };
 
 export const deleteProduct = async (id) => {
