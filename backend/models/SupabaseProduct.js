@@ -24,6 +24,22 @@ class SupabaseProduct {
       supabaseQuery = supabaseQuery.eq('subcategory_id', query.subcategoryId);
     }
     
+    if (query.sub_subcategory_id) {
+      supabaseQuery = supabaseQuery.eq('sub_subcategory_id', query.sub_subcategory_id);
+    }
+    
+    if (query.sub_sub_subcategory_id) {
+      supabaseQuery = supabaseQuery.eq('sub_sub_subcategory_id', query.sub_sub_subcategory_id);
+    }
+    
+    if (query.sub_subcategory) {
+      supabaseQuery = supabaseQuery.eq('sub_subcategory', query.sub_subcategory);
+    }
+    
+    if (query.sub_sub_subcategory) {
+      supabaseQuery = supabaseQuery.eq('sub_sub_subcategory', query.sub_sub_subcategory);
+    }
+    
     if (query._id) {
       if (query._id.$nin) {
         supabaseQuery = supabaseQuery.not('id', 'in', `(${query._id.$nin.join(',')})`);
@@ -33,7 +49,7 @@ class SupabaseProduct {
     if (query.$or) {
       // Handle text search
       const searchTerm = query.$or[0].name.$regex;
-      supabaseQuery = supabaseQuery.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,subcategory.ilike.%${searchTerm}%`);
+      supabaseQuery = supabaseQuery.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,subcategory.ilike.%${searchTerm}%,sub_subcategory.ilike.%${searchTerm}%,sub_sub_subcategory.ilike.%${searchTerm}%`);
     }
     
     if (query.price) {
@@ -181,6 +197,11 @@ class SupabaseProduct {
     if (updateData.finalPrice !== undefined) dbData.final_price = updateData.finalPrice;
     if (updateData.category !== undefined) dbData.category = updateData.category;
     if (updateData.subcategory !== undefined) dbData.subcategory = updateData.subcategory;
+    if (updateData.sub_subcategory !== undefined) dbData.sub_subcategory = updateData.sub_subcategory;
+    if (updateData.sub_sub_subcategory !== undefined) dbData.sub_sub_subcategory = updateData.sub_sub_subcategory;
+    if (updateData.subcategory_id !== undefined) dbData.subcategory_id = updateData.subcategory_id;
+    if (updateData.sub_subcategory_id !== undefined) dbData.sub_subcategory_id = updateData.sub_subcategory_id;
+    if (updateData.sub_sub_subcategory_id !== undefined) dbData.sub_sub_subcategory_id = updateData.sub_sub_subcategory_id;
     if (updateData.images !== undefined) dbData.images = updateData.images;
     if (updateData.image !== undefined) dbData.image = updateData.image;
     if (updateData.rating !== undefined) dbData.rating = updateData.rating;
@@ -197,8 +218,13 @@ class SupabaseProduct {
     if (updateData.is_active !== undefined) dbData.is_active = updateData.is_active;
     if (updateData.isActive !== undefined) dbData.is_active = updateData.isActive;
     
+    // Handle additional fields that exist in Supabase schema
+    if (updateData.brand !== undefined) dbData.brand = updateData.brand;
+    if (updateData.short_description !== undefined) dbData.short_description = updateData.short_description;
+    if (updateData.weight !== undefined) dbData.weight = updateData.weight;
+    
     // ❌ REMOVED: Fields that don't exist in Supabase schema
-    // short_description, seo_meta_title, seo_meta_description, keywords, sub_subcategory, sub_sub_subcategory
+    // seo_meta_title, seo_meta_description, keywords
     
     // Update timestamp
     dbData.updated_at = new Date().toISOString();
@@ -240,9 +266,21 @@ class SupabaseProduct {
       supabaseQuery = supabaseQuery.eq('subcategory', query.subcategory);
     }
     
+    if (query.sub_subcategory) {
+      supabaseQuery = supabaseQuery.eq('sub_subcategory', query.sub_subcategory);
+    }
+    
+    if (query.sub_sub_subcategory) {
+      supabaseQuery = supabaseQuery.eq('sub_sub_subcategory', query.sub_sub_subcategory);
+    }
+    
+    if (query.sub_subcategory_id) {
+      supabaseQuery = supabaseQuery.eq('sub_subcategory_id', query.sub_subcategory_id);
+    }
+    
     if (query.$or) {
       const searchTerm = query.$or[0].name.$regex;
-      supabaseQuery = supabaseQuery.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,subcategory.ilike.%${searchTerm}%`);
+      supabaseQuery = supabaseQuery.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,subcategory.ilike.%${searchTerm}%,sub_subcategory.ilike.%${searchTerm}%,sub_sub_subcategory.ilike.%${searchTerm}%`);
     }
     
     if (query.price) {

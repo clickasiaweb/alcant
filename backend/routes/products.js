@@ -36,6 +36,50 @@ router.post("/add-test-product", async (req, res) => {
   }
 });
 
+// Test endpoint for sub-subcategory filtering
+router.get("/test-filter", async (req, res) => {
+  try {
+    const { sub_subcategory_id } = req.query;
+    
+    console.log('🧪 Testing filter with sub_subcategory_id:', sub_subcategory_id);
+    
+    // Test the query that would be sent to SupabaseProduct
+    const query = { is_active: true };
+    if (sub_subcategory_id) {
+      query.sub_subcategory_id = sub_subcategory_id;
+    }
+    
+    console.log('🔍 Query object:', query);
+    
+    const productsResult = await SupabaseProduct.find(query, {
+      sort: { created_at: { ascending: false } },
+      limit: 10
+    });
+    
+    const products = productsResult.data;
+    console.log(`📦 Found ${products.length} products`);
+    
+    // Show first product's sub_subcategory_id for debugging
+    if (products.length > 0) {
+      console.log('🔍 First product:', {
+        name: products[0].name,
+        sub_subcategory_id: products[0].sub_subcategory_id,
+        sub_subcategory: products[0].sub_subcategory
+      });
+    }
+    
+    res.json({
+      success: true,
+      query,
+      products,
+      count: products.length
+    });
+  } catch (error) {
+    console.error('❌ Test filter error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Public routes
 router.get("/", productController.getProducts);
 router.get("/recommended", productController.getRecommendedProducts);
