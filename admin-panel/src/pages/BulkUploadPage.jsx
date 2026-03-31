@@ -84,9 +84,7 @@ const BulkUploadPage = () => {
 
     try {
       const response = await axios.post(`${API_BASE_URL}/products/bulk-upload/parse`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+        // Don't set Content-Type header - let axios set it automatically for FormData
       });
 
       setParsedData(response.data.data);
