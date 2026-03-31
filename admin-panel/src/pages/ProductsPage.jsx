@@ -33,6 +33,7 @@ export default function ProductsPage() {
     category: "",
     subcategory: "",
     subSubcategory: "",
+    subSubcategoryId: "",
     price: "",
     oldPrice: "",
     images: [],
@@ -243,7 +244,8 @@ export default function ProductsPage() {
         final_price: parseFloat(formData.price) || 0,
         category: formData.category,
         subcategory: formData.subcategory || 'uncategorized', // ✅ Required field, cannot be null
-        sub_subcategory: formData.subSubcategory || null, // ✅ Add sub-subcategory field
+        sub_subcategory: formData.subSubcategory || null, // ✅ Add sub-subcategory field (text)
+        sub_subcategory_id: formData.subSubcategoryId || null, // ✅ Add sub-subcategory ID field (UUID)
         images: processedImages,
         image: mainImage,
         stock: parseInt(formData.stock) || 0,
@@ -300,6 +302,7 @@ export default function ProductsPage() {
       category: product.category || "",
       subcategory: product.subcategory || "",
       subSubcategory: product.sub_subcategory || "",
+      subSubcategoryId: product.sub_subcategory_id || "",
       price: product.price || product.final_price || "",
       oldPrice: product.old_price || "",
       images: product.images || [],
@@ -352,6 +355,8 @@ export default function ProductsPage() {
       description: "",
       category: "",
       subcategory: "",
+      subSubcategory: "",
+      subSubcategoryId: "",
       price: "",
       oldPrice: "",
       images: [],

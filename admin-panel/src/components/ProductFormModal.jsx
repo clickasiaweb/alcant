@@ -26,6 +26,8 @@ const ProductFormModal = ({
       // Reset dependent fields
       if (formData.subcategory && !subs.find(sub => sub.id === formData.subcategory)) {
         handleInputChange({ target: { name: 'subcategory', value: '' } });
+        handleInputChange({ target: { name: 'subSubcategory', value: '' } });
+        handleInputChange({ target: { name: 'subSubcategoryId', value: '' } });
       }
     } else {
       setAvailableSubcategories([]);
@@ -43,11 +45,22 @@ const ProductFormModal = ({
       // Reset dependent field
       if (formData.subSubcategory && !subSubs.find(subSub => subSub.id === formData.subSubcategory)) {
         handleInputChange({ target: { name: 'subSubcategory', value: '' } });
+        handleInputChange({ target: { name: 'subSubcategoryId', value: '' } });
       }
     } else {
       setAvailableSubSubcategories([]);
     }
   }, [formData.subcategory, availableSubcategories]);
+
+  // Handle sub-subcategory change to update both text and ID
+  const handleSubSubcategoryChange = (e) => {
+    const value = e.target.value;
+    const selectedSubSub = availableSubSubcategories.find(subSub => subSub.id === value);
+    
+    // Update both the ID and the text name
+    handleInputChange({ target: { name: 'subSubcategoryId', value: value } });
+    handleInputChange({ target: { name: 'subSubcategory', value: selectedSubSub?.name || '' } });
+  };
 
   const handleFormSubmit = (e) => {
     console.log('🚨 handleFormSubmit called!');
@@ -182,8 +195,8 @@ const ProductFormModal = ({
                 </label>
                 <select
                   name="subSubcategory"
-                  value={formData.subSubcategory || ''}
-                  onChange={handleInputChange}
+                  value={formData.subSubcategoryId || ''}
+                  onChange={handleSubSubcategoryChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select Sub-Sub-Category</option>

@@ -143,7 +143,8 @@ class SupabaseProduct {
       final_price: productData.final_price || productData.finalPrice || productData.price || 0,
       category: productData.category || null,
       subcategory: productData.subcategory || null,
-      sub_subcategory: productData.sub_subcategory || null, // ✅ Add missing field
+      sub_subcategory: productData.sub_subcategory || null, // ✅ Add missing field (text)
+      sub_subcategory_id: productData.sub_subcategory_id || null, // ✅ Add missing field (UUID)
       images: productData.images || [],
       image: productData.image || null,
       rating: productData.rating || 0,
@@ -204,8 +205,8 @@ class SupabaseProduct {
     if (updateData.category !== undefined) dbData.category = updateData.category;
     if (updateData.subcategory !== undefined) dbData.subcategory = updateData.subcategory;
     if (updateData.sub_subcategory !== undefined) dbData.sub_subcategory = updateData.sub_subcategory;
-    if (updateData.subcategory_id !== undefined) dbData.subcategory_id = updateData.subcategory_id;
     if (updateData.sub_subcategory_id !== undefined) dbData.sub_subcategory_id = updateData.sub_subcategory_id;
+    if (updateData.subcategory_id !== undefined) dbData.subcategory_id = updateData.subcategory_id;
     if (updateData.images !== undefined) dbData.images = updateData.images;
     if (updateData.image !== undefined) dbData.image = updateData.image;
     if (updateData.rating !== undefined) dbData.rating = updateData.rating;
