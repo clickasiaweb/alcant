@@ -157,9 +157,11 @@ const ProductDetailPage = ({ slugFromServer }) => {
           </div>
         </div>
         
+        {/* Accordion Sections */}
+        <ProductAccordionSections product={product} />
+        
         {/* Additional Sections */}
         <CustomerReviews product={product} />
-        <ProductAccordionSections product={product} />
         <ProductFeaturesSection product={product} />
         <ProductVideoSection product={product} />
         <RelatedProducts currentProduct={product} />
