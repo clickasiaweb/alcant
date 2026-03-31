@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Star from 'lucide-react/dist/esm/icons/star';
 import Filter from 'lucide-react/dist/esm/icons/filter';
 import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import CompactProductCard from '../../../../components/CompactProductCard';
+import FilterSidebar from '../../../../components/FilterSidebar';
 import { fetchCategories, fetchProducts, fetchRecommendedProducts } from '../../../../lib/services';
 
 const SubSubCategoryPage = () => {
@@ -19,7 +21,18 @@ const SubSubCategoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [meta, setMeta] = useState({ title: '', description: '' });
   const [subSubCategoryId, setSubSubCategoryId] = useState(null);
-  const [filters, setFilters] = useState({ brand: '', min: '', max: '', availability: '' });
+  const [filters, setFilters] = useState({ 
+    brand: '', 
+    min: '', 
+    max: '', 
+    availability: '',
+    colors: [],
+    iphoneModel: [],
+    typeCase: [],
+    magSafe: false,
+    partnership: [],
+    search: ""
+  });
   const [pagination, setPagination] = useState({ page: 1, limit: 24, total: 0, hasMore: false });
   const [allCategories, setAllCategories] = useState([]);
 
@@ -27,6 +40,11 @@ const SubSubCategoryPage = () => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star key={i} className={`w-4 h-4 ${i < (rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`} />
     ));
+  };
+
+  // Handle filter changes
+  const handleFilterChange = (newFilters) => {
+    setFilters(newFilters);
   };
 
   // Resolve sub-subcategory id from slugs
@@ -75,6 +93,12 @@ const SubSubCategoryPage = () => {
           min_price: filters.min,
           max_price: filters.max,
           availability: filters.availability,
+          colors: filters.colors,
+          iphoneModel: filters.iphoneModel,
+          typeCase: filters.typeCase,
+          magSafe: filters.magSafe,
+          partnership: filters.partnership,
+          search: filters.search
         });
         setProducts(items || []);
         setPagination((prev) => ({ ...prev, ...p }));
@@ -86,7 +110,7 @@ const SubSubCategoryPage = () => {
     };
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subSubCategoryId, sortBy, filters.brand, filters.min, filters.max, filters.availability, pagination.page]);
+  }, [subSubCategoryId, sortBy, filters.brand, filters.min, filters.max, filters.availability, filters.colors, filters.iphoneModel, filters.typeCase, filters.magSafe, filters.partnership, filters.search, pagination.page]);
 
   // Fetch recommended excluding current ids
   useEffect(() => {
@@ -185,167 +209,178 @@ const SubSubCategoryPage = () => {
         </div>
       )}
 
-      {/* Header */}
-      <div className="container py-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{meta.title}</h1>
-            <p className="text-gray-600">{meta.description}</p>
-            <p className="text-sm text-gray-500 mt-2">{products.length} products found</p>
+      {/* Hero Section */}
+      <div className="bg-gray-100 text-primary-900 py-16">
+        <div className="container">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4">
+              {meta.title}
+            </h1>
+            <p className="text-xl text-primary-700 max-w-2xl mx-auto">
+              {meta.description}
+            </p>
           </div>
+        </div>
+      </div>
 
-          <div className="flex items-center space-x-4 mt-4 md:mt-0">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              aria-expanded={showFilters}
-            >
-              <Filter className="w-4 h-4" />
-              <span>Filters</span>
-            </button>
+      {/* Filter and Results Section */}
+      <div className="bg-gray-50 py-8">
+        <div className="container">
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Filters Sidebar */}
+            <div className="lg:w-64">
+              <FilterSidebar onFilterChange={handleFilterChange} filters={filters} />
+            </div>
 
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(e) => onSortChange(e.target.value)}
-                className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:border-primary-500"
-              >
-                <option value="popularity">Sort by: Popularity</option>
-                <option value="newest">Newest</option>
-                <option value="price_asc">Price: Low to High</option>
-                <option value="price_desc">Price: High to Low</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            {/* Results */}
+            <div className="flex-1">
+              {/* Results Header */}
+              <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600">
+                      Showing{" "}
+                      <span className="font-semibold text-gray-900">
+                        {products.length}
+                      </span>{" "}
+                      {meta.title.toLowerCase()}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={() => setShowFilters(!showFilters)}
+                      className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      aria-expanded={showFilters}
+                    >
+                      <Filter className="w-4 h-4" />
+                      <span>Filters</span>
+                    </button>
+
+                    <div className="relative">
+                      <select
+                        value={sortBy}
+                        onChange={(e) => onSortChange(e.target.value)}
+                        className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:border-primary-500"
+                      >
+                        <option value="popularity">Sort by: Popularity</option>
+                        <option value="newest">Newest</option>
+                        <option value="price_asc">Price: Low to High</option>
+                        <option value="price_desc">Price: High to Low</option>
+                      </select>
+                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Filters */}
+              {showFilters && (
+                <div className="bg-white rounded-lg shadow-sm p-4 mb-6 lg:hidden">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      placeholder="Brand (comma separated)"
+                      value={filters.brand}
+                      onChange={(e) => setFilters((f) => ({ ...f, brand: e.target.value }))}
+                      className="border border-gray-300 rounded-lg px-3 py-2"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Min price"
+                      value={filters.min}
+                      onChange={(e) => setFilters((f) => ({ ...f, min: e.target.value }))}
+                      className="border border-gray-300 rounded-lg px-3 py-2"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max price"
+                      value={filters.max}
+                      onChange={(e) => setFilters((f) => ({ ...f, max: e.target.value }))}
+                      className="border border-gray-300 rounded-lg px-3 py-2"
+                    />
+                    <select
+                      value={filters.availability}
+                      onChange={(e) => setFilters((f) => ({ ...f, availability: e.target.value }))}
+                      className="border border-gray-300 rounded-lg px-3 py-2"
+                    >
+                      <option value="">Availability</option>
+                      <option value="in_stock">In stock</option>
+                      <option value="out_of_stock">Out of stock</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Products Grid */}
+              {products.length === 0 && !loading ? (
+                <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                  <div className="text-gray-500">
+                    <p className="text-lg font-medium mb-2">
+                      No products available in this category
+                    </p>
+                    <p className="text-sm">
+                      Try adjusting your filters or search terms
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                  {products.map((product, index) => (
+                    <CompactProductCard
+                      key={product._id}
+                      product={{
+                        id: product._id,
+                        name: product.name,
+                        price: product.price,
+                        originalPrice: product.originalPrice,
+                        rating: product.rating || 4.5,
+                        reviews: product.reviews || Math.floor(Math.random() * 1000) + 100,
+                        isBestseller: index === 0, // First product is bestseller
+                        discount: index === 1 ? 30 : null, // Second product has 30% off
+                        isLimited: index === 2, // Third product is limited edition
+                        isNew: product.isNew,
+                        slug: product.slug,
+                        image: product.images && product.images.length > 0 ? product.images[0].url : null,
+                        colorCount: product.colors ? product.colors.length : 8
+                      }}
+                      index={index}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Recommended Section */}
+              {recommended.length > 0 && (
+                <div className="mt-12">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Recommended for you</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {recommended.map((product, index) => (
+                      <CompactProductCard
+                        key={product._id}
+                        product={{
+                          id: product._id,
+                          name: product.name,
+                          price: product.price,
+                          originalPrice: product.originalPrice,
+                          rating: product.rating || 4.5,
+                          reviews: product.reviews || Math.floor(Math.random() * 1000) + 100,
+                          isBestseller: index === 0,
+                          discount: index === 1 ? 20 : null,
+                          isLimited: index === 2,
+                          isNew: product.isNew,
+                          slug: product.slug,
+                          image: product.images && product.images.length > 0 ? product.images[0].url : null,
+                          colorCount: product.colors ? product.colors.length : 8
+                        }}
+                        index={index}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Filters panel */}
-        {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <input
-              type="text"
-              placeholder="Brand (comma separated)"
-              value={filters.brand}
-              onChange={(e) => setFilters((f) => ({ ...f, brand: e.target.value }))}
-              className="border border-gray-300 rounded-lg px-3 py-2"
-            />
-            <input
-              type="number"
-              placeholder="Min price"
-              value={filters.min}
-              onChange={(e) => setFilters((f) => ({ ...f, min: e.target.value }))}
-              className="border border-gray-300 rounded-lg px-3 py-2"
-            />
-            <input
-              type="number"
-              placeholder="Max price"
-              value={filters.max}
-              onChange={(e) => setFilters((f) => ({ ...f, max: e.target.value }))}
-              className="border border-gray-300 rounded-lg px-3 py-2"
-            />
-            <select
-              value={filters.availability}
-              onChange={(e) => setFilters((f) => ({ ...f, availability: e.target.value }))}
-              className="border border-gray-300 rounded-lg px-3 py-2"
-            >
-              <option value="">Availability</option>
-              <option value="in_stock">In stock</option>
-              <option value="out_of_stock">Out of stock</option>
-            </select>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {products.length === 0 && !loading && (
-          <div className="text-center py-16">
-            <div className="max-w-md mx-auto">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <span className="text-3xl">📦</span>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No products available in this category</h3>
-              <p className="text-gray-600 mb-6">Try browsing our other categories or check back later for new arrivals.</p>
-              <Link href="/" className="inline-flex items-center bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors">
-                Browse All Products
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {/* Product Grid */}
-        {products.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-            {products.map((product) => (
-              <div key={product._id} className="group">
-                <div className="bg-white rounded-lg overflow-hidden border border-gray-200 hover:border-primary-300 transition-colors">
-                  {/* Product Image */}
-                  <div className="relative">
-                    <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                      <img
-                        src={product.images?.[0]?.url || '/api/placeholder/300/300'}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Product Info */}
-                  <div className="p-4">
-                    {/* Rating */}
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="flex items-center">{renderStars(product.rating)}</div>
-                      <span className="text-sm text-gray-500">({product.reviews || 0})</span>
-                    </div>
-
-                    {/* Name */}
-                    <h3 className="text-sm font-medium text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
-
-                    {/* Price */}
-                    <div className="flex items-center space-x-2">
-                      <span className="text-lg font-bold text-gray-900">₹{product.price}</span>
-                      {product.originalPrice && (
-                        <span className="text-sm text-gray-500 line-through">₹{product.originalPrice}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Recommended Section */}
-        {recommended.length > 0 && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Recommended for you</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {recommended.map((product) => (
-                <div key={product._id} className="group">
-                  <div className="bg-white rounded-lg overflow-hidden border border-gray-200 hover:border-primary-300 transition-colors">
-                    <div className="aspect-square bg-gray-100 flex items-center justify-center">
-                      <img
-                        src={product.images?.[0]?.url || '/api/placeholder/300/300'}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-sm font-medium text-gray-900 mb-2">{product.name}</h3>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-lg font-bold text-gray-900">₹{product.price}</span>
-                        {product.originalPrice && (
-                          <span className="text-sm text-gray-500 line-through">₹{product.originalPrice}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </Layout>
   );
