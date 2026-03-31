@@ -36,6 +36,12 @@ router.delete(
   adminMiddleware,
   adminController.deleteProduct
 );
+router.post(
+  "/products/bulk-delete",
+  authMiddleware,
+  adminMiddleware,
+  adminController.bulkDeleteProducts
+);
 router.patch(
   "/product/status/:id",
   authMiddleware,
@@ -98,17 +104,35 @@ router.delete(
   adminMiddleware,
   adminController.deleteCategory
 );
+router.post(
+  "/categories/bulk-delete",
+  authMiddleware,
+  adminMiddleware,
+  adminController.bulkDeleteCategories
+);
 router.delete(
   "/subcategory/:id",
   authMiddleware,
   adminMiddleware,
   adminController.deleteSubCategory
 );
+router.post(
+  "/subcategories/bulk-delete",
+  authMiddleware,
+  adminMiddleware,
+  adminController.bulkDeleteSubCategories
+);
 router.delete(
   "/sub-subcategory/:id",
   authMiddleware,
   adminMiddleware,
   adminController.deleteSubSubCategory
+);
+router.post(
+  "/sub-subcategories/bulk-delete",
+  authMiddleware,
+  adminMiddleware,
+  adminController.bulkDeleteSubSubCategories
 );
 
 // Content

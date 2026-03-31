@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiSearch, FiFilter, FiImage, FiDollarSign, FiPackage } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiSearch, FiFilter, FiImage, FiDollarSign, FiPackage, FiCheckSquare, FiSquare } from "react-icons/fi";
 import SidebarNoAuth from "../components/SidebarNoAuth";
 import ProductFormModal from "../components/ProductFormModal";
 import {
@@ -10,6 +10,7 @@ import {
   updateProduct,
   deleteProduct,
   updateProductStatus,
+  bulkDeleteProducts,
 } from "../services/api-services";
 import { toast } from "react-toastify";
 
@@ -22,6 +23,7 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [selectedProducts, setSelectedProducts] = useState(new Set());
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -336,6 +338,42 @@ export default function ProductsPage() {
     }
   };
 
+  const handleSelectProduct = (productId) => {
+    const newSelected = new Set(selectedProducts);
+    if (newSelected.has(productId)) {
+      newSelected.delete(productId);
+    } else {
+      newSelected.add(productId);
+    }
+    setSelectedProducts(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedProducts.size === filteredProducts.length) {
+      setSelectedProducts(new Set());
+    } else {
+      setSelectedProducts(new Set(filteredProducts.map(p => p._id || p.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedProducts.size === 0) {
+      toast.error("No products selected for deletion");
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete ${selectedProducts.size} product(s)? This action cannot be undone.`)) {
+      try {
+        await bulkDeleteProducts(Array.from(selectedProducts));
+        toast.success(`${selectedProducts.size} product(s) deleted successfully!`);
+        setSelectedProducts(new Set());
+        loadData();
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Error deleting products");
+      }
+    }
+  };
+
   const handleToggleStatus = async (product) => {
     try {
       const newStatus = !product.isActive;
@@ -475,13 +513,24 @@ export default function ProductsPage() {
               </select>
             </div>
 
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              <FiPlus className="w-5 h-5" />
-              Add Product
-            </button>
+            <div className="flex gap-2">
+              {selectedProducts.size > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                >
+                  <FiTrash2 className="w-5 h-5" />
+                  Delete Selected ({selectedProducts.size})
+                </button>
+              )}
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <FiPlus className="w-5 h-5" />
+                Add Product
+              </button>
+            </div>
           </div>
         </div>
 
@@ -492,6 +541,19 @@ export default function ProductsPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button
+                        onClick={handleSelectAll}
+                        className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
+                      >
+                        {selectedProducts.size === filteredProducts.length && filteredProducts.length > 0 ? (
+                          <FiCheckSquare className="w-4 h-4" />
+                        ) : (
+                          <FiSquare className="w-4 h-4" />
+                        )}
+                        Select
+                      </button>
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Product
                     </th>
@@ -515,6 +577,18 @@ export default function ProductsPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredProducts.map((product) => (
                     <tr key={product._id || product.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleSelectProduct(product._id || product.id)}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          {selectedProducts.has(product._id || product.id) ? (
+                            <FiCheckSquare className="w-4 h-4" />
+                          ) : (
+                            <FiSquare className="w-4 h-4" />
+                          )}
+                        </button>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {product.image && (

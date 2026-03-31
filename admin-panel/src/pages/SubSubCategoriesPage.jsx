@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiSearch, FiFilter } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiSearch, FiFilter, FiCheckSquare, FiSquare } from "react-icons/fi";
 import SidebarNoAuth from "../components/SidebarNoAuth";
 import SubSubCategoryFormModal from "../components/SubSubCategoryFormModal";
 import { 
@@ -8,7 +8,8 @@ import {
   getAdminSubSubCategories,
   createAdminSubSubCategory,
   updateAdminSubSubCategory,
-  deleteAdminSubSubCategory
+  deleteAdminSubSubCategory,
+  bulkDeleteSubSubCategories
 } from "../services/api-services";
 import { toast } from "react-toastify";
 
@@ -22,6 +23,7 @@ export default function SubSubCategoriesPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterSubCategory, setFilterSubCategory] = useState("");
+  const [selectedSubSubCategories, setSelectedSubSubCategories] = useState(new Set());
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -159,6 +161,42 @@ export default function SubSubCategoriesPage() {
     }
   };
 
+  const handleSelectSubSubCategory = (subSubCategoryId) => {
+    const newSelected = new Set(selectedSubSubCategories);
+    if (newSelected.has(subSubCategoryId)) {
+      newSelected.delete(subSubCategoryId);
+    } else {
+      newSelected.add(subSubCategoryId);
+    }
+    setSelectedSubSubCategories(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedSubSubCategories.size === filteredSubSubCategories.length) {
+      setSelectedSubSubCategories(new Set());
+    } else {
+      setSelectedSubSubCategories(new Set(filteredSubSubCategories.map(ssc => ssc.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedSubSubCategories.size === 0) {
+      toast.error("No sub-subcategories selected for deletion");
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete ${selectedSubSubCategories.size} sub-subcategor(y/ies)? This action cannot be undone.`)) {
+      try {
+        await bulkDeleteSubSubCategories(Array.from(selectedSubSubCategories));
+        toast.success(`${selectedSubSubCategories.size} sub-subcategor(y/ies) deleted successfully!`);
+        setSelectedSubSubCategories(new Set());
+        loadData();
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Error deleting sub-subcategories");
+      }
+    }
+  };
+
   const handleToggleStatus = async (subSubCategory) => {
     try {
       await updateAdminSubSubCategory(subSubCategory.id, { 
@@ -271,13 +309,24 @@ export default function SubSubCategoriesPage() {
               </select>
             </div>
 
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              <FiPlus className="w-5 h-5" />
-              Add Sub-Subcategory
-            </button>
+            <div className="flex gap-2">
+              {selectedSubSubCategories.size > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                >
+                  <FiTrash2 className="w-5 h-5" />
+                  Delete Selected ({selectedSubSubCategories.size})
+                </button>
+              )}
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <FiPlus className="w-5 h-5" />
+                Add Sub-Subcategory
+              </button>
+            </div>
           </div>
         </div>
 
@@ -288,6 +337,19 @@ export default function SubSubCategoriesPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button
+                        onClick={handleSelectAll}
+                        className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
+                      >
+                        {selectedSubSubCategories.size === filteredSubSubCategories.length && filteredSubSubCategories.length > 0 ? (
+                          <FiCheckSquare className="w-4 h-4" />
+                        ) : (
+                          <FiSquare className="w-4 h-4" />
+                        )}
+                        Select
+                      </button>
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Sub-Subcategory
                     </th>
@@ -314,6 +376,18 @@ export default function SubSubCategoriesPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredSubSubCategories.map((subSubCategory) => (
                     <tr key={subSubCategory.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleSelectSubSubCategory(subSubCategory.id)}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          {selectedSubSubCategories.has(subSubCategory.id) ? (
+                            <FiCheckSquare className="w-4 h-4" />
+                          ) : (
+                            <FiSquare className="w-4 h-4" />
+                          )}
+                        </button>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div>

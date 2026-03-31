@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiSearch, FiFilter } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiSearch, FiFilter, FiCheckSquare, FiSquare } from "react-icons/fi";
 import SidebarNoAuth from "../components/SidebarNoAuth";
 import CategoryFormModal from "../components/CategoryFormModal";
-import { getAdminCategories, createAdminCategory, updateAdminCategory, deleteCategory } from "../services/api-services";
+import { getAdminCategories, createAdminCategory, updateAdminCategory, deleteCategory, bulkDeleteCategories } from "../services/api-services";
 import { toast } from "react-toastify";
 
 export default function CategoriesPage() {
@@ -13,6 +13,7 @@ export default function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [selectedCategories, setSelectedCategories] = useState(new Set());
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -115,6 +116,42 @@ export default function CategoriesPage() {
     }
   };
 
+  const handleSelectCategory = (categoryId) => {
+    const newSelected = new Set(selectedCategories);
+    if (newSelected.has(categoryId)) {
+      newSelected.delete(categoryId);
+    } else {
+      newSelected.add(categoryId);
+    }
+    setSelectedCategories(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedCategories.size === filteredCategories.length) {
+      setSelectedCategories(new Set());
+    } else {
+      setSelectedCategories(new Set(filteredCategories.map(c => c._id || c.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedCategories.size === 0) {
+      toast.error("No categories selected for deletion");
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete ${selectedCategories.size} categor(y/ies)? This action cannot be undone.`)) {
+      try {
+        await bulkDeleteCategories(Array.from(selectedCategories));
+        toast.success(`${selectedCategories.size} categor(y/ies) deleted successfully!`);
+        setSelectedCategories(new Set());
+        loadCategories();
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Error deleting categories");
+      }
+    }
+  };
+
   const handleToggleStatus = async (category) => {
     try {
       await updateAdminCategory(category._id, { ...category, isActive: !category.isActive });
@@ -194,13 +231,24 @@ export default function CategoriesPage() {
               </select>
             </div>
 
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              <FiPlus className="w-5 h-5" />
-              Add Category
-            </button>
+            <div className="flex gap-2">
+              {selectedCategories.size > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                >
+                  <FiTrash2 className="w-5 h-5" />
+                  Delete Selected ({selectedCategories.size})
+                </button>
+              )}
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <FiPlus className="w-5 h-5" />
+                Add Category
+              </button>
+            </div>
           </div>
         </div>
 
@@ -211,6 +259,19 @@ export default function CategoriesPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button
+                        onClick={handleSelectAll}
+                        className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
+                      >
+                        {selectedCategories.size === filteredCategories.length && filteredCategories.length > 0 ? (
+                          <FiCheckSquare className="w-4 h-4" />
+                        ) : (
+                          <FiSquare className="w-4 h-4" />
+                        )}
+                        Select
+                      </button>
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Category
                     </th>
@@ -231,6 +292,18 @@ export default function CategoriesPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredCategories.map((category) => (
                     <tr key={category._id || category.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleSelectCategory(category._id || category.id)}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          {selectedCategories.has(category._id || category.id) ? (
+                            <FiCheckSquare className="w-4 h-4" />
+                          ) : (
+                            <FiSquare className="w-4 h-4" />
+                          )}
+                        </button>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {category.icon && (

@@ -60,6 +60,11 @@ export const deleteProduct = async (id) => {
   return data;
 };
 
+export const bulkDeleteProducts = async (ids) => {
+  const { data } = await apiClient.post("/admin/products/bulk-delete", { ids });
+  return data;
+};
+
 // Categories
 export const getCategories = async () => {
   const { data } = await apiClient.get("/categories");
@@ -78,6 +83,11 @@ export const updateCategory = async (id, categoryData) => {
 
 export const deleteCategory = async (id) => {
   const { data } = await apiClient.delete(`/admin/category/${id}`);
+  return data;
+};
+
+export const bulkDeleteCategories = async (ids) => {
+  const { data } = await apiClient.post("/admin/categories/bulk-delete", { ids });
   return data;
 };
 
@@ -214,8 +224,18 @@ export const deleteAdminSubCategory = async (id) => {
   return data;
 };
 
+export const bulkDeleteSubCategories = async (ids) => {
+  const { data } = await apiClient.post("/admin/subcategories/bulk-delete", { ids });
+  return data;
+};
+
 export const deleteAdminSubSubCategory = async (id) => {
   const { data } = await apiClient.delete(`/admin/sub-subcategory/${id}`);
+  return data;
+};
+
+export const bulkDeleteSubSubCategories = async (ids) => {
+  const { data } = await apiClient.post("/admin/sub-subcategories/bulk-delete", { ids });
   return data;
 };
 

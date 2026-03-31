@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiSearch, FiFilter } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiSearch, FiFilter, FiCheckSquare, FiSquare } from "react-icons/fi";
 import SidebarNoAuth from "../components/SidebarNoAuth";
 import SubCategoryFormModal from "../components/SubCategoryFormModal";
 import { 
@@ -8,7 +8,8 @@ import {
   getAdminSubCategories,
   createAdminSubCategory,
   updateAdminSubCategory,
-  deleteAdminSubCategory
+  deleteAdminSubCategory,
+  bulkDeleteSubCategories
 } from "../services/api-services";
 import { toast } from "react-toastify";
 
@@ -21,6 +22,7 @@ export default function SubCategoriesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterCategory, setFilterCategory] = useState("");
+  const [selectedSubCategories, setSelectedSubCategories] = useState(new Set());
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -126,6 +128,42 @@ export default function SubCategoriesPage() {
     }
   };
 
+  const handleSelectSubCategory = (subCategoryId) => {
+    const newSelected = new Set(selectedSubCategories);
+    if (newSelected.has(subCategoryId)) {
+      newSelected.delete(subCategoryId);
+    } else {
+      newSelected.add(subCategoryId);
+    }
+    setSelectedSubCategories(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedSubCategories.size === filteredSubCategories.length) {
+      setSelectedSubCategories(new Set());
+    } else {
+      setSelectedSubCategories(new Set(filteredSubCategories.map(sc => sc.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedSubCategories.size === 0) {
+      toast.error("No subcategories selected for deletion");
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete ${selectedSubCategories.size} subcategor(y/ies)? This will also delete all associated sub-subcategories.`)) {
+      try {
+        await bulkDeleteSubCategories(Array.from(selectedSubCategories));
+        toast.success(`${selectedSubCategories.size} subcategor(y/ies) deleted successfully!`);
+        setSelectedSubCategories(new Set());
+        loadData();
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Error deleting subcategories");
+      }
+    }
+  };
+
   const handleToggleStatus = async (subCategory) => {
     try {
       await updateAdminSubCategory(subCategory.id, { 
@@ -224,13 +262,24 @@ export default function SubCategoriesPage() {
               </select>
             </div>
 
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-            >
-              <FiPlus className="w-5 h-5" />
-              Add Subcategory
-            </button>
+            <div className="flex gap-2">
+              {selectedSubCategories.size > 0 && (
+                <button
+                  onClick={handleBulkDelete}
+                  className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                >
+                  <FiTrash2 className="w-5 h-5" />
+                  Delete Selected ({selectedSubCategories.size})
+                </button>
+              )}
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                <FiPlus className="w-5 h-5" />
+                Add Subcategory
+              </button>
+            </div>
           </div>
         </div>
 
@@ -241,6 +290,19 @@ export default function SubCategoriesPage() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <button
+                        onClick={handleSelectAll}
+                        className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
+                      >
+                        {selectedSubCategories.size === filteredSubCategories.length && filteredSubCategories.length > 0 ? (
+                          <FiCheckSquare className="w-4 h-4" />
+                        ) : (
+                          <FiSquare className="w-4 h-4" />
+                        )}
+                        Select
+                      </button>
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Subcategory
                     </th>
@@ -267,6 +329,18 @@ export default function SubCategoriesPage() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredSubCategories.map((subCategory) => (
                     <tr key={subCategory.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleSelectSubCategory(subCategory.id)}
+                          className="text-gray-600 hover:text-gray-900"
+                        >
+                          {selectedSubCategories.has(subCategory.id) ? (
+                            <FiCheckSquare className="w-4 h-4" />
+                          ) : (
+                            <FiSquare className="w-4 h-4" />
+                          )}
+                        </button>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div>

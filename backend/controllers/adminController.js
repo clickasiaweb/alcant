@@ -921,3 +921,107 @@ exports.deleteSub3Category = async (req, res) => {
     res.status(500).json({ error: "Failed to delete sub3 category" });
   }
 };
+
+// POST /api/admin/products/bulk-delete
+exports.bulkDeleteProducts = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "Invalid product IDs provided" });
+    }
+
+    const { error } = await require('../config/supabase').supabaseService
+      .from('products')
+      .delete()
+      .in('id', ids);
+
+    if (error) throw error;
+
+    res.json({
+      message: `${ids.length} product(s) deleted successfully`,
+      deletedCount: ids.length
+    });
+  } catch (error) {
+    console.error("Bulk delete products error:", error);
+    res.status(500).json({ error: "Failed to delete products" });
+  }
+};
+
+// POST /api/admin/categories/bulk-delete
+exports.bulkDeleteCategories = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "Invalid category IDs provided" });
+    }
+
+    const { error } = await require('../config/supabase').supabaseService
+      .from('categories')
+      .delete()
+      .in('id', ids);
+
+    if (error) throw error;
+
+    res.json({
+      message: `${ids.length} categor(y/ies) deleted successfully`,
+      deletedCount: ids.length
+    });
+  } catch (error) {
+    console.error("Bulk delete categories error:", error);
+    res.status(500).json({ error: "Failed to delete categories" });
+  }
+};
+
+// POST /api/admin/subcategories/bulk-delete
+exports.bulkDeleteSubCategories = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "Invalid subcategory IDs provided" });
+    }
+
+    const { error } = await require('../config/supabase').supabaseService
+      .from('subcategories')
+      .delete()
+      .in('id', ids);
+
+    if (error) throw error;
+
+    res.json({
+      message: `${ids.length} subcategor(y/ies) deleted successfully`,
+      deletedCount: ids.length
+    });
+  } catch (error) {
+    console.error("Bulk delete subcategories error:", error);
+    res.status(500).json({ error: "Failed to delete subcategories" });
+  }
+};
+
+// POST /api/admin/sub-subcategories/bulk-delete
+exports.bulkDeleteSubSubCategories = async (req, res) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "Invalid sub-subcategory IDs provided" });
+    }
+
+    const { error } = await require('../config/supabase').supabaseService
+      .from('sub_subcategories')
+      .delete()
+      .in('id', ids);
+
+    if (error) throw error;
+
+    res.json({
+      message: `${ids.length} sub-subcategor(y/ies) deleted successfully`,
+      deletedCount: ids.length
+    });
+  } catch (error) {
+    console.error("Bulk delete sub-subcategories error:", error);
+    res.status(500).json({ error: "Failed to delete sub-subcategories" });
+  }
+};
