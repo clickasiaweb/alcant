@@ -41,7 +41,7 @@ class SupabaseProduct {
     if (query.$or) {
       // Handle text search
       const searchTerm = query.$or[0].name.$regex;
-      supabaseQuery = supabaseQuery.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,subcategory.ilike.%${searchTerm}%,sub_subcategory.ilike.%${searchTerm}%,sub_sub_subcategory.ilike.%${searchTerm}%`);
+      supabaseQuery = supabaseQuery.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,subcategory.ilike.%${searchTerm}%,sub_subcategory.ilike.%${searchTerm}%`);
     }
     
     if (query.price) {
@@ -274,17 +274,13 @@ class SupabaseProduct {
       supabaseQuery = supabaseQuery.eq('sub_subcategory', query.sub_subcategory);
     }
     
-    if (query.sub_sub_subcategory) {
-      supabaseQuery = supabaseQuery.eq('sub_sub_subcategory', query.sub_sub_subcategory);
-    }
-    
     if (query.sub_subcategory_id) {
       supabaseQuery = supabaseQuery.eq('sub_subcategory_id', query.sub_subcategory_id);
     }
     
     if (query.$or) {
       const searchTerm = query.$or[0].name.$regex;
-      supabaseQuery = supabaseQuery.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,subcategory.ilike.%${searchTerm}%,sub_subcategory.ilike.%${searchTerm}%,sub_sub_subcategory.ilike.%${searchTerm}%`);
+      supabaseQuery = supabaseQuery.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,subcategory.ilike.%${searchTerm}%,sub_subcategory.ilike.%${searchTerm}%`);
     }
     
     if (query.price) {

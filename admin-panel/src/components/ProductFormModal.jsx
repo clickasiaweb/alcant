@@ -26,8 +26,6 @@ const ProductFormModal = ({
       // Reset dependent fields
       if (formData.subcategory && !subs.find(sub => sub.id === formData.subcategory)) {
         handleInputChange({ target: { name: 'subcategory', value: '' } });
-        handleInputChange({ target: { name: 'subSubcategory', value: '' } });
-        handleInputChange({ target: { name: 'subSubSubcategory', value: '' } });
       }
     } else {
       setAvailableSubcategories([]);
@@ -45,7 +43,6 @@ const ProductFormModal = ({
       // Reset dependent field
       if (formData.subSubcategory && !subSubs.find(subSub => subSub.id === formData.subSubcategory)) {
         handleInputChange({ target: { name: 'subSubcategory', value: '' } });
-        handleInputChange({ target: { name: 'subSubSubcategory', value: '' } });
       }
     } else {
       setAvailableSubSubcategories([]);
@@ -196,20 +193,6 @@ const ProductFormModal = ({
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sub-Sub-Sub-Category (Level 4)
-                </label>
-                <input
-                  type="text"
-                  name="subSubSubcategory"
-                  value={formData.subSubSubcategory || ''}
-                  onChange={handleInputChange}
-                  placeholder="Enter sub-sub-sub-category"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
               </div>
             </div>
           </div>
