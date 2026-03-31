@@ -7,6 +7,12 @@ import ProductInfo from "../../components/product-details/ProductInfo";
 import ProductBreadcrumb from "../../components/product-details/ProductBreadcrumb";
 import ProductLoader from "../../components/product-details/ProductLoader";
 import ProductNotFound from "../../components/product-details/ProductNotFound";
+import ProductFeaturesSection from "../../components/product-details/ProductFeaturesSection";
+import ProductVideoSection from "../../components/product-details/ProductVideoSection";
+import RelatedProducts from "../../components/product-details/RelatedProducts";
+import CustomerTrustSection from "../../components/product-details/CustomerTrustSection";
+import ProductFAQ from "../../components/product-details/ProductFAQ";
+import CustomerReviews from "../../components/product-details/CustomerReviews";
 
 // ✅ This forces dynamic rendering in Pages Router (replaces force-dynamic)
 export async function getServerSideProps(context) {
@@ -121,7 +127,7 @@ const ProductDetailPage = ({ slugFromServer }) => {
 
   return (
     <Layout title={displayName} description={displayDescription}>
-      <div className="min-h-screen bg-gray-50 py-8">
+      <div className="min-h-screen bg-gray-50">
         <div className="container">
           <ProductBreadcrumb displayName={displayName} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
@@ -149,6 +155,14 @@ const ProductDetailPage = ({ slugFromServer }) => {
             />
           </div>
         </div>
+        
+        {/* Additional Sections */}
+        <CustomerReviews product={product} />
+        <ProductFeaturesSection product={product} />
+        <ProductVideoSection product={product} />
+        <RelatedProducts currentProduct={product} />
+        <CustomerTrustSection />
+        <ProductFAQ product={product} />
       </div>
     </Layout>
   );
