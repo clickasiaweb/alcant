@@ -56,7 +56,14 @@ const BulkUploadPage = () => {
   // Handle file drop
   const onDrop = useCallback((acceptedFiles) => {
     if (acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0]);
+      const uploadedFile = acceptedFiles[0];
+      console.log('📁 File uploaded:', uploadedFile);
+      console.log('📁 File name:', uploadedFile.name);
+      console.log('📁 File size:', uploadedFile.size);
+      console.log('📁 File type:', uploadedFile.type);
+      console.log('📁 File last modified:', uploadedFile.lastModified);
+      
+      setFile(uploadedFile);
       setParsedData(null);
       setImportResults(null);
       setUploadStep('idle');
@@ -82,6 +89,15 @@ const BulkUploadPage = () => {
     const formData = new FormData();
     formData.append('file', file);
 
+    // Debug: Log FormData contents
+    console.log('📤 FormData contents:');
+    for (let [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value);
+      console.log(`  ${key} name:`, value.name);
+      console.log(`  ${key} size:`, value.size);
+      console.log(`  ${key} type:`, value.type);
+    }
+
     try {
       const response = await axios.post(`${API_BASE_URL}/products/bulk-upload/parse`, formData, {
         // Don't set Content-Type header - let axios set it automatically for FormData
@@ -97,6 +113,11 @@ const BulkUploadPage = () => {
       }
     } catch (error) {
       console.error('Error parsing file:', error);
+      console.error('Error response:', error.response);
+      console.error('Error response data:', error.response?.data);
+      console.error('Error response status:', error.response?.status);
+      console.error('Error response headers:', error.response?.headers);
+      
       toast.error(error.response?.data?.message || 'Failed to parse file');
       setUploadStep('idle');
     }
