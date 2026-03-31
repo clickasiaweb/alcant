@@ -81,6 +81,57 @@ export default function SidebarNoAuth() {
         </button>
 
         <button
+          onClick={() => navigate("/categories")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "1rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FaTag style={{ marginRight: "0.5rem" }} /> Categories
+        </button>
+
+        <button
+          onClick={() => navigate("/subcategories")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "1rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FaSitemap style={{ marginRight: "0.5rem" }} /> Subcategories
+        </button>
+
+        <button
+          onClick={() => navigate("/sub-subcategories")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "1rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FaLayerGroup style={{ marginRight: "0.5rem" }} /> Sub-Subcategories
+        </button>
+
+        <button
           onClick={() => navigate("/inquiries")}
           style={{
             background: "none",
