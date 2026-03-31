@@ -3,6 +3,7 @@ const XLSX = require('xlsx');
 const { formidable } = require('formidable');
 const { supabase } = require('../config/supabase');
 const { createClient } = require('@supabase/supabase-js');
+const fs = require('fs');
 
 // Create direct service client to bypass RLS
 let supabaseService;
@@ -138,10 +139,11 @@ const parseExcelFile = async (req, res) => {
     const form = formidable({
       maxFileSize: 10 * 1024 * 1024, // 10MB limit
       keepExtensions: true,
-      filter: function ({ mimetype }) {
-        return mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-               mimetype === 'application/vnd.ms-excel' ||
-               mimetype === 'text/csv';
+      uploadDir: require('os').tmpdir(),
+      multiples: false,
+      // Disable file filtering to let all files through, we'll validate manually
+      filter: function () {
+        return true;
       }
     });
 
@@ -162,13 +164,100 @@ const parseExcelFile = async (req, res) => {
       }
 
       const filePath = files.file[0].filepath;
+      const originalFileName = files.file[0].originalFilename || files.file[0].name;
+      
+      // Manual file validation
+      const validExtensions = ['.xlsx', '.xls', '.csv'];
+      const hasValidExtension = originalFileName && validExtensions.some(ext => originalFileName.toLowerCase().endsWith(ext));
+      
+      if (!hasValidExtension) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid file type. Please upload .xlsx, .xls, or .csv files only.'
+        });
+      }
       
       try {
-        // Read Excel file
-        const workbook = XLSX.readFile(filePath);
+        console.log('📁 Reading Excel file from:', filePath);
+        console.log('📁 Original filename:', originalFileName);
+        console.log('📁 File exists:', fs.existsSync(filePath));
+        
+        if (!fs.existsSync(filePath)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Uploaded file not found on server'
+          });
+        }
+        
+        const fileStats = fs.statSync(filePath);
+        console.log('📁 File stats:', fileStats);
+        
+        // Verify file integrity by checking size and signature
+        if (fileStats.size === 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Uploaded file is empty'
+          });
+        }
+        
+        // Read Excel file with error handling - try buffer approach
+        let workbook;
+        try {
+          console.log('🔍 Reading file as buffer...');
+          const fileBuffer = fs.readFileSync(filePath);
+          console.log('📊 Buffer size:', fileBuffer.length);
+          
+          // Check file signature to verify it's a valid Excel file
+          if (fileBuffer.length < 8) {
+            throw new Error('File too small to be a valid Excel file');
+          }
+          
+          // Check for ZIP signature (xlsx files are ZIP archives)
+          const signature = fileBuffer.slice(0, 4).toString('hex');
+          console.log('📊 File signature:', signature);
+          
+          if (signature !== '504b0304' && signature !== '504b0506') {
+            throw new Error('Invalid file format. Expected Excel file (.xlsx)');
+          }
+          
+          // Try to read with different options - removed bookSheets
+          workbook = XLSX.read(fileBuffer, { 
+            type: 'buffer',
+            cellStyles: false,
+            cellNF: false,
+            cellHTML: false,
+            bookVBA: false
+          });
+          
+          if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+            throw new Error('No sheets found in workbook');
+          }
+          
+        } catch (readError) {
+          console.error('❌ Error reading Excel file:', readError);
+          console.error('❌ Error details:', readError.stack);
+          
+          // Clean up the uploaded file
+          try {
+            fs.unlinkSync(filePath);
+          } catch (cleanupError) {
+            console.error('Failed to cleanup file:', cleanupError);
+          }
+          
+          return res.status(400).json({
+            success: false,
+            message: 'Failed to read Excel file. Please ensure it is a valid .xlsx file.',
+            error: readError.message
+          });
+        }
+        
         const sheetName = workbook.SheetNames.includes('products') ? 'products' : workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
         const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+        console.log('📊 Sheet names:', workbook.SheetNames);
+        console.log('📊 Using sheet:', sheetName);
+        console.log('📊 Data rows:', data.length);
 
         if (data.length < 2) {
           return res.status(400).json({
@@ -268,11 +357,26 @@ const parseExcelFile = async (req, res) => {
 
       } catch (parseError) {
         console.error('Error parsing Excel:', parseError);
+        
+        // Clean up the uploaded file
+        try {
+          fs.unlinkSync(filePath);
+        } catch (cleanupError) {
+          console.error('Failed to cleanup file:', cleanupError);
+        }
+        
         res.status(500).json({
           success: false,
           message: 'Failed to parse Excel file',
           error: parseError.message
         });
+      } finally {
+        // Always clean up the uploaded file
+        try {
+          fs.unlinkSync(filePath);
+        } catch (cleanupError) {
+          console.error('Failed to cleanup file in finally:', cleanupError);
+        }
       }
     });
 
