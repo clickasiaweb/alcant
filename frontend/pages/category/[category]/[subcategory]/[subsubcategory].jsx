@@ -170,8 +170,8 @@ const SubSubCategoryPage = () => {
       </Head>
 
       {/* Breadcrumb Navigation */}
-      <div className="container py-4">
-        <nav className="flex items-center space-x-2 text-sm text-gray-600" aria-label="Breadcrumb">
+      <div className="container px-4 sm:px-6 py-3 sm:py-4">
+        <nav className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm text-gray-600" aria-label="Breadcrumb">
           <Link href="/" className="hover:text-primary-600">Home</Link>
           <span>/</span>
           <Link href={`/category/${category}`} className="hover:text-primary-600 capitalize">
@@ -210,13 +210,13 @@ const SubSubCategoryPage = () => {
       )}
 
       {/* Hero Section */}
-      <div className="bg-gray-100 text-primary-900 py-16">
-        <div className="container">
+      <div className="bg-gray-100 text-primary-900 py-8 sm:py-12 lg:py-16">
+        <div className="container px-4 sm:px-6">
           <div className="text-center">
-            <h1 className="text-4xl font-bold mb-4">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">
               {meta.title}
             </h1>
-            <p className="text-xl text-primary-700 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg text-primary-700 max-w-lg sm:max-w-2xl mx-auto">
               {meta.description}
             </p>
           </div>
@@ -224,9 +224,9 @@ const SubSubCategoryPage = () => {
       </div>
 
       {/* Filter and Results Section */}
-      <div className="bg-gray-50 py-8">
-        <div className="container">
-          <div className="flex flex-col lg:flex-row gap-8">
+      <div className="bg-gray-50 py-6 sm:py-8">
+        <div className="container px-4 sm:px-6">
+          <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
             {/* Filters Sidebar */}
             <div className="lg:w-64">
               <FilterSidebar onFilterChange={handleFilterChange} filters={filters} />
@@ -235,10 +235,10 @@ const SubSubCategoryPage = () => {
             {/* Results */}
             <div className="flex-1">
               {/* Results Header */}
-              <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-                <div className="flex items-center justify-between">
+              <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 mb-4 sm:mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
                   <div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs sm:text-sm text-gray-600">
                       Showing{" "}
                       <span className="font-semibold text-gray-900">
                         {products.length}
@@ -246,13 +246,13 @@ const SubSubCategoryPage = () => {
                       {meta.title.toLowerCase()}
                     </p>
                   </div>
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2 sm:space-x-4">
                     <button
                       onClick={() => setShowFilters(!showFilters)}
-                      className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-xs sm:text-sm"
                       aria-expanded={showFilters}
                     >
-                      <Filter className="w-4 h-4" />
+                      <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       <span>Filters</span>
                     </button>
 
@@ -260,14 +260,14 @@ const SubSubCategoryPage = () => {
                       <select
                         value={sortBy}
                         onChange={(e) => onSortChange(e.target.value)}
-                        className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:border-primary-500"
+                        className="appearance-none bg-white border border-gray-300 rounded-lg px-3 sm:px-4 py-2 pr-6 sm:pr-8 focus:outline-none focus:border-primary-500 text-xs sm:text-sm"
                       >
                         <option value="popularity">Sort by: Popularity</option>
                         <option value="newest">Newest</option>
                         <option value="price_asc">Price: Low to High</option>
                         <option value="price_desc">Price: High to Low</option>
                       </select>
-                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 pointer-events-none" />
                     </div>
                   </div>
                 </div>
@@ -275,33 +275,33 @@ const SubSubCategoryPage = () => {
 
               {/* Mobile Filters */}
               {showFilters && (
-                <div className="bg-white rounded-lg shadow-sm p-4 mb-6 lg:hidden">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg shadow-sm p-3 sm:p-4 mb-4 sm:mb-6 lg:hidden">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
                       type="text"
                       placeholder="Brand (comma separated)"
                       value={filters.brand}
                       onChange={(e) => setFilters((f) => ({ ...f, brand: e.target.value }))}
-                      className="border border-gray-300 rounded-lg px-3 py-2"
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
                     />
                     <input
                       type="number"
                       placeholder="Min price"
                       value={filters.min}
                       onChange={(e) => setFilters((f) => ({ ...f, min: e.target.value }))}
-                      className="border border-gray-300 rounded-lg px-3 py-2"
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
                     />
                     <input
                       type="number"
                       placeholder="Max price"
                       value={filters.max}
                       onChange={(e) => setFilters((f) => ({ ...f, max: e.target.value }))}
-                      className="border border-gray-300 rounded-lg px-3 py-2"
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
                     />
                     <select
                       value={filters.availability}
                       onChange={(e) => setFilters((f) => ({ ...f, availability: e.target.value }))}
-                      className="border border-gray-300 rounded-lg px-3 py-2"
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm"
                     >
                       <option value="">Availability</option>
                       <option value="in_stock">In stock</option>
@@ -313,18 +313,18 @@ const SubSubCategoryPage = () => {
 
               {/* Products Grid */}
               {products.length === 0 && !loading ? (
-                <div className="bg-white rounded-lg shadow-sm p-12 text-center">
+                <div className="bg-white rounded-lg shadow-sm p-6 sm:p-12 text-center">
                   <div className="text-gray-500">
-                    <p className="text-lg font-medium mb-2">
+                    <p className="text-base sm:text-lg font-medium mb-2">
                       No products available in this category
                     </p>
-                    <p className="text-sm">
+                    <p className="text-xs sm:text-sm">
                       Try adjusting your filters or search terms
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
                   {products.map((product, index) => (
                     <CompactProductCard
                       key={product._id}
@@ -351,9 +351,9 @@ const SubSubCategoryPage = () => {
 
               {/* Recommended Section */}
               {recommended.length > 0 && (
-                <div className="mt-12">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Recommended for you</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="mt-8 sm:mt-12">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Recommended for you</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {recommended.map((product, index) => (
                       <CompactProductCard
                         key={product._id}

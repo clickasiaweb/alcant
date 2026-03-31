@@ -335,7 +335,7 @@ const AlcantaraHeader = () => {
         }
       `}</style>
       <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
-        <div className="container">
+        <div className="container px-3 sm:px-4">
           {/* Debug Info */}
           {process.env.NODE_ENV === 'development' && (
             <div className="bg-yellow-100 text-yellow-800 p-2 text-xs mb-2">
@@ -343,7 +343,7 @@ const AlcantaraHeader = () => {
             </div>
           )}
           
-          <div className="flex items-center justify-between py-4">
+          <div className="flex items-center justify-between py-3 sm:py-4">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2">
               <Logo size="default" className="group-hover:scale-105" />
@@ -355,7 +355,7 @@ const AlcantaraHeader = () => {
                 <button 
                   key={category.id}
                   ref={(el) => categoryButtonRefs.current[category.name] = el}
-                  className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-primary-600 font-medium text-sm rounded-lg hover:bg-gray-50 transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 whitespace-nowrap cursor-pointer hover:scale-105 hover:shadow-md"
+                  className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-4 py-2 text-gray-700 hover:text-primary-600 font-medium text-xs sm:text-sm rounded-lg hover:bg-gray-50 transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 whitespace-nowrap cursor-pointer hover:scale-105 hover:shadow-md"
                   onKeyDown={(e) => handleKeyDown(e, category.name)}
                   aria-expanded={activeDropdown === category.name}
                   aria-haspopup="true"
@@ -367,8 +367,9 @@ const AlcantaraHeader = () => {
                   <span className="text-gray-500 group-hover:text-primary-600 transition-colors duration-200">
                     {getCategoryIcon(category.name)}
                   </span>
-                  <span>{category.name}</span>
-                  <ChevronDown className={`w-4 h-4 transition-all duration-200 ml-1 ${
+                  <span className="hidden sm:inline">{category.name}</span>
+                  <span className="sm:hidden text-xs">{category.name.length > 8 ? category.name.substring(0, 8) + '...' : category.name}</span>
+                  <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 transition-all duration-200 ml-1 ${
                     activeDropdown === category.name ? 'rotate-180 text-primary-600' : 'text-gray-400'
                   }`} />
                 </button>
@@ -558,25 +559,25 @@ const AlcantaraHeader = () => {
             </nav>
 
             {/* Right Side Icons */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               {/* Search Icon */}
               <button 
-                className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
                 onClick={openSearch}
                 aria-label="Open search"
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
               
               {/* Favorites/Wishlist Icon */}
               <button 
-                className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200 relative"
+                className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200 relative"
                 onClick={openWishlist}
                 aria-label="View wishlist"
               >
-                <Heart className="w-5 h-5" />
+                <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center font-medium">
                     {wishlistCount > 9 ? '9+' : wishlistCount}
                   </span>
                 )}
@@ -584,13 +585,13 @@ const AlcantaraHeader = () => {
               
               {/* Shopping Cart Icon */}
               <button 
-                className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200 relative"
+                className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200 relative"
                 onClick={openCart}
                 aria-label="View shopping cart"
               >
-                <ShoppingCart className="w-5 h-5" />
+                <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5" />
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-medium">
+                  <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center font-medium">
                     {cartItemCount > 9 ? '9+' : cartItemCount}
                   </span>
                 )}
@@ -598,19 +599,19 @@ const AlcantaraHeader = () => {
               
               {/* User Profile Icon */}
               <button 
-                className="p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
                 onClick={() => setIsProfileOpen(true)}
                 aria-label="Open user profile"
               >
-                <User className="w-5 h-5" />
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               {/* Mobile Menu Toggle */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
+                className="lg:hidden p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
               >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {isMobileMenuOpen ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Menu className="w-4 h-4 sm:w-5 sm:h-5" />}
               </button>
             </div>
           </div>
@@ -619,7 +620,7 @@ const AlcantaraHeader = () => {
         {/* Mobile Menu - Accordion Style */}
         {isMobileMenuOpen && (
           <div className="lg:hidden border-t border-gray-100 bg-white animate-in slide-in-from-top-2 duration-200">
-            <div className="container py-4 max-h-96 overflow-y-auto">
+            <div className="container py-3 sm:py-4 max-h-80 sm:max-h-96 overflow-y-auto">
               {loading ? (
                 <div className="space-y-3">
                   {[1, 2, 3, 4].map((i) => (
