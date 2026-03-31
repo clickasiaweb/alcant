@@ -30,6 +30,12 @@ router.delete("/subcategory/:id", adminController.deleteSubCategory);
 router.delete("/sub-subcategory/:id", adminController.deleteSubSubCategory);
 router.delete("/sub3-category/:id", adminController.deleteSub3Category);
 
+// Bulk delete routes - No auth for testing
+router.post("/products/bulk-delete", adminController.bulkDeleteProducts);
+router.post("/categories/bulk-delete", adminController.bulkDeleteCategories);
+router.post("/subcategories/bulk-delete", adminController.bulkDeleteSubCategories);
+router.post("/sub-subcategories/bulk-delete", adminController.bulkDeleteSubSubCategories);
+
 // Content - No auth for testing
 router.get("/content/:page", adminController.getContent);
 router.put("/content/:page", adminController.updateContent);

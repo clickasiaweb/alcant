@@ -22,7 +22,7 @@ const { testConnection, getConnectionStatus } = require("../config/supabase");
 
 // Import routes (only product and auth routes are migrated to Supabase)
 const authRoutes = require("../routes/auth");
-const adminRoutes = require("../routes/admin"); // Updated to use admin routes with bulk delete
+const adminRoutes = require("../routes/adminNoAuth"); // Use no-auth routes for testing
 const productRoutes = require("../routes/products");
 const categoryRoutes = require("../routes/categories");
 const contentRoutes = require("../routes/content");
