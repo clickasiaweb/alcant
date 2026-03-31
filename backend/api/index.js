@@ -27,6 +27,13 @@ const productRoutes = require("../routes/products");
 const categoryRoutes = require("../routes/categories");
 const contentRoutes = require("../routes/content");
 const categoryBulkRoutes = require("../controllers/categoryBulkController");
+const subcategoryUploadRoutes = require("../controllers/subcategoryUploadController");
+const subSubcategoryUploadRoutes = require("../controllers/subSubcategoryUploadController");
+const categoryUploadDirectRoutes = require("../controllers/categoryUploadDirectController");
+const setupRoutes = require("../routes/setup");
+const bulkUploadRoutes = require("../routes/bulkUpload");
+const seedRoutes = require("../routes/seed");
+const updateRoutes = require("../routes/update");
 
 const app = express();
 
@@ -78,6 +85,13 @@ app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/content", contentRoutes);
 app.use("/api/categories/bulk", categoryBulkRoutes);
+app.use("/api/subcategories/upload", subcategoryUploadRoutes);
+app.use("/api/sub-subcategories/upload", subSubcategoryUploadRoutes);
+app.use("/api/categories/direct", categoryUploadDirectRoutes);
+app.use("/api/setup", setupRoutes);
+app.use("/api/products/bulk-upload", bulkUploadRoutes);
+app.use("/api/seed", seedRoutes);
+app.use("/api/update", updateRoutes);
 
 // Health check with database status
 app.get("/api/health", (req, res) => {
@@ -98,6 +112,7 @@ app.get("/", (req, res) => {
     endpoints: {
       health: "/api/health",
       products: "/api/products",
+      "bulk-upload": "/api/products/bulk-upload",
       categories: "/api/categories",
       content: "/api/content",
       auth: "/api/auth"
