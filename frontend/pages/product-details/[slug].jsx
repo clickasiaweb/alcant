@@ -13,6 +13,7 @@ import RelatedProducts from "../../components/product-details/RelatedProducts";
 import CustomerTrustSection from "../../components/product-details/CustomerTrustSection";
 import ProductFAQ from "../../components/product-details/ProductFAQ";
 import CustomerReviews from "../../components/product-details/CustomerReviews";
+import ProductAccordionSections from "../../components/product-details/ProductAccordionSections";
 
 // ✅ This forces dynamic rendering in Pages Router (replaces force-dynamic)
 export async function getServerSideProps(context) {
@@ -158,6 +159,7 @@ const ProductDetailPage = ({ slugFromServer }) => {
         
         {/* Additional Sections */}
         <CustomerReviews product={product} />
+        <ProductAccordionSections product={product} />
         <ProductFeaturesSection product={product} />
         <ProductVideoSection product={product} />
         <RelatedProducts currentProduct={product} />
