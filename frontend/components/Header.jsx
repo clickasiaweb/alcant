@@ -156,7 +156,14 @@ export default function Header() {
       return navigationItems;
     }
     const current = mobileNavStack[mobileNavStack.length - 1];
-    return current.category.subcategories || [];
+    
+    // If it's the main "Products" item, show its categories
+    if (current.category.name === "Products" && current.category.megaMenu) {
+      return current.category.megaMenu.categories;
+    }
+    
+    // For category items, show their subcategories or subSubcategories
+    return current.category.subcategories || current.category.subSubcategories || [];
   };
 
   const getCurrentMobileTitle = () => {
@@ -417,37 +424,46 @@ export default function Header() {
           <div className="absolute inset-x-0 top-0 bottom-0 bg-white max-w-sm mx-auto">
             {/* Mobile Header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <div className="flex items-center space-x-3">
-                {mobileNavStack.length > 0 && (
-                  <button
-                    onClick={navigateMobileBack}
-                    className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
-                    aria-label="Go back"
-                  >
-                    <ChevronDown className="w-5 h-5 rotate-90" />
-                  </button>
-                )}
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {getCurrentMobileTitle()}
-                </h2>
+              <div className="flex items-center space-x-2">
+                <Logo size="small" />
+                <span className="text-lg font-bold text-gray-900">ALCANT</span>
               </div>
-              <button
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setMobileNavStack([]);
-                }}
-                className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
-                aria-label="Close menu"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center space-x-2">
+                <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
+                  <Search className="w-5 h-5" />
+                </button>
+                <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
+                  <Heart className="w-5 h-5" />
+                </button>
+                <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors relative">
+                  <ShoppingCart className="w-5 h-5" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary-600 text-white text-xs rounded-full flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+                <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
+                  <User className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setMobileNavStack([]);
+                  }}
+                  className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
+                  aria-label="Close menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Mobile Navigation Content */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto p-4">
               {mobileNavStack.length === 0 ? (
                 // Main menu items
-                <div className="p-4 space-y-2">
+                <div className="space-y-3">
                   {navigationItems.map((item) => (
                     <button
                       key={item.name}
@@ -459,20 +475,28 @@ export default function Header() {
                           setIsMobileMenuOpen(false);
                         }
                       }}
-                      className="w-full text-left px-4 py-3 text-gray-700 hover:text-primary-600 hover:bg-gray-50 transition-colors flex items-center justify-between rounded-lg"
+                      className="w-full bg-white border border-gray-200 rounded-xl p-4 hover:border-primary-300 hover:shadow-md transition-all duration-200 flex items-center justify-between"
                     >
-                      <span className="text-lg font-medium">{item.name}</span>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                          {item.name === "Products" && <Package className="w-5 h-5 text-gray-600" />}
+                          {item.name === "About" && <Settings className="w-5 h-5 text-gray-600" />}
+                          {item.name === "Contact" && <Truck className="w-5 h-5 text-gray-600" />}
+                        </div>
+                        <span className="text-base font-medium text-gray-900">{item.name}</span>
+                      </div>
                       {item.hasMegaMenu && (
-                        <ChevronDown className="w-5 h-5 -rotate-90" />
+                        <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
                       )}
                     </button>
                   ))}
                 </div>
               ) : (
                 // Category items with images
-                <div className="p-4 space-y-3">
+                <div className="space-y-3">
                   {getCurrentMobileView().map((item) => {
-                    const hasSubCategories = item.subcategories && item.subcategories.length > 0;
+                    const hasSubCategories = (item.subcategories && item.subcategories.length > 0) || 
+                                           (item.subSubcategories && item.subSubcategories.length > 0);
                     
                     return (
                       <button
@@ -486,35 +510,28 @@ export default function Header() {
                             setMobileNavStack([]);
                           }
                         }}
-                        className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:border-primary-300 hover:shadow-md transition-all duration-200"
+                        className="w-full bg-white border border-gray-200 rounded-xl p-4 hover:border-primary-300 hover:shadow-md transition-all duration-200 flex items-center justify-between"
                       >
                         <div className="flex items-center space-x-3">
-                          {/* Category Image */}
-                          <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          {/* Category Icon/Image */}
+                          <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                             <img
-                              src={item.image || `https://via.placeholder.com/48x48/1a365d/ffffff?text=${encodeURIComponent(item.name || item.title)}`}
+                              src={item.image || `https://via.placeholder.com/40x40/1a365d/ffffff?text=${encodeURIComponent((item.name || item.title).charAt(0))}`}
                               alt={item.name || item.title}
                               className="w-full h-full object-cover"
                             />
                           </div>
                           
-                          {/* Category Info */}
-                          <div className="flex-1 text-left">
-                            <h3 className="text-base font-medium text-gray-900">
-                              {item.name || item.title}
-                            </h3>
-                            {item.description && (
-                              <p className="text-sm text-gray-500 mt-1">
-                                {item.description}
-                              </p>
-                            )}
-                          </div>
-                          
-                          {/* Chevron */}
-                          {hasSubCategories && (
-                            <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
-                          )}
+                          {/* Category Name */}
+                          <span className="text-base font-medium text-gray-900 text-left">
+                            {item.name || item.title}
+                          </span>
                         </div>
+                        
+                        {/* Chevron */}
+                        {hasSubCategories && (
+                          <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
+                        )}
                       </button>
                     );
                   })}
@@ -523,7 +540,7 @@ export default function Header() {
 
               {/* Mobile Actions - Only show on main menu */}
               {mobileNavStack.length === 0 && (
-                <div className="border-t border-gray-200 px-4 py-4 space-y-3">
+                <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
                   <Link
                     href="/wishlist"
                     className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors p-3 rounded-lg hover:bg-gray-50"
@@ -534,17 +551,6 @@ export default function Header() {
                   >
                     <Heart className="w-5 h-5" />
                     <span>Wishlist ({wishlistCount})</span>
-                  </Link>
-                  <Link
-                    href="/cart"
-                    className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors p-3 rounded-lg hover:bg-gray-50"
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      setMobileNavStack([]);
-                    }}
-                  >
-                    <ShoppingCart className="w-5 h-5" />
-                    <span>Cart ({cartCount})</span>
                   </Link>
                   <Link
                     href="/account"
@@ -559,7 +565,7 @@ export default function Header() {
                   </Link>
                   <Link
                     href="/products"
-                    className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors text-center font-medium"
+                    className="bg-primary-600 text-white px-6 py-3 rounded-xl hover:bg-primary-700 transition-colors text-center font-medium"
                     onClick={() => {
                       setIsMobileMenuOpen(false);
                       setMobileNavStack([]);
