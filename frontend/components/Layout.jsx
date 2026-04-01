@@ -1,7 +1,7 @@
 import React from "react";
 import Head from "next/head";
 import AnnouncementBar from "./AnnouncementBar";
-import Header from "./Header";
+import AlcantaraHeader from "./AlcantaraHeader";
 import AlcantaraFooter from "./AlcantaraFooter";
 import CartDrawer from "./CartDrawer";
 
@@ -27,7 +27,7 @@ export default function Layout({ children, title, description }) {
 
       <div className="flex flex-col min-h-screen bg-white">
         <AnnouncementBar />
-        <Header />
+        <AlcantaraHeader />
         <main className="flex-grow">{children}</main>
         <AlcantaraFooter />
         <CartDrawer />

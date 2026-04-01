@@ -49,6 +49,7 @@ const AlcantaraHeader = () => {
   const [expandedMobileCategory, setExpandedMobileCategory] = useState(null);
   const [focusedCategory, setFocusedCategory] = useState(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [mobileNavStack, setMobileNavStack] = useState([]);
   const dropdownTimeoutRef = useRef(null);
   const categoryButtonRefs = useRef({});
 
@@ -307,6 +308,37 @@ const AlcantaraHeader = () => {
 
   const handleMobileCategoryToggle = (categoryName) => {
     setExpandedMobileCategory(expandedMobileCategory === categoryName ? null : categoryName);
+  };
+
+  // Drill-down navigation functions
+  const navigateToMobileCategory = (category, level) => {
+    setMobileNavStack(prev => [...prev, { category, level }]);
+  };
+
+  const navigateMobileBack = () => {
+    setMobileNavStack(prev => prev.slice(0, -1));
+  };
+
+  const getCurrentMobileView = () => {
+    if (mobileNavStack.length === 0) {
+      return categories.map(cat => ({
+        name: cat.name,
+        title: cat.name,
+        href: `/category/${cat.slug}`,
+        image: getCategoryPromoImage(cat.name),
+        subcategories: cat.subcategories || []
+      }));
+    }
+    const current = mobileNavStack[mobileNavStack.length - 1];
+    return current.category.subcategories || [];
+  };
+
+  const getCurrentMobileTitle = () => {
+    if (mobileNavStack.length === 0) {
+      return "Menu";
+    }
+    const current = mobileNavStack[mobileNavStack.length - 1];
+    return current.category.name?.toUpperCase() || current.category.title?.toUpperCase();
   };
 
   return (
@@ -617,80 +649,149 @@ const AlcantaraHeader = () => {
           </div>
         </div>
 
-        {/* Mobile Menu - Accordion Style */}
+        {/* Mobile Navigation - Drill-Down Style */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-gray-100 bg-white animate-in slide-in-from-top-2 duration-200">
-            <div className="container py-3 sm:py-4 max-h-80 sm:max-h-96 overflow-y-auto">
-              {loading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse"></div>
-                  ))}
+          <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+            <div className="absolute inset-x-0 top-0 bottom-0 bg-white max-w-sm mx-auto">
+              {/* Mobile Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  <Logo size="small" />
+                  <span className="text-lg font-bold text-gray-900">ALCANT</span>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {categories.map((category) => (
-                    <div key={category.id} className="border border-gray-100 rounded-xl overflow-hidden transition-all duration-200">
+                <div className="flex items-center space-x-2">
+                  <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
+                    <Search className="w-5 h-5" />
+                  </button>
+                  <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
+                    <Heart className="w-5 h-5" />
+                  </button>
+                  <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors relative">
+                    <ShoppingCart className="w-5 h-5" />
+                    {cartItemCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary-600 text-white text-xs rounded-full flex items-center justify-center">
+                        {cartItemCount}
+                      </span>
+                    )}
+                  </button>
+                  <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
+                    <User className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setMobileNavStack([]);
+                    }}
+                    className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
+                    aria-label="Close menu"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Mobile Navigation Content */}
+              <div className="flex-1 overflow-y-auto p-4">
+                {mobileNavStack.length === 0 ? (
+                  // Main menu items
+                  <div className="space-y-3">
+                    {getCurrentMobileView().map((item) => (
                       <button
-                        onClick={() => handleMobileCategoryToggle(category.name)}
-                        className="w-full flex items-center justify-between p-4 text-left hover:bg-gray-50 transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
-                        aria-expanded={expandedMobileCategory === category.name}
-                        aria-controls={`mobile-menu-${category.slug}`}
+                        key={item.name}
+                        onClick={() => {
+                          if (item.subcategories && item.subcategories.length > 0) {
+                            navigateToMobileCategory(item, 0);
+                          } else {
+                            router.push(item.href || '#');
+                            setIsMobileMenuOpen(false);
+                          }
+                        }}
+                        className="w-full bg-white border border-gray-200 rounded-xl p-4 hover:border-primary-300 hover:shadow-md transition-all duration-200 flex items-center justify-between"
                       >
                         <div className="flex items-center space-x-3">
-                          <span className={`text-gray-500 group-hover:text-primary-600 transition-colors duration-200 ${
-                            getCategoryIcon(category.name).props.className || ''
-                          }`}>
-                            {getCategoryIcon(category.name)}
-                          </span>
-                          <span className="font-medium text-gray-900 group-hover:text-primary-600 transition-colors duration-200">{category.name}</span>
+                          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                            {getCategoryIcon(item.name)}
+                          </div>
+                          <span className="text-base font-medium text-gray-900">{item.name}</span>
                         </div>
-                        <ChevronDown className={`w-4 h-4 text-gray-400 transition-all duration-200 ${
-                          expandedMobileCategory === category.name ? 'rotate-180 text-primary-600' : ''
-                        }`} />
+                        {item.subcategories && item.subcategories.length > 0 && (
+                          <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
+                        )}
                       </button>
+                    ))}
+                  </div>
+                ) : (
+                  // Category items with images
+                  <div className="space-y-3">
+                    {getCurrentMobileView().map((item) => {
+                      const hasSubCategories = item.subcategories && item.subcategories.length > 0;
                       
-                      {/* Mobile Subcategories - Accordion */}
-                      {expandedMobileCategory === category.name && (
-                        <div 
-                          id={`mobile-menu-${category.slug}`}
-                          className="bg-gray-50 px-4 py-3 space-y-1 animate-in slide-in-from-top-1 duration-200"
-                          role="region"
-                          aria-label={`${category.name} subcategories`}
+                      return (
+                        <button
+                          key={item.name || item.title}
+                          onClick={() => {
+                            if (hasSubCategories) {
+                              navigateToMobileCategory(item, mobileNavStack.length);
+                            } else {
+                              router.push(item.href || '#');
+                              setIsMobileMenuOpen(false);
+                              setMobileNavStack([]);
+                            }
+                          }}
+                          className="w-full bg-white border border-gray-200 rounded-xl p-4 hover:border-primary-300 hover:shadow-md transition-all duration-200 flex items-center justify-between"
                         >
-                          {subcategories[category.slug] && subcategories[category.slug].length > 0 && (
-                            <>
-                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Subcategories</p>
-                              {subcategories[category.slug].map((subcategory, index) => (
-                                <Link
-                                  key={subcategory.slug}
-                                  href={`/category/${category.slug}?subcategory=${subcategory.slug}`}
-                                  className="flex items-center space-x-2 py-2 pl-4 text-sm text-gray-700 hover:text-primary-600 transition-all duration-200 hover:translate-x-1 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded"
-                                  style={{ animationDelay: `${index * 50}ms` }}
-                                  onClick={() => setIsMobileMenuOpen(false)}
-                                >
-                                  <ChevronRight className="w-3 h-3 text-gray-400 transition-all duration-200" />
-                                  <span className="font-medium">{subcategory.name}</span>
-                                </Link>
-                              ))}
-                              <div className="border-t border-gray-200 my-3"></div>
-                            </>
-                          )}
+                          <div className="flex items-center space-x-3">
+                            {/* Category Icon/Image */}
+                            <div className="w-10 h-10 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                              <img
+                                src={item.image || `https://via.placeholder.com/40x40/1a365d/ffffff?text=${encodeURIComponent((item.name || item.title).charAt(0))}`}
+                                alt={item.name || item.title}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            
+                            {/* Category Name */}
+                            <span className="text-base font-medium text-gray-900 text-left">
+                              {item.name || item.title}
+                            </span>
+                          </div>
                           
-                          <Link
-                            href={`/category/${category.slug}`}
-                            className="flex items-center justify-between py-2 pl-4 text-sm text-gray-700 hover:text-primary-600 transition-all duration-200 hover:translate-x-1 group focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 rounded"
-                            onClick={() => setIsMobileMenuOpen(false)}
-                          >
-                            <span className="font-medium group-hover:text-primary-600">View All {category.name}</span>
-                            <ArrowRight className="w-4 h-4 text-gray-400 transition-all duration-200 group-hover:text-primary-600 group-hover:translate-x-1" />
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                          {/* Chevron */}
+                          {hasSubCategories && (
+                            <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Mobile Actions - Only show on main menu */}
+                {mobileNavStack.length === 0 && (
+                  <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
+                    <button
+                      className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors p-3 rounded-lg hover:bg-gray-50"
+                      onClick={openWishlist}
+                    >
+                      <Heart className="w-5 h-5" />
+                      <span>Wishlist ({wishlistCount})</span>
+                    </button>
+                    <button
+                      className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors p-3 rounded-lg hover:bg-gray-50"
+                      onClick={() => setIsProfileOpen(true)}
+                    >
+                      <User className="w-5 h-5" />
+                      <span>Account</span>
+                    </button>
+                    <button
+                      className="bg-primary-600 text-white px-6 py-3 rounded-xl hover:bg-primary-700 transition-colors text-center font-medium w-full"
+                      onClick={() => router.push('/products')}
+                    >
+                      Shop Now
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
