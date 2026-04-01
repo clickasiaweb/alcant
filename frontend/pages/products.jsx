@@ -13,6 +13,7 @@ const ProductsPage = () => {
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [filters, setFilters] = useState({
     colors: [],
     iphoneModel: [],
@@ -225,9 +226,35 @@ const ProductsPage = () => {
       {/* Filter and Results Section */}
       <div className="bg-gray-50 py-8">
         <div className="container">
+          {/* Mobile Filter Toggle */}
+          <div className="lg:hidden mb-6">
+            <button
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="w-full flex items-center justify-between bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow"
+            >
+              <span className="font-medium text-gray-900">Filters</span>
+              <svg 
+                className={`w-5 h-5 text-gray-500 transform transition-transform ${showMobileFilters ? 'rotate-180' : ''}`}
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Filters Sidebar */}
-            <div className="lg:w-64">
+            {/* Filters Sidebar - Desktop always visible, Mobile toggle */}
+            <div className={`${showMobileFilters ? 'block' : 'hidden'} lg:block lg:w-64`}>
+              <div className="lg:hidden mb-4">
+                <button
+                  onClick={() => setShowMobileFilters(false)}
+                  className="text-gray-500 hover:text-gray-700 text-sm"
+                >
+                  ← Close filters
+                </button>
+              </div>
               <FilterSidebar onFilterChange={handleFilterChange} filters={filters} />
             </div>
 
@@ -235,7 +262,7 @@ const ProductsPage = () => {
             <div className="flex-1">
               {/* Results Header */}
               <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <p className="text-sm text-gray-600">
                       Showing{" "}
@@ -244,6 +271,38 @@ const ProductsPage = () => {
                       </span>{" "}
                       phone accessories
                     </p>
+                    {/* Active filters summary for mobile */}
+                    <div className="lg:hidden mt-2">
+                      {(filters.colors.length > 0 || filters.iphoneModel.length > 0 || filters.typeCase.length > 0 || filters.magSafe || filters.partnership.length > 0) && (
+                        <div className="flex flex-wrap gap-1">
+                          {filters.colors.length > 0 && (
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                              {filters.colors.length} colors
+                            </span>
+                          )}
+                          {filters.iphoneModel.length > 0 && (
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                              {filters.iphoneModel.length} models
+                            </span>
+                          )}
+                          {filters.typeCase.length > 0 && (
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                              {filters.typeCase.length} types
+                            </span>
+                          )}
+                          {filters.magSafe && (
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                              MagSafe
+                            </span>
+                          )}
+                          {filters.partnership.length > 0 && (
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                              {filters.partnership.length} partners
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
