@@ -339,7 +339,7 @@ const AlcantaraHeader = () => {
     const current = mobileNavStack[mobileNavStack.length - 1];
     console.log('📍 Current navigation level:', current);
     
-    // If we're at category level, show subcategories
+    // If we're at category level (level 0), show subcategories
     if (mobileNavStack.length === 1 && current.category.subcategories) {
       const result = current.category.subcategories.map(sub => ({
         name: sub.name,
@@ -348,37 +348,34 @@ const AlcantaraHeader = () => {
         image: getCategoryPromoImage(sub.name),
         subcategories: sub.sub_subcategories || [],
         slug: sub.slug,
-        parentCategorySlug: current.category.slug,
-        subSubcategories: sub.sub_subcategories?.reduce((acc, subSub) => {
-          if (subSub.sub3_categories && subSub.sub3_categories.length > 0) {
-            acc[subSub.slug] = subSub.sub3_categories;
-          }
-          return acc;
-        }, {}) || {}
+        parentCategorySlug: current.category.slug
       }));
       console.log('📂 Subcategories:', result);
       return result;
     }
     
-    // If we're at subcategory level, show sub-subcategories
-    if (mobileNavStack.length === 2 && current.category.subcategories) {
-      const subSubItems = [];
-      current.category.subcategories.forEach(sub => {
-        if (sub.sub_subcategories && sub.sub_subcategories.length > 0) {
-          sub.sub_subcategories.forEach(subSub => {
-            subSubItems.push({
-              name: subSub.name,
-              title: subSub.name,
-              href: `/category/${current.category.parentCategorySlug}?subcategory=${current.category.slug}&subsubcategory=${subSub.slug}`,
-              image: getCategoryPromoImage(subSub.name),
-              subcategories: subSub.sub3_categories || [],
-              slug: subSub.slug
-            });
-          });
+    // If we're at subcategory level (level 1), show sub-subcategories
+    if (mobileNavStack.length === 2) {
+      // Find the subcategory we clicked on from the previous level
+      const previousLevel = mobileNavStack[mobileNavStack.length - 2];
+      if (previousLevel && previousLevel.category.subcategories) {
+        const clickedSubcategory = previousLevel.category.subcategories.find(
+          sub => sub.slug === current.category.slug
+        );
+        
+        if (clickedSubcategory && clickedSubcategory.sub_subcategories) {
+          const result = clickedSubcategory.sub_subcategories.map(subSub => ({
+            name: subSub.name,
+            title: subSub.name,
+            href: `/category/${previousLevel.category.slug}?subcategory=${clickedSubcategory.slug}&subsubcategory=${subSub.slug}`,
+            image: getCategoryPromoImage(subSub.name),
+            subcategories: [],
+            slug: subSub.slug
+          }));
+          console.log('📂 Sub-subcategories:', result);
+          return result;
         }
-      });
-      console.log('📂 Sub-subcategories:', subSubItems);
-      return subSubItems;
+      }
     }
     
     console.log('❌ No items to display');
