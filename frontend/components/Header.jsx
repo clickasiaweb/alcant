@@ -37,7 +37,7 @@ export default function Header() {
   const [wishlistCount, setWishlistCount] = useState(4);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [expandedMobileItems, setExpandedMobileItems] = useState(new Set());
+  const [mobileNavStack, setMobileNavStack] = useState([]);
   const router = useRouter();
   const megaMenuRef = useRef(null);
   const searchRef = useRef(null);
@@ -143,16 +143,28 @@ export default function Header() {
     }
   };
 
-  const toggleMobileExpansion = (itemId) => {
-    setExpandedMobileItems(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(itemId)) {
-        newSet.delete(itemId);
-      } else {
-        newSet.add(itemId);
-      }
-      return newSet;
-    });
+  const navigateToMobileCategory = (category, level) => {
+    setMobileNavStack(prev => [...prev, { category, level }]);
+  };
+
+  const navigateMobileBack = () => {
+    setMobileNavStack(prev => prev.slice(0, -1));
+  };
+
+  const getCurrentMobileView = () => {
+    if (mobileNavStack.length === 0) {
+      return navigationItems;
+    }
+    const current = mobileNavStack[mobileNavStack.length - 1];
+    return current.category.subcategories || [];
+  };
+
+  const getCurrentMobileTitle = () => {
+    if (mobileNavStack.length === 0) {
+      return "Menu";
+    }
+    const current = mobileNavStack[mobileNavStack.length - 1];
+    return current.category.name?.toUpperCase() || current.category.title?.toUpperCase();
   };
 
   const renderMegaMenu = (item) => {
@@ -401,150 +413,164 @@ export default function Header() {
 
       {/* Mobile Navigation */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-200">
-          <nav className="max-h-96 overflow-y-auto">
-            {navigationItems.map((item) => (
-              <div key={item.name}>
-                <button
-                  onClick={() => handleMegaMenuToggle(item.name)}
-                  className="w-full text-left px-4 py-3 text-gray-700 hover:text-primary-600 hover:bg-gray-50 transition-colors flex items-center justify-between"
-                >
-                  <span>{item.name}</span>
-                  {item.hasMegaMenu && (
-                    <ChevronDown className={`w-4 h-4 transition-transform ${
-                      activeMegaMenu === item.name ? 'rotate-180' : ''
-                    }`} />
-                  )}
-                </button>
-                
-                {/* Mobile Mega Menu */}
-                {activeMegaMenu === item.name && item.megaMenu && (
-                  <div className="bg-gray-50 px-4 py-2">
-                    {item.megaMenu.categories.map((category) => {
-                      const categoryId = `category-${category.title}`;
-                      const isCategoryExpanded = expandedMobileItems.has(categoryId);
-                      
+        <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
+          <div className="absolute inset-x-0 top-0 bottom-0 bg-white max-w-sm mx-auto">
+            {/* Mobile Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex items-center space-x-3">
+                {mobileNavStack.length > 0 && (
+                  <button
+                    onClick={navigateMobileBack}
+                    className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
+                    aria-label="Go back"
+                  >
+                    <ChevronDown className="w-5 h-5 rotate-90" />
+                  </button>
+                )}
+                <h2 className="text-lg font-semibold text-gray-900">
+                  {getCurrentMobileTitle()}
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setMobileNavStack([]);
+                }}
+                className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-                      return (
-                        <div key={category.title} className="mb-4">
-                          <div className="flex items-center justify-between">
-                            <Link
-                              href={category.href}
-                              className="font-medium text-gray-900 hover:text-primary-600 transition-colors"
-                            >
-                              {category.title}
-                            </Link>
-                            {category.subcategories && category.subcategories.length > 0 && (
-                              <button
-                                onClick={() => toggleMobileExpansion(categoryId)}
-                                className="p-1 text-gray-400 hover:text-primary-600 transition-colors"
-                                aria-label={isCategoryExpanded ? "Collapse" : "Expand"}
-                              >
-                                <ChevronDown className={`w-4 h-4 transition-transform ${isCategoryExpanded ? 'rotate-180' : ''}`} />
-                              </button>
+            {/* Mobile Navigation Content */}
+            <div className="flex-1 overflow-y-auto">
+              {mobileNavStack.length === 0 ? (
+                // Main menu items
+                <div className="p-4 space-y-2">
+                  {navigationItems.map((item) => (
+                    <button
+                      key={item.name}
+                      onClick={() => {
+                        if (item.hasMegaMenu) {
+                          navigateToMobileCategory(item, 0);
+                        } else {
+                          router.push(item.href || '#');
+                          setIsMobileMenuOpen(false);
+                        }
+                      }}
+                      className="w-full text-left px-4 py-3 text-gray-700 hover:text-primary-600 hover:bg-gray-50 transition-colors flex items-center justify-between rounded-lg"
+                    >
+                      <span className="text-lg font-medium">{item.name}</span>
+                      {item.hasMegaMenu && (
+                        <ChevronDown className="w-5 h-5 -rotate-90" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                // Category items with images
+                <div className="p-4 space-y-3">
+                  {getCurrentMobileView().map((item) => {
+                    const hasSubCategories = item.subcategories && item.subcategories.length > 0;
+                    
+                    return (
+                      <button
+                        key={item.name || item.title}
+                        onClick={() => {
+                          if (hasSubCategories) {
+                            navigateToMobileCategory(item, mobileNavStack.length);
+                          } else {
+                            router.push(item.href || '#');
+                            setIsMobileMenuOpen(false);
+                            setMobileNavStack([]);
+                          }
+                        }}
+                        className="w-full bg-white border border-gray-200 rounded-lg p-3 hover:border-primary-300 hover:shadow-md transition-all duration-200"
+                      >
+                        <div className="flex items-center space-x-3">
+                          {/* Category Image */}
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                            <img
+                              src={item.image || `https://via.placeholder.com/48x48/1a365d/ffffff?text=${encodeURIComponent(item.name || item.title)}`}
+                              alt={item.name || item.title}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          
+                          {/* Category Info */}
+                          <div className="flex-1 text-left">
+                            <h3 className="text-base font-medium text-gray-900">
+                              {item.name || item.title}
+                            </h3>
+                            {item.description && (
+                              <p className="text-sm text-gray-500 mt-1">
+                                {item.description}
+                              </p>
                             )}
                           </div>
                           
-
-                          {isCategoryExpanded && (
-                            <div className="mt-2 ml-4 space-y-2">
-                              {category.subcategories.map((sub) => {
-                                const subId = `sub-${category.title}-${sub.name}`;
-                                const isSubExpanded = expandedMobileItems.has(subId);
-                                
-
-                                return (
-                                  <div key={sub.name} className="border-l-2 border-gray-200 pl-3">
-                                    <div className="flex items-center justify-between">
-                                      <Link
-                                        href={sub.href}
-                                        className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
-                                      >
-                                        {sub.name}
-                                      </Link>
-                                      {sub.subSubcategories && sub.subSubcategories.length > 0 && (
-                                        <button
-                                          onClick={() => toggleMobileExpansion(subId)}
-                                          className="p-1 text-gray-400 hover:text-primary-600 transition-colors"
-                                          aria-label={isSubExpanded ? "Collapse" : "Expand"}
-                                        >
-                                          <ChevronDown className={`w-3 h-3 transition-transform ${isSubExpanded ? 'rotate-180' : ''}`} />
-                                        </button>
-                                      )}
-                                    </div>
-                                    
-
-                                    {isSubExpanded && sub.subSubcategories && (
-                                      <div className="mt-2 ml-4 space-y-1">
-                                        {sub.subSubcategories.map((subSub) => (
-                                          <div key={subSub.name} className="border-l-2 border-gray-100 pl-3">
-                                            <Link
-                                              href={subSub.href}
-                                              className="text-xs text-gray-500 hover:text-primary-500 transition-colors block py-1"
-                                            >
-                                              {subSub.name}
-                                            </Link>
-                                            {subSub.sub3Categories && (
-                                              <div className="mt-1 ml-4 space-y-1">
-                                                {subSub.sub3Categories.map((sub3) => (
-                                                  <Link
-                                                    key={sub3.name}
-                                                    href={sub3.href}
-                                                    className="text-xs text-gray-400 hover:text-primary-500 transition-colors block py-1"
-                                                  >
-                                                    {sub3.name}
-                                                  </Link>
-                                                ))}
-                                              </div>
-                                            )}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
+                          {/* Chevron */}
+                          {hasSubCategories && (
+                            <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
                           )}
                         </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            ))}
-            
-            {/* Mobile Actions */}
-            <div className="border-t border-gray-200 px-4 py-4 space-y-3">
-              <Link
-                href="/wishlist"
-                className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors"
-              >
-                <Heart className="w-4 h-4" />
-                <span>Wishlist ({wishlistCount})</span>
-              </Link>
-              <Link
-                href="/cart"
-                className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                <span>Cart ({cartCount})</span>
-              </Link>
-              <Link
-                href="/account"
-                className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors"
-              >
-                <User className="w-4 h-4" />
-                <span>Account</span>
-              </Link>
-              <Link
-                href="/products"
-                className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors text-center"
-              >
-                Shop Now
-              </Link>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Mobile Actions - Only show on main menu */}
+              {mobileNavStack.length === 0 && (
+                <div className="border-t border-gray-200 px-4 py-4 space-y-3">
+                  <Link
+                    href="/wishlist"
+                    className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors p-3 rounded-lg hover:bg-gray-50"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setMobileNavStack([]);
+                    }}
+                  >
+                    <Heart className="w-5 h-5" />
+                    <span>Wishlist ({wishlistCount})</span>
+                  </Link>
+                  <Link
+                    href="/cart"
+                    className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors p-3 rounded-lg hover:bg-gray-50"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setMobileNavStack([]);
+                    }}
+                  >
+                    <ShoppingCart className="w-5 h-5" />
+                    <span>Cart ({cartCount})</span>
+                  </Link>
+                  <Link
+                    href="/account"
+                    className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors p-3 rounded-lg hover:bg-gray-50"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setMobileNavStack([]);
+                    }}
+                  >
+                    <User className="w-5 h-5" />
+                    <span>Account</span>
+                  </Link>
+                  <Link
+                    href="/products"
+                    className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors text-center font-medium"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setMobileNavStack([]);
+                    }}
+                  >
+                    Shop Now
+                  </Link>
+                </div>
+              )}
             </div>
-          </nav>
+          </div>
         </div>
       )}
     </header>
