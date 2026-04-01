@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Share2, Star, Plus, Minus, Truck, Shield, RotateCcw, Package, Clock, Award } from 'lucide-react';
+import { ShoppingCart, Share2, Star, Plus, Minus, Truck, Shield, RotateCcw, Package, Clock, Award, Heart } from 'lucide-react';
+import { useCart } from '../../contexts/CartContext';
+import { useWishlist } from '../../contexts/WishlistContext';
 
 const ProductInfo = ({ 
   product, 
@@ -15,30 +17,26 @@ const ProductInfo = ({
   images = []
 }) => {
   const [selectedColor, setSelectedColor] = useState(null);
+  const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
   
   const discountPercentage = oldPrice && oldPrice > currentPrice ? 
     Math.round(((oldPrice - currentPrice) / oldPrice) * 100) : 0;
 
-  // Extract available colors from product variants or use defaults
+  // Extract available colors from product variants that have stock
   const availableColors = product.variants ? 
-    product.variants.map(variant => ({
-      name: variant.color || variant.name || 'Standard',
-      hex: variant.hex || getDefaultColor(variant.color),
-      variantId: variant.id,
-      images: variant.images || [],
-      price: variant.price || currentPrice,
-      stock: variant.stock || product.stock || 0
-    })).filter((color, index, arr) => arr.findIndex(c => c.name === color.name) === index) : 
-    [
-      { name: 'Space Grey', hex: '#3D3D3D' },
-      { name: 'Navy Blue', hex: '#1E3A8A' },
-      { name: 'Rose Gold', hex: '#F59E0B' },
-      { name: 'Forest Green', hex: '#1A5C2A' },
-      { name: 'Maroon', hex: '#7B1C1C' },
-      { name: 'Light Grey', hex: '#9CA3AF' },
-      { name: 'Burgundy', hex: '#8B0000' },
-      { name: 'Midnight Black', hex: '#000000' }
-    ];
+    product.variants
+      .filter(variant => (variant.stock || product.stock || 0) > 0) // Only show colors with stock
+      .map(variant => ({
+        name: variant.color || variant.name || 'Standard',
+        hex: variant.hex || getDefaultColor(variant.color),
+        variantId: variant.id,
+        images: variant.images || [],
+        price: variant.price || currentPrice,
+        stock: variant.stock || product.stock || 0
+      }))
+      .filter((color, index, arr) => arr.findIndex(c => c.name === color.name) === index) : // Remove duplicates
+    [];
 
   // Helper function to get default hex color for color names
   const getDefaultColor = (colorName) => {
@@ -63,13 +61,45 @@ const ProductInfo = ({
     setSelectedColor(color);
     console.log('Selected color:', color.name, color.hex);
     
-    // Update images when color changes
-    if (onColorChange && color.images && color.images.length > 0) {
-      onColorChange(color.images);
-    } else if (onColorChange) {
-      // Fallback to default images if no color-specific images
-      onColorChange(images);
+    // Update images when color changes - pass color-specific images
+    if (onColorChange) {
+      if (color.images && color.images.length > 0) {
+        onColorChange(color.images);
+      } else {
+        // Fallback to default product images if no color-specific images
+        onColorChange(images);
+      }
     }
+  };
+
+  const handleAddToCartClick = () => {
+    const cartProduct = {
+      ...product,
+      name: displayName,
+      price: currentPrice,
+      originalPrice: oldPrice,
+      image: images[0] || product.image,
+      variant: selectedColor?.name || 'Standard',
+      quantity: quantity
+    };
+    
+    addToCart(cartProduct, quantity);
+    console.log('Added to cart:', cartProduct.name, 'Quantity:', quantity, 'Color:', selectedColor?.name);
+  };
+
+  const handleWishlistClick = () => {
+    const wishlistProduct = {
+      id: product.id,
+      name: displayName,
+      price: currentPrice,
+      originalPrice: oldPrice,
+      image: images[0] || product.image,
+      category: product.category,
+      variant: selectedColor?.name || 'Standard'
+    };
+    
+    toggleWishlist(wishlistProduct);
+    console.log('Toggled wishlist for:', wishlistProduct.name);
   };
 
   const features = [
@@ -126,52 +156,54 @@ const ProductInfo = ({
         </p>
       </div>
 
-      {/* Color Selection */}
-      <div>
-        <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Color</h3>
-        <div className="space-y-2 sm:space-y-3">
-          <div className="flex flex-wrap gap-2 sm:gap-3">
-            {availableColors.map((color, index) => (
-              <button
-                key={index}
-                onClick={() => handleColorSelect(color)}
-                className={`relative group transition-all duration-200 ${
-                  selectedColor?.hex === color.hex 
-                    ? 'scale-110' 
-                    : 'hover:scale-105'
-                }`}
-                title={color.name}
-              >
-                <div
-                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-all duration-200 ${
-                    selectedColor?.hex === color.hex
-                      ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg'
-                      : 'border-gray-300 hover:border-gray-400'
+      {/* Color Selection - Only show if colors are available */}
+      {availableColors.length > 0 && (
+        <div>
+          <h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3">Color</h3>
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
+              {availableColors.map((color, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleColorSelect(color)}
+                  className={`relative group transition-all duration-200 ${
+                    selectedColor?.hex === color.hex 
+                      ? 'scale-110' 
+                      : 'hover:scale-105'
                   }`}
-                  style={{ backgroundColor: color.hex }}
-                />
-                {selectedColor?.hex === color.hex && (
-                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-500 rounded-full flex items-center justify-center">
-                    <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-white rounded-full" />
-                  </div>
-                )}
-              </button>
-            ))}
-          </div>
-          {selectedColor && (
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <span>Selected:</span>
-              <div className="flex items-center space-x-2">
-                <div
-                  className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border border-gray-300"
-                  style={{ backgroundColor: selectedColor.hex }}
-                />
-                <span className="font-medium text-gray-900">{selectedColor.name}</span>
-              </div>
+                  title={color.name}
+                >
+                  <div
+                    className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 transition-all duration-200 ${
+                      selectedColor?.hex === color.hex
+                        ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg'
+                        : 'border-gray-300 hover:border-gray-400'
+                    }`}
+                    style={{ backgroundColor: color.hex }}
+                  />
+                  {selectedColor?.hex === color.hex && (
+                    <div className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-blue-500 rounded-full flex items-center justify-center">
+                      <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 bg-white rounded-full" />
+                    </div>
+                  )}
+                </button>
+              ))}
             </div>
-          )}
+            {selectedColor && (
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <span>Selected:</span>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className="w-3 h-3 sm:w-4 sm:h-4 rounded-full border border-gray-300"
+                    style={{ backgroundColor: selectedColor.hex }}
+                  />
+                  <span className="font-medium text-gray-900">{selectedColor.name}</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Quantity and Add to Cart */}
       <div className="space-y-3 sm:space-y-4">
@@ -198,7 +230,7 @@ const ProductInfo = ({
 
         <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0">
           <button
-            onClick={handleAddToCart}
+            onClick={handleAddToCartClick}
             className="flex-1 bg-primary-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center text-sm sm:text-base"
           >
             <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -210,6 +242,19 @@ const ProductInfo = ({
             className="p-2.5 sm:p-3 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
             <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+          
+          <button
+            onClick={handleWishlistClick}
+            className={`p-2.5 sm:p-3 border rounded-lg transition-colors ${
+              isInWishlist(product.id)
+                ? 'bg-red-50 border-red-300 text-red-600 hover:bg-red-100'
+                : 'border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${
+              isInWishlist(product.id) ? 'fill-current' : ''
+            }`} />
           </button>
         </div>
       </div>
