@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Layout from '../../components/Layout';
+import FilterSidebar from '../../components/FilterSidebar';
 import Link from 'next/link';
 import Star from 'lucide-react/dist/esm/icons/star';
 import Filter from 'lucide-react/dist/esm/icons/filter';
 import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
-import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
 import { productsAPI } from '../../services/api';
 import { categoryService } from '../../services/categoryService';
 
@@ -16,14 +16,21 @@ const CategoryPage = () => {
   
   const [sortBy, setSortBy] = useState(sort || 'featured');
   const [showFilters, setShowFilters] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState({});
   const [subcategories, setSubcategories] = useState([]);
   const [allCategories, setAllCategories] = useState([]);
-  const [expandedCategories, setExpandedCategories] = useState({});
-  const [expandedSubcategories, setExpandedSubcategories] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    colors: [],
+    iphoneModel: [],
+    typeCase: [],
+    magSafe: false,
+    partnership: [],
+    search: "",
+  });
 
   // Category metadata
   const categoryMetadata = {
@@ -99,13 +106,34 @@ const CategoryPage = () => {
       setError(null);
       
       try {
-        // Load products for the category with subcategory filter if present
+        // Load products for category with subcategory filter if present
         const options = {};
         if (subcategory) options.subcategory = subcategory;
         if (sort) options.sort = sort;
         
         const productsData = await productsAPI.getByCategory(category, options);
-        setProducts(productsData.data?.data || productsData.products || []);
+        let products = productsData.data?.data || productsData.products || [];
+        
+        // Apply client-side filters
+        if (filters.colors && filters.colors.length > 0) {
+          products = products.filter((product) => {
+            if (product.colors && Array.isArray(product.colors)) {
+              return filters.colors.some((color) =>
+                product.colors.some((productColor) =>
+                  productColor.toLowerCase().includes(color.toLowerCase()) ||
+                  color.toLowerCase().includes(productColor.toLowerCase())
+                )
+              );
+            }
+            return false;
+          });
+        }
+
+        if (filters.magSafe) {
+          products = products.filter((product) => product.magSafeCompatible);
+        }
+
+        setProducts(products);
         
         // Load all categories for navigation
         const categoriesData = await productsAPI.getCategories();
@@ -129,7 +157,56 @@ const CategoryPage = () => {
     };
 
     loadData();
-  }, [category, subcategory, sort]);
+  }, [category, subcategory, sort, filters]);
+
+  // Handle filter changes
+  const handleFilterChange = (filterType, value) => {
+    let newFilters;
+
+    if (filterType === "clearAll") {
+      newFilters = {
+        colors: [],
+        iphoneModel: [],
+        typeCase: [],
+        magSafe: false,
+        partnership: [],
+        search: "",
+      };
+    } else if (filterType === 'colors') {
+      newFilters = { ...filters, colors: value };
+    } else if (filterType === 'magSafe') {
+      newFilters = { ...filters, magSafe: value };
+    } else if (filterType === 'iphoneModel') {
+      const currentModels = [...filters.iphoneModel];
+      if (value.checked) {
+        currentModels.push(value.model);
+      } else {
+        const index = currentModels.indexOf(value.model);
+        if (index > -1) currentModels.splice(index, 1);
+      }
+      newFilters = { ...filters, iphoneModel: currentModels };
+    } else if (filterType === 'typeCase') {
+      const currentTypes = [...filters.typeCase];
+      if (value.checked) {
+        currentTypes.push(value.type);
+      } else {
+        const index = currentTypes.indexOf(value.type);
+        if (index > -1) currentTypes.splice(index, 1);
+      }
+      newFilters = { ...filters, typeCase: currentTypes };
+    } else if (filterType === 'partnership') {
+      const currentPartners = [...filters.partnership];
+      if (value.checked) {
+        currentPartners.push(value.partner);
+      } else {
+        const index = currentPartners.indexOf(value.partner);
+        if (index > -1) currentPartners.splice(index, 1);
+      }
+      newFilters = { ...filters, partnership: currentPartners };
+    }
+
+    setFilters(newFilters);
+  };
 
   // Sort products
   const sortProducts = (sortType) => {
@@ -255,134 +332,36 @@ const CategoryPage = () => {
 
       {/* Header */}
       <div className="container py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar - 4 Level Category Hierarchy */}
-          <div className="lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-lg border border-gray-200 p-4 sticky top-8">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
-                {pageData.title} SUBCATEGORIES
-              </h2>
-              
-              {/* Current Category Subcategories */}
-              {subcategories.length > 0 && (
-                <div className="mb-6">
-                  <Link
-                    href={`/category/${category}`}
-                    className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors mb-1 ${
-                      !subcategory 
-                        ? 'bg-primary-600 text-white' 
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    Shop All {pageData.title}
-                  </Link>
-                  {subcategories.map((sub) => (
-                    <Link
-                      key={sub.slug}
-                      href={`/category/${category}?subcategory=${sub.slug}`}
-                      className={`block w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors mb-1 ${
-                        subcategory === sub.slug 
-                          ? 'bg-primary-600 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {sub.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
+        {/* Mobile Filter Toggle */}
+        <div className="lg:hidden mb-6">
+          <button
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className="w-full flex items-center justify-between bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow"
+          >
+            <span className="font-medium text-gray-900">Filters</span>
+            <svg 
+              className={`w-5 h-5 text-gray-500 transform transition-transform ${showMobileFilters ? 'rotate-180' : ''}`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+        </div>
 
-              {/* Full Category Hierarchy */}
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">All Categories</h3>
-                <div className="space-y-1">
-                  {allCategories.map((cat) => (
-                    <div key={cat.id} className="border border-gray-100 rounded-md">
-                      {/* Level 1 - Category */}
-                      <button
-                        onClick={() => setExpandedCategories(prev => ({
-                          ...prev,
-                          [cat.id]: !prev[cat.id]
-                        }))}
-                        className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors flex items-center justify-between"
-                      >
-                        <span className="font-medium text-gray-900">{cat.name}</span>
-                        {(cat.subcategories && cat.subcategories.length > 0) && (
-                          <ChevronRight 
-                            className={`w-4 h-4 text-gray-400 transition-transform ${
-                              expandedCategories[cat.id] ? 'rotate-90' : ''
-                            }`}
-                          />
-                        )}
-                      </button>
-                      
-                      {/* Level 2 - Subcategories */}
-                      {expandedCategories[cat.id] && cat.subcategories && (
-                        <div className="ml-4 mt-1 space-y-1">
-                          {cat.subcategories.map((sub) => (
-                            <div key={sub.id} className="border border-gray-100 rounded-md">
-                              <button
-                                onClick={() => setExpandedSubcategories(prev => ({
-                                  ...prev,
-                                  [sub.id]: !prev[sub.id]
-                                }))}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors flex items-center justify-between"
-                              >
-                                <span className="text-sm text-gray-800">{sub.name}</span>
-                                {(sub.sub_subcategories && sub.sub_subcategories.length > 0) && (
-                                  <ChevronRight 
-                                    className={`w-3 h-3 text-gray-400 transition-transform ${
-                                      expandedSubcategories[sub.id] ? 'rotate-90' : ''
-                                    }`}
-                                  />
-                                )}
-                              </button>
-                              
-                              {/* Level 3 - Sub-subcategories */}
-                              {expandedSubcategories[sub.id] && sub.sub_subcategories && (
-                                <div className="ml-4 mt-1 space-y-1">
-                                  {sub.sub_subcategories.map((subSub) => (
-                                    <div key={subSub.id} className="border border-gray-100 rounded-md">
-                                      <button
-                                        className="w-full text-left px-3 py-1 hover:bg-gray-50 transition-colors flex items-center justify-between"
-                                      >
-                                        <span className="text-xs text-gray-700">{subSub.name}</span>
-                                        {(subSub.sub3_categories && subSub.sub3_categories.length > 0) && (
-                                          <ChevronRight 
-                                            className={`w-2 h-2 text-gray-400 transition-transform ${
-                                              expandedSubcategories[`${sub.id}-${subSub.id}`] ? 'rotate-90' : ''
-                                            }`}
-                                          />
-                                        )}
-                                      </button>
-                                      
-                                      {/* Level 4 - Sub3 Categories */}
-                                      {expandedSubcategories[`${sub.id}-${subSub.id}`] && subSub.sub3_categories && (
-                                        <div className="ml-4 mt-1 space-y-1">
-                                          {subSub.sub3_categories.map((sub3) => (
-                                            <Link
-                                              key={sub3.id}
-                                              href={`/category/${cat.slug}?subcategory=${sub.slug}&subsubcategory=${subSub.slug}&sub3=${sub3.slug}`}
-                                              className="block w-full text-left px-3 py-1 text-xs text-gray-600 hover:text-primary-600 transition-colors"
-                                            >
-                                              {sub3.name}
-                                            </Link>
-                                          ))}
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Filters Sidebar - Desktop always visible, Mobile toggle */}
+          <div className={`${showMobileFilters ? 'block' : 'hidden'} lg:block lg:w-64`}>
+            <div className="lg:hidden mb-4">
+              <button
+                onClick={() => setShowMobileFilters(false)}
+                className="text-gray-500 hover:text-gray-700 text-sm"
+              >
+                ← Close filters
+              </button>
             </div>
+            <FilterSidebar onFilterChange={handleFilterChange} filters={filters} />
           </div>
 
           {/* Main Content */}
@@ -443,6 +422,38 @@ const CategoryPage = () => {
               {products.length} products found
               {subcategory && ` in ${subcategory.replace('-', ' ')}`}
             </p>
+            {/* Active filters summary for mobile */}
+            <div className="lg:hidden mt-2">
+              {(filters.colors.length > 0 || filters.iphoneModel.length > 0 || filters.typeCase.length > 0 || filters.magSafe || filters.partnership.length > 0) && (
+                <div className="flex flex-wrap gap-1">
+                  {filters.colors.length > 0 && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {filters.colors.length} colors
+                    </span>
+                  )}
+                  {filters.iphoneModel.length > 0 && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {filters.iphoneModel.length} models
+                    </span>
+                  )}
+                  {filters.typeCase.length > 0 && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {filters.typeCase.length} types
+                    </span>
+                  )}
+                  {filters.magSafe && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      MagSafe
+                    </span>
+                  )}
+                  {filters.partnership.length > 0 && (
+                    <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                      {filters.partnership.length} partners
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
