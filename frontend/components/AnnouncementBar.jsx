@@ -36,35 +36,35 @@ const AnnouncementBar = () => {
       <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-500 opacity-90"></div>
       
       <div className="container relative">
-        <div className="flex items-center justify-center py-3 px-4">
-          <div className="flex items-center space-x-6 text-sm">
-            {/* Left Icon */}
-            <Tag className="w-4 h-4 animate-pulse-soft" />
+        <div className="flex items-center justify-center py-2 px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 text-xs sm:text-sm">
+            {/* Left Icon - hidden on very small screens */}
+            <Tag className="w-3 h-3 sm:w-4 sm:h-4 animate-pulse-soft hidden sm:block" />
             
             {/* Main Message */}
-            <div className="flex items-center space-x-2">
-              <span className="font-medium">Limited Time Offer:</span>
-              <span>Get 25% off on all new arrivals</span>
-              <span className="bg-accent-500 px-2 py-1 rounded text-xs font-semibold">SAVE25</span>
+            <div className="flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 text-center">
+              <span className="font-medium text-xs sm:text-sm">Limited Time Offer:</span>
+              <span className="text-xs sm:text-sm">25% off new arrivals</span>
+              <span className="bg-accent-500 px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-semibold">SAVE25</span>
             </div>
             
             {/* Countdown Timer */}
-            <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4" />
-              <div className="flex items-center space-x-1">
-                <div className="bg-primary-600 px-2 py-1 rounded text-xs font-mono">
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+              <div className="flex items-center space-x-0.5 sm:space-x-1">
+                <div className="bg-primary-600 px-1 py-0.5 sm:px-2 sm:py-1 rounded text-[10px] sm:text-xs font-mono">
                   {formatNumber(timeLeft.days)}d
                 </div>
-                <span className="text-xs">:</span>
-                <div className="bg-primary-600 px-2 py-1 rounded text-xs font-mono">
+                <span className="text-[10px] sm:text-xs">:</span>
+                <div className="bg-primary-600 px-1 py-0.5 sm:px-2 sm:py-1 rounded text-[10px] sm:text-xs font-mono">
                   {formatNumber(timeLeft.hours)}h
                 </div>
-                <span className="text-xs">:</span>
-                <div className="bg-primary-600 px-2 py-1 rounded text-xs font-mono">
+                <span className="text-[10px] sm:text-xs">:</span>
+                <div className="bg-primary-600 px-1 py-0.5 sm:px-2 sm:py-1 rounded text-[10px] sm:text-xs font-mono">
                   {formatNumber(timeLeft.minutes)}m
                 </div>
-                <span className="text-xs">:</span>
-                <div className="bg-primary-600 px-2 py-1 rounded text-xs font-mono">
+                <span className="text-[10px] sm:text-xs hidden sm:inline">:</span>
+                <div className="bg-primary-600 px-1 py-0.5 sm:px-2 sm:py-1 rounded text-[10px] sm:text-xs font-mono hidden sm:block">
                   {formatNumber(timeLeft.seconds)}s
                 </div>
               </div>
@@ -74,10 +74,10 @@ const AnnouncementBar = () => {
           {/* Close Button */}
           <button
             onClick={() => setIsVisible(false)}
-            className="absolute right-4 p-1 rounded hover:bg-primary-600 transition-colors duration-200"
+            className="absolute right-3 sm:right-4 p-1 rounded hover:bg-primary-600 transition-colors duration-200"
             aria-label="Close announcement"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3 h-3 sm:w-4 sm:h-4" />
           </button>
         </div>
       </div>
