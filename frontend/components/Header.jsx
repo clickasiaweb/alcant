@@ -276,9 +276,11 @@ export default function Header() {
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-primary-600 rounded-lg flex items-center justify-center">
-              <Package className="w-6 h-6 text-white" />
-            </div>
+            <img 
+              src="/images/logo/alcant.png" 
+              alt="Alcant Logo" 
+              className="h-10 w-auto"
+            />
             <span className="text-2xl font-bold text-gray-900 hidden sm:inline">
               ALCANSIDE
             </span>
