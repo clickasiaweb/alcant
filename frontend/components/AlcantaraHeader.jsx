@@ -312,7 +312,29 @@ const AlcantaraHeader = () => {
 
   // Drill-down navigation functions
   const navigateToMobileCategory = (category, level) => {
-    setMobileNavStack(prev => [...prev, { category, level }]);
+    // If navigating to a subcategory, include its sub-subcategories
+    if (level === 0 && category.subcategories && category.subcategories.length > 0) {
+      const categoryWithSubs = {
+        ...category,
+        subSubcategories: category.subcategories?.reduce((acc, sub) => {
+          if (sub.sub_subcategories && sub.sub_subcategories.length > 0) {
+            acc[sub.slug] = sub.sub_subcategories;
+          }
+          return acc;
+        }, {}) || {},
+        parentCategorySlug: category.slug
+      };
+      setMobileNavStack(prev => [...prev, { category: categoryWithSubs, level }]);
+    } else if (category.subSubcategories && Object.keys(category.subSubcategories).length > 0) {
+      // This is a subcategory with sub-subcategories
+      const subcategoryWithSubs = {
+        ...category,
+        parentCategorySlug: mobileNavStack[0]?.category?.slug
+      };
+      setMobileNavStack(prev => [...prev, { category: subcategoryWithSubs, level }]);
+    } else {
+      setMobileNavStack(prev => [...prev, { category, level }]);
+    }
   };
 
   const navigateMobileBack = () => {
@@ -326,10 +348,36 @@ const AlcantaraHeader = () => {
         title: cat.name,
         href: `/category/${cat.slug}`,
         image: getCategoryPromoImage(cat.name),
-        subcategories: cat.subcategories || []
+        subcategories: cat.subcategories || [],
+        subSubcategories: cat.subcategories?.reduce((acc, sub) => {
+          if (sub.sub_subcategories && sub.sub_subcategories.length > 0) {
+            acc[sub.slug] = sub.sub_subcategories;
+          }
+          return acc;
+        }, {}) || {}
       }));
     }
     const current = mobileNavStack[mobileNavStack.length - 1];
+    
+    // Check if we're at subcategory level and need to show sub-subcategories
+    if (current.category.subSubcategories && Object.keys(current.category.subSubcategories).length > 0) {
+      // Return sub-subcategories for the current subcategory
+      const subSubItems = [];
+      Object.entries(current.category.subSubcategories).forEach(([subSlug, subSubs]) => {
+        subSubs.forEach(subSub => {
+          subSubItems.push({
+            name: subSub.name,
+            title: subSub.name,
+            href: `/category/${current.category.parentCategorySlug}?subcategory=${current.category.slug}&subsubcategory=${subSub.slug}`,
+            image: getCategoryPromoImage(subSub.name),
+            subcategories: [],
+            subSubcategories: {}
+          });
+        });
+      });
+      return subSubItems;
+    }
+    
     return current.category.subcategories || [];
   };
 
@@ -652,12 +700,23 @@ const AlcantaraHeader = () => {
         {/* Mobile Navigation - Drill-Down Style */}
         {isMobileMenuOpen && (
           <div className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-            <div className="absolute inset-x-0 top-0 bottom-0 bg-white max-w-sm mx-auto">
+            <div className="absolute inset-x-0 bottom-0 top-16 bg-white max-w-sm mx-auto animate-in slide-in-from-bottom-2 duration-300">
               {/* Mobile Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <div className="flex items-center space-x-2">
+                  {mobileNavStack.length > 0 && (
+                    <button
+                      onClick={navigateMobileBack}
+                      className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
+                      aria-label="Go back"
+                    >
+                      <ChevronDown className="w-5 h-5 rotate-90" />
+                    </button>
+                  )}
                   <Logo size="small" />
-                  <span className="text-lg font-bold text-gray-900">ALCANT</span>
+                  <span className="text-lg font-bold text-gray-900">
+                    {mobileNavStack.length > 0 ? getCurrentMobileTitle() : "ALCANT"}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
@@ -724,7 +783,8 @@ const AlcantaraHeader = () => {
                   // Category items with images
                   <div className="space-y-3">
                     {getCurrentMobileView().map((item) => {
-                      const hasSubCategories = item.subcategories && item.subcategories.length > 0;
+                      const hasSubCategories = (item.subcategories && item.subcategories.length > 0) || 
+                                             (item.subSubcategories && Object.keys(item.subSubcategories).length > 0);
                       
                       return (
                         <button
