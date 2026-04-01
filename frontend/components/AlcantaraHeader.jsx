@@ -312,29 +312,8 @@ const AlcantaraHeader = () => {
 
   // Drill-down navigation functions
   const navigateToMobileCategory = (category, level) => {
-    // If navigating to a subcategory, include its sub-subcategories
-    if (level === 0 && category.subcategories && category.subcategories.length > 0) {
-      const categoryWithSubs = {
-        ...category,
-        subSubcategories: category.subcategories?.reduce((acc, sub) => {
-          if (sub.sub_subcategories && sub.sub_subcategories.length > 0) {
-            acc[sub.slug] = sub.sub_subcategories;
-          }
-          return acc;
-        }, {}) || {},
-        parentCategorySlug: category.slug
-      };
-      setMobileNavStack(prev => [...prev, { category: categoryWithSubs, level }]);
-    } else if (category.subSubcategories && Object.keys(category.subSubcategories).length > 0) {
-      // This is a subcategory with sub-subcategories
-      const subcategoryWithSubs = {
-        ...category,
-        parentCategorySlug: mobileNavStack[0]?.category?.slug
-      };
-      setMobileNavStack(prev => [...prev, { category: subcategoryWithSubs, level }]);
-    } else {
-      setMobileNavStack(prev => [...prev, { category, level }]);
-    }
+    console.log('🚀 navigateToMobileCategory called:', { category, level, currentStack: mobileNavStack });
+    setMobileNavStack(prev => [...prev, { category, level }]);
   };
 
   const navigateMobileBack = () => {
@@ -342,43 +321,68 @@ const AlcantaraHeader = () => {
   };
 
   const getCurrentMobileView = () => {
+    console.log('🔍 getCurrentMobileView called, mobileNavStack:', mobileNavStack);
+    
     if (mobileNavStack.length === 0) {
-      return categories.map(cat => ({
+      const result = categories.map(cat => ({
         name: cat.name,
         title: cat.name,
         href: `/category/${cat.slug}`,
         image: getCategoryPromoImage(cat.name),
         subcategories: cat.subcategories || [],
-        subSubcategories: cat.subcategories?.reduce((acc, sub) => {
-          if (sub.sub_subcategories && sub.sub_subcategories.length > 0) {
-            acc[sub.slug] = sub.sub_subcategories;
+        slug: cat.slug
+      }));
+      console.log('📱 Main categories:', result);
+      return result;
+    }
+    
+    const current = mobileNavStack[mobileNavStack.length - 1];
+    console.log('📍 Current navigation level:', current);
+    
+    // If we're at category level, show subcategories
+    if (mobileNavStack.length === 1 && current.category.subcategories) {
+      const result = current.category.subcategories.map(sub => ({
+        name: sub.name,
+        title: sub.name,
+        href: `/category/${current.category.slug}?subcategory=${sub.slug}`,
+        image: getCategoryPromoImage(sub.name),
+        subcategories: sub.sub_subcategories || [],
+        slug: sub.slug,
+        parentCategorySlug: current.category.slug,
+        subSubcategories: sub.sub_subcategories?.reduce((acc, subSub) => {
+          if (subSub.sub3_categories && subSub.sub3_categories.length > 0) {
+            acc[subSub.slug] = subSub.sub3_categories;
           }
           return acc;
         }, {}) || {}
       }));
+      console.log('📂 Subcategories:', result);
+      return result;
     }
-    const current = mobileNavStack[mobileNavStack.length - 1];
     
-    // Check if we're at subcategory level and need to show sub-subcategories
-    if (current.category.subSubcategories && Object.keys(current.category.subSubcategories).length > 0) {
-      // Return sub-subcategories for the current subcategory
+    // If we're at subcategory level, show sub-subcategories
+    if (mobileNavStack.length === 2 && current.category.subcategories) {
       const subSubItems = [];
-      Object.entries(current.category.subSubcategories).forEach(([subSlug, subSubs]) => {
-        subSubs.forEach(subSub => {
-          subSubItems.push({
-            name: subSub.name,
-            title: subSub.name,
-            href: `/category/${current.category.parentCategorySlug}?subcategory=${current.category.slug}&subsubcategory=${subSub.slug}`,
-            image: getCategoryPromoImage(subSub.name),
-            subcategories: [],
-            subSubcategories: {}
+      current.category.subcategories.forEach(sub => {
+        if (sub.sub_subcategories && sub.sub_subcategories.length > 0) {
+          sub.sub_subcategories.forEach(subSub => {
+            subSubItems.push({
+              name: subSub.name,
+              title: subSub.name,
+              href: `/category/${current.category.parentCategorySlug}?subcategory=${current.category.slug}&subsubcategory=${subSub.slug}`,
+              image: getCategoryPromoImage(subSub.name),
+              subcategories: subSub.sub3_categories || [],
+              slug: subSub.slug
+            });
           });
-        });
+        }
       });
+      console.log('📂 Sub-subcategories:', subSubItems);
       return subSubItems;
     }
     
-    return current.category.subcategories || [];
+    console.log('❌ No items to display');
+    return [];
   };
 
   const getCurrentMobileTitle = () => {
@@ -783,8 +787,7 @@ const AlcantaraHeader = () => {
                   // Category items with images
                   <div className="space-y-3">
                     {getCurrentMobileView().map((item) => {
-                      const hasSubCategories = (item.subcategories && item.subcategories.length > 0) || 
-                                             (item.subSubcategories && Object.keys(item.subSubcategories).length > 0);
+                      const hasSubCategories = (item.subcategories && item.subcategories.length > 0);
                       
                       return (
                         <button
