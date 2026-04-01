@@ -25,6 +25,7 @@ import {
   Shield
 } from "lucide-react";
 import { categoryService } from "../services/categoryService";
+import Logo from "./Logo";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -276,27 +277,7 @@ export default function Header() {
       <div className="container">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <img 
-              src="/alcant.png" 
-              alt="Alcant Logo" 
-              width="40"
-              height="40"
-              style={{ objectFit: 'contain' }}
-              onError={(e) => {
-                console.error('Image failed to load:', e);
-                console.log('Image path attempted:', '/alcant.png');
-                // Try fallback with original path
-                e.target.src = '/images/logo/alcant.png';
-              }}
-              onLoad={() => {
-                console.log('Image loaded successfully');
-              }}
-            />
-            <span className="text-2xl font-bold text-gray-900 hidden sm:inline">
-              ALCANSIDE
-            </span>
-          </Link>
+          <Logo />
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">

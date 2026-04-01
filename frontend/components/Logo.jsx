@@ -15,11 +15,14 @@ const Logo = ({ className = "", size = "default" }) => {
         <div className={`relative ${sizeClasses[size]} bg-primary-900 rounded-lg flex items-center justify-center transition-all duration-300 hover:bg-primary-800 group`}>
           {/* Alcantara Logo Image */}
           <img 
-            src="./images/logo/alcant.png" 
+            src="/alcant.png" 
             alt="Alcantara Logo"
             className="w-full h-full object-contain p-2"
             onError={(e) => {
               console.error('Logo image failed to load:', e);
+            }}
+            onLoad={() => {
+              console.log('Logo loaded successfully');
             }}
           />
           
@@ -31,8 +34,8 @@ const Logo = ({ className = "", size = "default" }) => {
         </div>
         
         {/* Brand Name */}
-        <div className="ml-3 text-primary-900 font-semibold text-lg leading-tight">
-          Alcantara
+        <div className="ml-3 text-primary-900 font-semibold text-lg leading-tight hidden sm:inline">
+          ALCANSIDE
         </div>
       </div>
       
