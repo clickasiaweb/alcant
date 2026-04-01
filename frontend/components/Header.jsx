@@ -37,6 +37,7 @@ export default function Header() {
   const [wishlistCount, setWishlistCount] = useState(4);
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [expandedMobileItems, setExpandedMobileItems] = useState(new Set());
   const router = useRouter();
   const megaMenuRef = useRef(null);
   const searchRef = useRef(null);
@@ -140,6 +141,18 @@ export default function Header() {
       setActiveMegaMenu(null);
       router.push(item?.href || '#');
     }
+  };
+
+  const toggleMobileExpansion = (itemId) => {
+    setExpandedMobileItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
   };
 
   const renderMegaMenu = (item) => {
@@ -407,55 +420,95 @@ export default function Header() {
                 {/* Mobile Mega Menu */}
                 {activeMegaMenu === item.name && item.megaMenu && (
                   <div className="bg-gray-50 px-4 py-2">
-                    {item.megaMenu.categories.map((category) => (
-                      <div key={category.title} className="mb-4">
-                        <Link
-                          href={category.href}
-                          className="block font-medium text-gray-900 mb-2 hover:text-primary-600 transition-colors"
-                        >
-                          {category.title}
-                        </Link>
-                        <div className="ml-4 space-y-1">
-                          {category.subcategories.map((sub) => (
-                            <div key={sub.name}>
-                              <Link
-                                href={sub.href}
-                                className="block text-sm text-gray-600 hover:text-primary-600 transition-colors"
+                    {item.megaMenu.categories.map((category) => {
+                      const categoryId = `category-${category.title}`;
+                      const isCategoryExpanded = expandedMobileItems.has(categoryId);
+                      
+
+                      return (
+                        <div key={category.title} className="mb-4">
+                          <div className="flex items-center justify-between">
+                            <Link
+                              href={category.href}
+                              className="font-medium text-gray-900 hover:text-primary-600 transition-colors"
+                            >
+                              {category.title}
+                            </Link>
+                            {category.subcategories && category.subcategories.length > 0 && (
+                              <button
+                                onClick={() => toggleMobileExpansion(categoryId)}
+                                className="p-1 text-gray-400 hover:text-primary-600 transition-colors"
+                                aria-label={isCategoryExpanded ? "Collapse" : "Expand"}
                               >
-                                {sub.name}
-                              </Link>
-                              {sub.subSubcategories && (
-                                <div className="ml-4 space-y-1">
-                                  {sub.subSubcategories.map((subSub) => (
-                                    <div key={subSub.name}>
+                                <ChevronDown className={`w-4 h-4 transition-transform ${isCategoryExpanded ? 'rotate-180' : ''}`} />
+                              </button>
+                            )}
+                          </div>
+                          
+
+                          {isCategoryExpanded && (
+                            <div className="mt-2 ml-4 space-y-2">
+                              {category.subcategories.map((sub) => {
+                                const subId = `sub-${category.title}-${sub.name}`;
+                                const isSubExpanded = expandedMobileItems.has(subId);
+                                
+
+                                return (
+                                  <div key={sub.name} className="border-l-2 border-gray-200 pl-3">
+                                    <div className="flex items-center justify-between">
                                       <Link
-                                        href={subSub.href}
-                                        className="block text-xs text-gray-500 hover:text-primary-500 transition-colors"
+                                        href={sub.href}
+                                        className="text-sm text-gray-600 hover:text-primary-600 transition-colors"
                                       >
-                                        {subSub.name}
+                                        {sub.name}
                                       </Link>
-                                      {subSub.sub3Categories && (
-                                        <div className="ml-4 space-y-1">
-                                          {subSub.sub3Categories.map((sub3) => (
-                                            <Link
-                                              key={sub3.name}
-                                              href={sub3.href}
-                                              className="block text-xs text-gray-400 hover:text-primary-500 transition-colors"
-                                            >
-                                              {sub3.name}
-                                            </Link>
-                                          ))}
-                                        </div>
+                                      {sub.subSubcategories && sub.subSubcategories.length > 0 && (
+                                        <button
+                                          onClick={() => toggleMobileExpansion(subId)}
+                                          className="p-1 text-gray-400 hover:text-primary-600 transition-colors"
+                                          aria-label={isSubExpanded ? "Collapse" : "Expand"}
+                                        >
+                                          <ChevronDown className={`w-3 h-3 transition-transform ${isSubExpanded ? 'rotate-180' : ''}`} />
+                                        </button>
                                       )}
                                     </div>
-                                  ))}
-                                </div>
-                              )}
+                                    
+
+                                    {isSubExpanded && sub.subSubcategories && (
+                                      <div className="mt-2 ml-4 space-y-1">
+                                        {sub.subSubcategories.map((subSub) => (
+                                          <div key={subSub.name} className="border-l-2 border-gray-100 pl-3">
+                                            <Link
+                                              href={subSub.href}
+                                              className="text-xs text-gray-500 hover:text-primary-500 transition-colors block py-1"
+                                            >
+                                              {subSub.name}
+                                            </Link>
+                                            {subSub.sub3Categories && (
+                                              <div className="mt-1 ml-4 space-y-1">
+                                                {subSub.sub3Categories.map((sub3) => (
+                                                  <Link
+                                                    key={sub3.name}
+                                                    href={sub3.href}
+                                                    className="text-xs text-gray-400 hover:text-primary-500 transition-colors block py-1"
+                                                  >
+                                                    {sub3.name}
+                                                  </Link>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
-                          ))}
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
