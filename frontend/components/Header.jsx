@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { 
   FaBars, 
@@ -277,9 +278,20 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <img 
-              src="/images/logo/alcant.png" 
+              src="/alcant.png" 
               alt="Alcant Logo" 
-              className="h-10 w-auto"
+              width="40"
+              height="40"
+              style={{ objectFit: 'contain' }}
+              onError={(e) => {
+                console.error('Image failed to load:', e);
+                console.log('Image path attempted:', '/alcant.png');
+                // Try fallback with original path
+                e.target.src = '/images/logo/alcant.png';
+              }}
+              onLoad={() => {
+                console.log('Image loaded successfully');
+              }}
             />
             <span className="text-2xl font-bold text-gray-900 hidden sm:inline">
               ALCANSIDE
