@@ -310,7 +310,51 @@ exports.searchProducts = async (req, res) => {
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    const searchQuery = {
+    // First, find exact matches (name starts with query)
+    const exactMatchQuery = {
+      $and: [
+        { isActive: true },
+        { name: { $regex: `^${query}`, $options: "i" } },
+      ],
+    };
+
+    // Then, find partial matches (name contains query, description, category, etc.)
+    const partialMatchQuery = {
+      $and: [
+        { isActive: true },
+        {
+          $or: [
+            { name: { $regex: query, $options: "i" } },
+            { description: { $regex: query, $options: "i" } },
+            { category: { $regex: query, $options: "i" } },
+            { subcategory: { $regex: query, $options: "i" } },
+          ],
+        },
+        { name: { $not: { $regex: `^${query}`, $options: "i" } } }, // Exclude exact matches
+      ],
+    };
+
+    // Get exact matches first
+    const exactMatchesResult = await SupabaseProduct.find(exactMatchQuery, {
+      sort: { rating: -1, reviews: -1 },
+      limit: Math.min(limitNum, 10) // Limit exact matches to first 10
+    });
+
+    // If we need more results, get partial matches
+    let partialMatchesResult = [];
+    if (exactMatchesResult.length < limitNum) {
+      const remainingLimit = limitNum - exactMatchesResult.length;
+      partialMatchesResult = await SupabaseProduct.find(partialMatchQuery, {
+        sort: { rating: -1, reviews: -1 },
+        limit: remainingLimit
+      });
+    }
+
+    // Combine results: exact matches first, then partial matches
+    const allProducts = [...exactMatchesResult, ...partialMatchesResult];
+    
+    // Get total count for pagination
+    const totalQuery = {
       $and: [
         { isActive: true },
         {
@@ -323,17 +367,9 @@ exports.searchProducts = async (req, res) => {
         },
       ],
     };
+    const total = await SupabaseProduct.countDocuments(totalQuery);
 
-    const [productsResult, total] = await Promise.all([
-      SupabaseProduct.find(searchQuery, {
-        sort: { rating: -1, reviews: -1 },
-        skip,
-        limit: limitNum
-      }),
-      SupabaseProduct.countDocuments(searchQuery)
-    ]);
-
-    const products = productsResult.data;
+    const products = allProducts;
 
     res.json({
       products,
