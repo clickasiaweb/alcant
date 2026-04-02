@@ -4,13 +4,13 @@ import Layout from "../components/Layout";
 import Link from "next/link";
 import { getHomeContent } from "../services/contentService";
 
-const NewProductsSection = dynamic(() => import("../components/NewProductsSectionMock"), {
+const FeaturedProductsSection = dynamic(() => import("../components/FeaturedProductsSection"), {
   ssr: false,
   loading: () => (
     <section className="py-16 bg-white">
       <div className="container">
         <h2 className="text-2xl md:text-3xl font-bold text-primary-900 mb-12 text-center">
-          New Arrivals
+          Featured Products
         </h2>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -179,7 +179,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
         </div>
       </section>
 
-      <NewProductsSection />
+      <FeaturedProductsSection />
 
       {/* Shop Our Collections */}
       <section className="py-12 sm:py-16 bg-gray-50">

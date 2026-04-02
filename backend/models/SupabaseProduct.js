@@ -57,6 +57,10 @@ class SupabaseProduct {
       supabaseQuery = supabaseQuery.eq('is_limited_edition', query.isLimitedEdition);
     }
     
+    if (query.featured !== undefined) {
+      supabaseQuery = supabaseQuery.eq('featured', query.featured);
+    }
+    
     // Apply sorting
     if (options.sort) {
       Object.entries(options.sort).forEach(([field, direction]) => {
@@ -153,7 +157,8 @@ class SupabaseProduct {
       is_new: productData.is_new || productData.isNew || false,
       is_limited_edition: productData.is_limited_edition || productData.isLimitedEdition || false,
       is_blue_monday_sale: productData.is_blue_monday_sale || productData.isBlueMondaySale || false,
-      is_active: productData.is_active !== undefined ? productData.is_active : (productData.isActive !== undefined ? productData.isActive : true)
+      is_active: productData.is_active !== undefined ? productData.is_active : (productData.isActive !== undefined ? productData.isActive : true),
+      featured: productData.featured || false
     };
     
     console.log('🚀 SupabaseProduct dbData:', JSON.stringify(dbData, null, 2));
@@ -222,6 +227,7 @@ class SupabaseProduct {
     if (updateData.isBlueMondaySale !== undefined) dbData.is_blue_monday_sale = updateData.isBlueMondaySale;
     if (updateData.is_active !== undefined) dbData.is_active = updateData.is_active;
     if (updateData.isActive !== undefined) dbData.is_active = updateData.isActive;
+    if (updateData.featured !== undefined) dbData.featured = updateData.featured;
     
     // Handle additional fields that exist in Supabase schema
     if (updateData.brand !== undefined) dbData.brand = updateData.brand;

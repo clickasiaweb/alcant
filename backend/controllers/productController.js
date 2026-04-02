@@ -198,7 +198,7 @@ exports.getFeaturedProducts = async (req, res) => {
     const { limit = 12, exclude } = req.query;
     const limitNum = parseInt(limit);
 
-    const query = { isActive: true };
+    const query = { featured: true, is_active: true };
 
     if (exclude) {
       const excludeIds = String(exclude)
@@ -309,76 +309,136 @@ exports.searchProducts = async (req, res) => {
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
+    const searchQueryLower = query.toLowerCase().trim();
 
-    // First, find exact matches (name starts with query)
-    const exactMatchQuery = {
-      $and: [
-        { isActive: true },
-        { name: { $regex: `^${query}`, $options: "i" } },
-      ],
-    };
+    console.log('🔍 Search query:', searchQueryLower);
 
-    // Then, find partial matches (name contains query, description, category, etc.)
-    const partialMatchQuery = {
-      $and: [
-        { isActive: true },
-        {
-          $or: [
-            { name: { $regex: query, $options: "i" } },
-            { description: { $regex: query, $options: "i" } },
-            { category: { $regex: query, $options: "i" } },
-            { subcategory: { $regex: query, $options: "i" } },
-          ],
-        },
-        { name: { $not: { $regex: `^${query}`, $options: "i" } } }, // Exclude exact matches
-      ],
-    };
+    // Create multiple search queries with different priority levels
+    const queries = [];
 
-    // Get exact matches first
-    const exactMatchesResult = await SupabaseProduct.find(exactMatchQuery, {
-      sort: { rating: -1, reviews: -1 },
-      limit: Math.min(limitNum, 10) // Limit exact matches to first 10
+    // Priority 1: Exact name match (highest priority)
+    queries.push({
+      match: 'exact_name',
+      query: {
+        $and: [
+          { isActive: true },
+          { name: { $regex: `^${searchQueryLower}$`, $options: "i" } }
+        ]
+      }
     });
 
-    // If we need more results, get partial matches
-    let partialMatchesResult = [];
-    if (exactMatchesResult.length < limitNum) {
-      const remainingLimit = limitNum - exactMatchesResult.length;
-      partialMatchesResult = await SupabaseProduct.find(partialMatchQuery, {
-        sort: { rating: -1, reviews: -1 },
-        limit: remainingLimit
-      });
-    }
+    // Priority 2: Name starts with query (high priority)
+    queries.push({
+      match: 'name_starts',
+      query: {
+        $and: [
+          { isActive: true },
+          { name: { $regex: `^${searchQueryLower}`, $options: "i" } }
+        ]
+      }
+    });
 
-    // Combine results: exact matches first, then partial matches
-    const allProducts = [...exactMatchesResult, ...partialMatchesResult];
-    
-    // Get total count for pagination
+    // Priority 3: Name contains query (medium priority)
+    queries.push({
+      match: 'name_contains',
+      query: {
+        $and: [
+          { isActive: true },
+          { name: { $regex: searchQueryLower, $options: "i" } }
+        ]
+      }
+    });
+
+    // Priority 4: Category or description contains query (lower priority)
+    queries.push({
+      match: 'category_description',
+      query: {
+        $and: [
+          { isActive: true },
+          { 
+            $or: [
+              { category: { $regex: searchQueryLower, $options: "i" } },
+              { description: { $regex: searchQueryLower, $options: "i" } },
+              { subcategory: { $regex: searchQueryLower, $options: "i" } }
+            ]
+          }
+        ]
+      }
+    });
+
+    // Execute all queries
+    const results = await Promise.all(
+      queries.map(q => SupabaseProduct.find(q.query, { limit: limitNum }))
+    );
+
+    // Process results and add priority scores
+    const allProducts = [];
+    const seenIds = new Set();
+
+    results.forEach((result, index) => {
+      const priority = queries[index].match;
+      const products = result.data || [];
+      
+      products.forEach(product => {
+        if (!seenIds.has(product.id)) {
+          seenIds.add(product.id);
+          allProducts.push({
+            ...product,
+            _searchPriority: index,
+            _matchType: priority
+          });
+        }
+      });
+    });
+
+    // Sort by priority first, then by rating and reviews
+    allProducts.sort((a, b) => {
+      if (a._searchPriority !== b._searchPriority) {
+        return a._searchPriority - b._searchPriority;
+      }
+      // Within same priority, sort by rating and reviews
+      if (b.rating !== a.rating) {
+        return b.rating - a.rating;
+      }
+      return b.reviews - a.reviews;
+    });
+
+    // Remove priority fields and limit results
+    const finalProducts = allProducts
+      .slice(skip, skip + limitNum)
+      .map(({ _searchPriority, _matchType, ...product }) => product);
+
+    // Get total count
     const totalQuery = {
       $and: [
         { isActive: true },
         {
           $or: [
-            { name: { $regex: query, $options: "i" } },
-            { description: { $regex: query, $options: "i" } },
-            { category: { $regex: query, $options: "i" } },
-            { subcategory: { $regex: query, $options: "i" } },
+            { name: { $regex: searchQueryLower, $options: "i" } },
+            { description: { $regex: searchQueryLower, $options: "i" } },
+            { category: { $regex: searchQueryLower, $options: "i" } },
+            { subcategory: { $regex: searchQueryLower, $options: "i" } },
           ],
         },
       ],
     };
     const total = await SupabaseProduct.countDocuments(totalQuery);
 
-    const products = allProducts;
+    console.log('📊 Search results:', {
+      query: searchQueryLower,
+      totalFound: allProducts.length,
+      returned: finalProducts.length,
+      firstResult: finalProducts[0]?.name
+    });
 
     res.json({
-      products,
+      products: finalProducts,
       query,
       pagination: {
         page: pageNum,
         limit: limitNum,
         total,
-        hasMore: skip + products.length < total,
+        hasMore: skip + finalProducts.length < total,
       },
     });
   } catch (error) {
