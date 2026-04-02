@@ -40,7 +40,13 @@ const SearchDropdown = () => {
       clearTimeout(searchTimeoutRef.current);
     }
 
-    // Debounce search
+    // Don't search if value is too short
+    if (value.trim().length < 2) {
+      handleSearch('');
+      return;
+    }
+
+    // Debounce search with 300ms delay
     searchTimeoutRef.current = setTimeout(() => {
       handleSearch(value);
     }, 300);
@@ -87,15 +93,20 @@ const SearchDropdown = () => {
                 placeholder="Search for products..."
                 className="w-full pl-10 pr-10 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
-              {inputValue && (
-                <button
-                  type="button"
-                  onClick={() => setInputValue('')}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
+                {isSearching && (
+                  <div className="w-4 h-4 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+                )}
+                {inputValue && !isSearching && (
+                  <button
+                    type="button"
+                    onClick={() => setInputValue('')}
+                    className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </form>
         </div>
@@ -118,22 +129,58 @@ const SearchDropdown = () => {
                     <button
                       key={product.id}
                       onClick={() => handleSearchSubmit(product.name)}
-                      className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                      className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left group"
                     >
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-12 h-12 object-cover rounded-lg"
-                      />
+                      <div className="relative">
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-12 h-12 object-cover rounded-lg bg-gray-100"
+                          onError={(e) => {
+                            e.target.src = 'https://picsum.photos/seed/fallback/60/60.jpg';
+                          }}
+                        />
+                        {product.isNew && (
+                          <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1 rounded">
+                            New
+                          </span>
+                        )}
+                        {product.discount > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1 rounded">
+                            -{product.discount}%
+                          </span>
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium text-gray-900 truncate group-hover:text-primary-600 transition-colors">
                           {product.name}
                         </p>
-                        <p className="text-xs text-gray-500">{product.category}</p>
+                        <div className="flex items-center space-x-2 text-xs text-gray-500">
+                          <span>{product.category}</span>
+                          {product.rating > 0 && (
+                            <>
+                              <span>•</span>
+                              <div className="flex items-center">
+                                <span className="text-yellow-400">★</span>
+                                <span className="ml-1">{product.rating.toFixed(1)}</span>
+                                {product.reviews > 0 && (
+                                  <span className="ml-1">({product.reviews})</span>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm font-semibold text-gray-900">
-                        ${product.price}
-                      </p>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-primary-600">
+                          ${product.price.toFixed(2)}
+                        </p>
+                        {product.oldPrice && (
+                          <p className="text-xs text-gray-400 line-through">
+                            ${product.oldPrice.toFixed(2)}
+                          </p>
+                        )}
+                      </div>
                     </button>
                   ))}
                 </div>

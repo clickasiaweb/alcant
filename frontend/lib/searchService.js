@@ -1,88 +1,48 @@
 // Search service for handling product search functionality
-const searchService = {
-  // Mock product data - in real app this would come from API
-  mockProducts: [
-    {
-      id: 1,
-      name: 'Premium Phone Case',
-      category: 'Phone Cases',
-      price: 39.99,
-      image: 'https://picsum.photos/seed/phone-case-1/60/60.jpg',
-      slug: 'premium-phone-case'
-    },
-    {
-      id: 2,
-      name: 'Leather Wallet',
-      category: 'Wallets',
-      price: 59.99,
-      image: 'https://picsum.photos/seed/wallet-1/60/60.jpg',
-      slug: 'leather-wallet'
-    },
-    {
-      id: 3,
-      name: 'Wireless Headphones',
-      category: 'Accessories',
-      price: 129.99,
-      image: 'https://picsum.photos/seed/headphones-1/60/60.jpg',
-      slug: 'wireless-headphones'
-    },
-    {
-      id: 4,
-      name: 'Smart Watch',
-      category: 'Accessories',
-      price: 299.99,
-      image: 'https://picsum.photos/seed/watch-1/60/60.jpg',
-      slug: 'smart-watch'
-    },
-    {
-      id: 5,
-      name: 'Laptop Stand',
-      category: 'Accessories',
-      price: 49.99,
-      image: 'https://picsum.photos/seed/stand-1/60/60.jpg',
-      slug: 'laptop-stand'
-    },
-    {
-      id: 6,
-      name: 'Bluetooth Speaker',
-      category: 'Accessories',
-      price: 79.99,
-      image: 'https://picsum.photos/seed/speaker-1/60/60.jpg',
-      slug: 'bluetooth-speaker'
-    },
-    {
-      id: 7,
-      name: 'Phone Charger',
-      category: 'Accessories',
-      price: 29.99,
-      image: 'https://picsum.photos/seed/charger-1/60/60.jpg',
-      slug: 'phone-charger'
-    },
-    {
-      id: 8,
-      name: 'Tablet Case',
-      category: 'Phone Cases',
-      price: 44.99,
-      image: 'https://picsum.photos/seed/tablet-case-1/60/60.jpg',
-      slug: 'tablet-case'
-    }
-  ],
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://alcant-backend.vercel.app/api' 
+  : 'http://localhost:5001/api';
 
-  // Search products with debouncing
+const searchService = {
+  // Search products using real API
   searchProducts: async (query) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    if (!query || query.trim().length < 2) {
+    try {
+      if (!query || query.trim().length < 2) {
+        return [];
+      }
+
+      const response = await fetch(`${API_BASE_URL}/products/search?q=${encodeURIComponent(query.trim())}&limit=5`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Transform product data to match expected format
+      return (data.products || []).map(product => ({
+        id: product.id || product._id,
+        name: product.name,
+        category: product.category || 'Unknown',
+        price: product.price || product.final_price || 0,
+        image: product.image || product.images?.[0] || 'https://picsum.photos/seed/product/60/60.jpg',
+        slug: product.slug,
+        description: product.description,
+        rating: product.rating || 0,
+        reviews: product.reviews || 0,
+        isNew: product.is_new || false,
+        discount: product.old_price ? Math.round((1 - product.price / product.old_price) * 100) : 0
+      }));
+    } catch (error) {
+      console.error('Search service error:', error);
+      // Return empty array on error to prevent UI crashes
       return [];
     }
-
-    const searchTerm = query.toLowerCase().trim();
-    
-    return this.mockProducts.filter(product => 
-      product.name.toLowerCase().includes(searchTerm) ||
-      product.category.toLowerCase().includes(searchTerm)
-    ).slice(0, 5); // Limit to 5 results
   },
 
   // Get popular suggestions

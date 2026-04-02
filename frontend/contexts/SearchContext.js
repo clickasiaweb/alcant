@@ -39,6 +39,7 @@ export const SearchProvider = ({ children }) => {
     
     if (!query || query.trim().length < 2) {
       setSearchResults([]);
+      setIsSearching(false);
       return;
     }
 
@@ -50,6 +51,7 @@ export const SearchProvider = ({ children }) => {
     } catch (error) {
       console.error('Search error:', error);
       setSearchResults([]);
+      // Could add toast notification here for user feedback
     } finally {
       setIsSearching(false);
     }

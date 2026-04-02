@@ -10,6 +10,8 @@ const SearchResults = () => {
   const [searchQuery, setSearchQuery] = useState(q || '');
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState(['All Categories']);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [filters, setFilters] = useState({
     category: category || '',
     sort: sort || 'relevance',
@@ -17,6 +19,35 @@ const SearchResults = () => {
     priceMax: price_max || ''
   });
   const [showFilters, setShowFilters] = useState(false);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const API_BASE_URL = process.env.NODE_ENV === 'production' 
+          ? 'https://alcant-backend.vercel.app/api' 
+          : 'http://localhost:5001/api';
+        
+        const response = await fetch(`${API_BASE_URL}/products/categories`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const categoryList = Object.keys(data.categories || {});
+        setCategories(['All Categories', ...categoryList]);
+        
+      } catch (error) {
+        console.error('Categories fetch error:', error);
+        // Fallback to basic categories
+        setCategories(['All Categories', 'Phone Cases', 'Accessories', 'Wallets']);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   // Mock search results
   const mockProducts = [
@@ -87,15 +118,6 @@ const SearchResults = () => {
     }
   ];
 
-  const categories = [
-    'All Categories',
-    'Automation',
-    'Machinery',
-    'Quality Control',
-    'Robotics',
-    'Material Handling'
-  ];
-
   const sortOptions = [
     { value: 'relevance', label: 'Relevance' },
     { value: 'price-low', label: 'Price: Low to High' },
@@ -108,46 +130,67 @@ const SearchResults = () => {
     const performSearch = async () => {
       setLoading(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Filter products based on search query and filters
-      let filteredProducts = mockProducts;
-      
-      if (searchQuery) {
-        filteredProducts = filteredProducts.filter(product =>
-          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+      try {
+        const API_BASE_URL = process.env.NODE_ENV === 'production' 
+          ? 'https://alcant-backend.vercel.app/api' 
+          : 'http://localhost:5001/api';
+        
+        // Build search URL with parameters
+        const params = new URLSearchParams();
+        if (searchQuery) params.set('q', searchQuery);
+        if (filters.category && filters.category !== 'All Categories') params.set('category', filters.category);
+        if (filters.priceMin) params.set('min_price', filters.priceMin);
+        if (filters.priceMax) params.set('max_price', filters.priceMax);
+        params.set('page', '1');
+        params.set('limit', '24');
+        
+        // Map sort options to backend sort parameters
+        const sortMap = {
+          'relevance': '',
+          'price-low': 'price_asc',
+          'price-high': 'price_desc',
+          'rating': 'rating',
+          'newest': 'newest'
+        };
+        
+        if (filters.sort !== 'relevance' && sortMap[filters.sort]) {
+          params.set('sort', sortMap[filters.sort]);
+        }
+        
+        const url = `${API_BASE_URL}/products/search?${params.toString()}`;
+        console.log('🔍 Search URL:', url);
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Transform products to match expected format
+        const transformedProducts = (data.products || []).map(product => ({
+          id: product.id || product._id,
+          name: product.name,
+          slug: product.slug,
+          price: product.price || product.final_price || 0,
+          originalPrice: product.old_price || product.original_price,
+          rating: product.rating || 0,
+          reviews: product.reviews || 0,
+          image: product.image || product.images?.[0] || 'https://picsum.photos/seed/product/300x300.jpg',
+          category: product.category || 'Unknown',
+          isNew: product.is_new || false,
+          discount: product.old_price ? Math.round((1 - product.price / product.old_price) * 100) : 0,
+          description: product.description
+        }));
+        
+        setProducts(transformedProducts);
+        
+      } catch (error) {
+        console.error('Search error:', error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
       }
-      
-      if (filters.category && filters.category !== 'All Categories') {
-        filteredProducts = filteredProducts.filter(product =>
-          product.category === filters.category
-        );
-      }
-      
-      // Apply sorting
-      switch (filters.sort) {
-        case 'price-low':
-          filteredProducts.sort((a, b) => a.price - b.price);
-          break;
-        case 'price-high':
-          filteredProducts.sort((a, b) => b.price - a.price);
-          break;
-        case 'rating':
-          filteredProducts.sort((a, b) => b.rating - a.rating);
-          break;
-        case 'newest':
-          filteredProducts.sort((a, b) => b.id - a.id);
-          break;
-        default:
-          // relevance - keep original order
-          break;
-      }
-      
-      setProducts(filteredProducts);
-      setLoading(false);
     };
 
     performSearch();
