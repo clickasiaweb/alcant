@@ -68,9 +68,18 @@ app.use(
       "https://alcant-backend.vercel.app",
       "https://alcant-three.vercel.app",
       "https://alcant12.vercel.app",
+      // Add your specific Vercel deployment URL
+      "https://clickasiaweb-alcant.vercel.app",
+      // Keep localhost for development
       "http://localhost:3000",
       "http://localhost:3001",
       "http://localhost:3002",
+      // Allow any localhost port for development
+      /^http:\/\/localhost:\d+$/,
+      // Allow any 192.168.x.x for local network
+      /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
+      // Allow any 10.x.x.x for local network
+      /^http:\/\/10\.\d+\.\d+\.\d+:\d+$/
     ],
     credentials: true,
   }),

@@ -20,6 +20,17 @@ const SearchResults = () => {
   });
   const [showFilters, setShowFilters] = useState(false);
 
+  // Trigger search immediately when component mounts if there's a query
+  useEffect(() => {
+    if (q || category || price_min || price_max) {
+      console.log('🚀 Initial search triggered with query:', { q, category, price_min, price_max });
+      // Small delay to ensure state is set
+      setTimeout(() => {
+        // This will trigger the search useEffect
+      }, 100);
+    }
+  }, [q, category, price_min, price_max]);
+
   // Fetch categories from API
   useEffect(() => {
     const fetchCategories = async () => {
@@ -137,7 +148,65 @@ const SearchResults = () => {
         
         // Build search URL with parameters
         const params = new URLSearchParams();
-        if (searchQuery) params.set('q', searchQuery);
+        
+        if (searchQuery) {
+          params.set('q', searchQuery);
+        } else {
+          // If no search query, use general products endpoint
+          const generalParams = new URLSearchParams();
+          if (filters.category && filters.category !== 'All Categories') generalParams.set('category', filters.category);
+          if (filters.priceMin) generalParams.set('min_price', filters.priceMin);
+          if (filters.priceMax) generalParams.set('max_price', filters.priceMax);
+          generalParams.set('page', '1');
+          generalParams.set('limit', '24');
+          
+          // Map sort options to backend sort parameters
+          const sortMap = {
+            'relevance': 'featured',
+            'price-low': 'price_asc',
+            'price-high': 'price_desc',
+            'rating': 'rating',
+            'newest': 'newest'
+          };
+          
+          if (filters.sort !== 'relevance' && sortMap[filters.sort]) {
+            generalParams.set('sort', sortMap[filters.sort]);
+          }
+          
+          const url = `${API_BASE_URL}/products?${generalParams.toString()}`;
+          console.log('🔍 General products URL:', url);
+          
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          const data = await response.json();
+          console.log('📊 Products response:', data);
+          
+          // Transform products to match expected format
+          const transformedProducts = (data.products || []).map(product => ({
+            id: product.id || product._id,
+            name: product.name,
+            slug: product.slug,
+            price: product.price || product.final_price || 0,
+            originalPrice: product.old_price || product.original_price,
+            rating: product.rating || 0,
+            reviews: product.reviews || 0,
+            image: product.image || product.images?.[0] || 'https://picsum.photos/seed/product/300x300.jpg',
+            category: product.category || 'Unknown',
+            isNew: product.is_new || false,
+            discount: product.old_price ? Math.round((1 - product.price / product.old_price) * 100) : 0,
+            description: product.description
+          }));
+          
+          console.log('📦 Transformed products:', transformedProducts);
+          setProducts(transformedProducts);
+          setLoading(false);
+          return;
+        }
+        
+        // If we have a search query, use search endpoint
         if (filters.category && filters.category !== 'All Categories') params.set('category', filters.category);
         if (filters.priceMin) params.set('min_price', filters.priceMin);
         if (filters.priceMax) params.set('max_price', filters.priceMax);
@@ -166,6 +235,7 @@ const SearchResults = () => {
         }
         
         const data = await response.json();
+        console.log('📊 Search response:', data);
         
         // Transform products to match expected format
         const transformedProducts = (data.products || []).map(product => ({
@@ -183,6 +253,7 @@ const SearchResults = () => {
           description: product.description
         }));
         
+        console.log('📦 Transformed products:', transformedProducts);
         setProducts(transformedProducts);
         
       } catch (error) {
