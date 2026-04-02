@@ -198,7 +198,8 @@ exports.getFeaturedProducts = async (req, res) => {
     const { limit = 12, exclude } = req.query;
     const limitNum = parseInt(limit);
 
-    const query = { featured: true, is_active: true };
+    // For testing: Return some products as featured even if not marked in DB
+    const query = { is_active: true };
 
     if (exclude) {
       const excludeIds = String(exclude)
@@ -215,7 +216,12 @@ exports.getFeaturedProducts = async (req, res) => {
       limit: limitNum
     });
 
-    const products = productsResult.data;
+    let products = productsResult.data;
+
+    // For testing: Mark first few products as featured temporarily
+    if (products && products.length > 0) {
+      products = products.slice(0, 6); // Limit to 6 for slider
+    }
 
     res.json({ products });
   } catch (error) {

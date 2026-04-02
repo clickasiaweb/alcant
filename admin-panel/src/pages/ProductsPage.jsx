@@ -255,6 +255,7 @@ export default function ProductsPage() {
         is_new: formData.isNew || false,
         is_limited_edition: formData.isLimitedEdition || false,
         is_blue_monday_sale: formData.isBlueMondaySale || false,
+        featured: formData.featured || false,
         rating: parseFloat(formData.rating) || 0,
         reviews: parseInt(formData.reviews) || 0,
         // ❌ REMOVED: Fields not in Supabase schema
@@ -313,6 +314,7 @@ export default function ProductsPage() {
       isNew: product.is_new || false,
       isLimitedEdition: product.is_limited_edition || false,
       isBlueMondaySale: product.is_blue_monday_sale || false,
+      featured: product.featured || false,
       rating: product.rating || 0,
       reviews: product.reviews || 0,
       seoMetaTitle: product.seo_meta_title || "",
@@ -320,7 +322,6 @@ export default function ProductsPage() {
       keywords: product.keywords || "",
       taxPercentage: product.tax_percentage || "",
       stockStatus: product.stock_status || "in_stock",
-      featured: product.featured || false,
       status: product.status || "active",
     });
     setShowForm(true);
