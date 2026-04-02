@@ -20,7 +20,7 @@ const FeaturedProductsSection = () => {
   const fetchFeaturedProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/products/featured?limit=10`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -29,7 +29,24 @@ const FeaturedProductsSection = () => {
       const data = await response.json();
       
       if (data.products && Array.isArray(data.products)) {
-        setFeaturedProducts(data.products);
+        // If no featured products exist, show some active products as fallback
+        if (data.products.length === 0) {
+          console.log('No featured products found, fetching regular products as fallback');
+          try {
+            const fallbackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products?limit=6&sort=newest`);
+            if (fallbackResponse.ok) {
+              const fallbackData = await fallbackResponse.json();
+              setFeaturedProducts(fallbackData.products || []);
+            } else {
+              setFeaturedProducts([]);
+            }
+          } catch (fallbackError) {
+            console.error('Fallback fetch failed:', fallbackError);
+            setFeaturedProducts([]);
+          }
+        } else {
+          setFeaturedProducts(data.products);
+        }
       } else {
         console.warn('No products found in featured products response');
         setFeaturedProducts([]);
