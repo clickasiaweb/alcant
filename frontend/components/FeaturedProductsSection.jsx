@@ -155,17 +155,17 @@ const FeaturedProductsSection = () => {
           <div className="flex gap-2">
             <button
               onClick={scrollLeft}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+              className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-200"
               aria-label="Scroll left"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-5 h-5 text-gray-600" />
             </button>
             <button
               onClick={scrollRight}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+              className="p-2 rounded-full bg-white shadow-md hover:shadow-lg transition-all duration-200"
               aria-label="Scroll right"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-5 h-5 text-gray-600" />
             </button>
           </div>
         </div>
@@ -173,16 +173,11 @@ const FeaturedProductsSection = () => {
         <div className="relative">
           <div 
             id="featured-products-container"
-            className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitScrollbar: { display: 'none' }
-            }}
+            className="flex gap-6 overflow-x-auto scroll-smooth pb-4"
           >
-            {featuredProducts.map((product, index) => (
+            {featuredProducts && featuredProducts.map((product, index) => (
               <div 
-                key={product.id} 
+                key={product.id || index} 
                 className="flex-none w-72 md:w-80"
                 style={{ minWidth: '288px' }}
               >
@@ -206,10 +201,6 @@ const FeaturedProductsSection = () => {
               </div>
             ))}
           </div>
-          
-          {/* Gradient fade effects */}
-          <div className="absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none z-10"></div>
-          <div className="absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none z-10"></div>
         </div>
       </div>
     </section>
