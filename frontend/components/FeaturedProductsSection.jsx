@@ -20,7 +20,7 @@ const FeaturedProductsSection = () => {
   const fetchFeaturedProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10&t=${Date.now()}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -43,7 +43,7 @@ const FeaturedProductsSection = () => {
       } else {
         console.log('No featured products found, fetching regular products as fallback');
         try {
-          const fallbackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products?limit=6&sort=newest`);
+          const fallbackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products?limit=6&sort=newest&t=${Date.now()}`);
           if (fallbackResponse.ok) {
             const fallbackData = await fallbackResponse.json();
             setFeaturedProducts(fallbackData.products || fallbackData.data || []);
