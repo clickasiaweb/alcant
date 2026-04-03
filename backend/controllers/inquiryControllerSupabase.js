@@ -55,7 +55,7 @@ exports.getInquiries = async (req, res) => {
 
     let query = supabase
       .from('inquiries')
-      .select('*, products(name)', { count: 'exact' })
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
 
