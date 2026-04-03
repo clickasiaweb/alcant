@@ -95,16 +95,11 @@ exports.updateInquiry = async (req, res) => {
       updated_at: new Date().toISOString()
     };
 
-    if (response) {
-      updateData.response = response;
-      updateData.responded_at = new Date().toISOString();
-    }
-
     const { data, error } = await supabase
       .from('inquiries')
       .update(updateData)
       .eq('id', id)
-      .select('*, products(name)')
+      .select('*')
       .single();
 
     if (error) {
