@@ -198,7 +198,7 @@ exports.getFeaturedProducts = async (req, res) => {
     const { limit = 12, exclude } = req.query;
     const limitNum = parseInt(limit);
 
-    // Filter by featured products
+    // First try to get products marked as featured
     const query = { featured: true, is_active: true };
 
     if (exclude) {
@@ -211,17 +211,38 @@ exports.getFeaturedProducts = async (req, res) => {
       }
     }
 
-    const productsResult = await SupabaseProduct.find(query, {
+    let productsResult = await SupabaseProduct.find(query, {
       sort: { rating: -1, reviews: -1, created_at: -1 },
       limit: limitNum
     });
 
-    let products = productsResult.data;
+    let products = productsResult.data || [];
 
-    // For testing: Mark first few products as featured temporarily
-    if (products && products.length > 0) {
-      products = products.slice(0, 6); // Limit to 6 for slider
+    // If no featured products found, get newest products as fallback
+    if (products.length === 0) {
+      console.log('No featured products found, fetching newest products as fallback');
+      const fallbackQuery = { is_active: true };
+      
+      if (exclude) {
+        const excludeIds = String(exclude)
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean);
+        if (excludeIds.length) {
+          fallbackQuery._id = { $nin: excludeIds };
+        }
+      }
+
+      productsResult = await SupabaseProduct.find(fallbackQuery, {
+        sort: { created_at: -1, rating: -1 },
+        limit: limitNum
+      });
+
+      products = productsResult.data || [];
     }
+
+    // Limit to reasonable number for slider
+    products = products.slice(0, Math.min(limitNum, 8));
 
     res.json({ products });
   } catch (error) {
@@ -632,23 +653,3 @@ exports.getRecommendedProducts = async (req, res) => {
   }
 };
 
-// GET /api/products/featured
-exports.getFeaturedProducts = async (req, res) => {
-  try {
-    const { limit = 10 } = req.query;
-
-    const query = { is_active: true };
-
-    const productsResult = await SupabaseProduct.find(query, {
-      sort: { created_at: { ascending: false }, rating: { ascending: false } },
-      limit: parseInt(limit)
-    });
-
-    const products = productsResult.data || [];
-
-    res.json({ data: products });
-  } catch (error) {
-    console.error("getFeaturedProducts error:", error);
-    res.status(500).json({ error: "Failed to fetch featured products" });
-  }
-};

@@ -20,41 +20,39 @@ const FeaturedProductsSection = () => {
   const fetchFeaturedProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10`);
+      setError(null);
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=8`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
+      console.log('Featured products response:', data);
       
+      // Handle different response structures
+      let products = [];
       if (data.products && Array.isArray(data.products)) {
-        // If no featured products exist, show some active products as fallback
-        if (data.products.length === 0) {
-          console.log('No featured products found, fetching regular products as fallback');
-          try {
-            const fallbackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products?limit=6&sort=newest`);
-            if (fallbackResponse.ok) {
-              const fallbackData = await fallbackResponse.json();
-              setFeaturedProducts(fallbackData.products || []);
-            } else {
-              setFeaturedProducts([]);
-            }
-          } catch (fallbackError) {
-            console.error('Fallback fetch failed:', fallbackError);
-            setFeaturedProducts([]);
-          }
-        } else {
-          setFeaturedProducts(data.products);
-        }
-      } else {
-        console.warn('No products found in featured products response');
-        setFeaturedProducts([]);
+        products = data.products;
+      } else if (Array.isArray(data)) {
+        products = data;
+      } else if (data.data && Array.isArray(data.data)) {
+        products = data.data;
       }
+      
+      console.log('Processed products count:', products.length);
+      
+      setFeaturedProducts(products);
     } catch (error) {
       console.error('Error fetching featured products:', error);
       setError(error.message);
-      // Fallback to empty array to prevent crashes
       setFeaturedProducts([]);
     } finally {
       setLoading(false);
