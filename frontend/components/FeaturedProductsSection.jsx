@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// Featured Products Section - Deployment v2.1
+// Forces Vercel deployment to sync featured products
 import CompactProductCard from "./CompactProductCard";
 import { useCart } from '../contexts/CartContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
