@@ -1,26 +1,26 @@
-// Featured Products Section - v5.0 - Using existing ProductCard
 import React, { useState, useEffect } from "react";
-import ProductCard from "./ProductCard";
+import CompactProductCard from "./CompactProductCard";
 import { useCart } from '../contexts/CartContext';
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const FeaturedProductsSection = () => {
   const [mounted, setMounted] = useState(false);
   const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [isClient, setIsClient] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     setMounted(true);
+    setIsClient(true);
     fetchFeaturedProducts();
   }, []);
 
   const fetchFeaturedProducts = async () => {
     try {
       setLoading(true);
-      setError(null);
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10&t=${Date.now()}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -28,34 +28,72 @@ const FeaturedProductsSection = () => {
       
       const data = await response.json();
       
-      // Simple data extraction - handle any response format
-      let products = [];
-      if (Array.isArray(data)) {
-        products = data;
-      } else if (data && Array.isArray(data.products)) {
-        products = data.products;
-      } else if (data && Array.isArray(data.data)) {
-        products = data.data;
+      if (data.products && Array.isArray(data.products)) {
+        // If no featured products exist, show some active products as fallback
+        if (data.products.length === 0) {
+          console.log('No featured products found, fetching regular products as fallback');
+          try {
+            const fallbackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products?limit=6&sort=newest`);
+            if (fallbackResponse.ok) {
+              const fallbackData = await fallbackResponse.json();
+              setFeaturedProducts(fallbackData.products || []);
+            } else {
+              setFeaturedProducts([]);
+            }
+          } catch (fallbackError) {
+            console.error('Fallback fetch failed:', fallbackError);
+            setFeaturedProducts([]);
+          }
+        } else {
+          setFeaturedProducts(data.products);
+        }
+      } else {
+        console.warn('No products found in featured products response');
+        setFeaturedProducts([]);
       }
-      
-      console.log('� Featured products loaded:', products.length);
-      setFeaturedProducts(products);
-      
     } catch (error) {
-      console.error('❌ Error:', error.message);
+      console.error('Error fetching featured products:', error);
       setError(error.message);
+      // Fallback to empty array to prevent crashes
       setFeaturedProducts([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const refreshProducts = () => {
-    console.log('🔄 Refreshing featured products');
-    fetchFeaturedProducts();
+  const handleQuickView = (product) => {
+    window.location.href = `/product-details/${product.slug}`;
   };
 
-  // Loading state
+  const handleAddToCart = (product) => {
+    if (!isClient) return;
+    
+    console.log('Adding to cart from FeaturedProductsSection:', product.name);
+    try {
+      addToCart(product, 1);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    }
+  };
+
+  const handleWishlist = (productId) => {
+    console.log('Wishlist toggled for product:', productId);
+  };
+
+  const scrollLeft = () => {
+    const container = document.getElementById('featured-products-container');
+    if (container) {
+      container.scrollBy({ left: -300, behavior: 'smooth' });
+    }
+  };
+
+  const scrollRight = () => {
+    const container = document.getElementById('featured-products-container');
+    if (container) {
+      container.scrollBy({ left: 300, behavior: 'smooth' });
+    }
+  };
+
   if (!mounted || loading) {
     return (
       <section className="py-16 bg-white">
@@ -71,7 +109,6 @@ const FeaturedProductsSection = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <section className="py-16 bg-white">
@@ -80,7 +117,7 @@ const FeaturedProductsSection = () => {
             Featured Products
           </h2>
           <div className="text-center text-gray-600">
-            <p>{error}</p>
+            <p>Unable to load featured products. Please try again later.</p>
             <button 
               onClick={fetchFeaturedProducts}
               className="mt-4 px-6 py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-800 transition-colors"
@@ -93,8 +130,7 @@ const FeaturedProductsSection = () => {
     );
   }
 
-  // Empty state
-  if (!featuredProducts || featuredProducts.length === 0) {
+  if (featuredProducts.length === 0) {
     return (
       <section className="py-16 bg-white">
         <div className="container">
@@ -109,7 +145,6 @@ const FeaturedProductsSection = () => {
     );
   }
 
-  // Success state - minimal safe rendering
   return (
     <section className="py-16 bg-white">
       <div className="container">
@@ -117,38 +152,52 @@ const FeaturedProductsSection = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-primary-900">
             Featured Products
           </h2>
-          <button
-            onClick={refreshProducts}
-            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-            title="Refresh featured products"
-          >
-            ↻
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={scrollLeft}
+              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              onClick={scrollRight}
+              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+              aria-label="Scroll right"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         <div className="relative">
           <div 
             id="featured-products-container"
             className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitScrollbar: { display: 'none' }
+            }}
           >
-            {featuredProducts && featuredProducts.map((product, index) => (
+            {featuredProducts.map((product, index) => (
               <div 
-                key={product.id || index} 
+                key={product.id} 
                 className="flex-none w-72 md:w-80"
                 style={{ minWidth: '288px' }}
               >
-                <ProductCard
+                <CompactProductCard
                   product={{
                     id: product.id,
-                    name: product.name || 'Unknown Product',
-                    price: product.price || 0,
-                    oldPrice: product.old_price,
-                    rating: product.rating || 0,
-                    reviews: product.reviews || 0,
-                    isBestseller: product.is_best_seller || false,
+                    name: product.name,
+                    price: product.price,
+                    originalPrice: product.old_price,
+                    rating: product.rating,
+                    reviews: product.reviews,
+                    isBestseller: product.is_best_seller,
                     discount: product.discount,
-                    isLimited: product.is_limited_edition || false,
-                    slug: product.slug || '#',
+                    isLimited: product.is_limited_edition,
+                    slug: product.slug,
                     image: product.image || (product.images && product.images[0]),
                     colorCount: product.color_count || 0
                   }}
