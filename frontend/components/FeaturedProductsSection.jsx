@@ -20,13 +20,16 @@ const FeaturedProductsSection = () => {
   const fetchFeaturedProducts = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10&t=${Date.now()}`);
+      const timestamp = Date.now();
+      console.log('🔄 Fetching featured products at:', timestamp);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10&t=${timestamp}&cb=${Math.random()}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
+      console.log('📊 Featured products response:', data);
       
       // Handle different response structures
       let products = [];
@@ -98,6 +101,11 @@ const FeaturedProductsSection = () => {
     }
   };
 
+  const refreshFeaturedProducts = () => {
+    console.log('🔄 Manually refreshing featured products');
+    fetchFeaturedProducts();
+  };
+
   if (!mounted || loading) {
     return (
       <section className="py-16 bg-white">
@@ -157,6 +165,18 @@ const FeaturedProductsSection = () => {
             Featured Products
           </h2>
           <div className="flex gap-2">
+            <button
+              onClick={refreshFeaturedProducts}
+              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+              aria-label="Refresh featured products"
+              title="Refresh featured products"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5.586a4 4 0 014.586 4h16a4 4 0 014.586-4V4a4 4 0 00-4-4H4z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21.5 10.5a1.5 1.5 0 11.5-1.5H17" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6.5 10.5a1.5 1.5 0 11.5-1.5H4" />
+              </svg>
+            </button>
             <button
               onClick={scrollLeft}
               className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
