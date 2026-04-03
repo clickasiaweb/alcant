@@ -116,7 +116,7 @@ const InquiryForm = ({
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 placeholder-gray-500"
                 placeholder="Your name"
               />
             </div>
@@ -134,7 +134,7 @@ const InquiryForm = ({
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 placeholder-gray-500"
                 placeholder="your@email.com"
               />
             </div>
@@ -153,7 +153,7 @@ const InquiryForm = ({
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 placeholder-gray-500"
                 placeholder="+1 (555) 123-4567"
               />
             </div>
@@ -170,7 +170,7 @@ const InquiryForm = ({
                 name="company"
                 value={formData.company}
                 onChange={handleChange}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 placeholder-gray-500"
                 placeholder="Your company"
               />
             </div>
@@ -187,7 +187,7 @@ const InquiryForm = ({
             value={formData.subject}
             onChange={handleChange}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-gray-900 placeholder-gray-500"
             placeholder="Inquiry subject"
           />
         </div>
@@ -204,7 +204,7 @@ const InquiryForm = ({
               onChange={handleChange}
               required
               rows={compact ? 3 : 4}
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none"
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 resize-none text-gray-900 placeholder-gray-500"
               placeholder="Tell us more about your inquiry..."
             />
           </div>
@@ -213,17 +213,17 @@ const InquiryForm = ({
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+          className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
         >
           {loading ? (
             <>
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Submitting...</span>
+              <span className="text-white">Submitting...</span>
             </>
           ) : (
             <>
-              <Send className="w-4 h-4" />
-              <span>Submit Inquiry</span>
+              <Send className="w-4 h-4 text-white" />
+              <span className="text-white">Submit Inquiry</span>
             </>
           )}
         </button>
