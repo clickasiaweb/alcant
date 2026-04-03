@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Mail, Phone, User, Building, MessageSquare, Send, X } from 'lucide-react';
+import apiClient from '../lib/api';
 
 const InquiryForm = ({ 
   productId = null, 
@@ -36,40 +37,30 @@ const InquiryForm = ({
     setError('');
 
     try {
-      const response = await fetch('/api/inquiries', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const response = await apiClient.post('/inquiries', formData);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit inquiry');
+      if (response.data) {
+        setSubmitted(true);
+        // Reset form after successful submission
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          company: '',
+          subject: productId ? `Inquiry about ${productName}` : 'General Inquiry',
+          message: productId ? `I'm interested in learning more about ${productName}.` : '',
+          productId: productId
+        });
+
+        // Auto-close modal after 2 seconds if onClose is provided
+        if (onClose) {
+          setTimeout(() => {
+            onClose();
+          }, 2000);
+        }
       }
-
-      setSubmitted(true);
-      // Reset form after successful submission
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        company: '',
-        subject: productId ? `Inquiry about ${productName}` : 'General Inquiry',
-        message: productId ? `I'm interested in learning more about ${productName}.` : '',
-        productId: productId
-      });
-
-      // Auto-close modal after 2 seconds if onClose is provided
-      if (onClose) {
-        setTimeout(() => {
-          onClose();
-        }, 2000);
-      }
-
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Failed to submit inquiry');
     } finally {
       setLoading(false);
     }
