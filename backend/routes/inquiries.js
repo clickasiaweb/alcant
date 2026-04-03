@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const inquiryController = require("../controllers/inquiryController");
+const inquiryController = require("../controllers/inquiryControllerSupabase");
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
 
 // Public route

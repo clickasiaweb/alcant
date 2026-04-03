@@ -282,11 +282,11 @@ export const deleteAdminSub3Category = async (id) => {
 
 // Admin Inquiries
 export const getAdminInquiries = async (params) => {
-  const { data } = await apiClient.get("/admin/inquiries", { params });
+  const { data } = await apiClient.get("/inquiries", { params });
   return data;
 };
 
 export const updateInquiryStatus = async (id, status, response) => {
-  const { data } = await apiClient.patch(`/admin/inquiry/${id}/status`, { status, response });
+  const { data } = await apiClient.put(`/inquiries/${id}`, { status, response });
   return data;
 };

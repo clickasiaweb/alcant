@@ -19,8 +19,8 @@ export default function InquiriesPage() {
     try {
       setLoading(true);
       const params = filter !== "all" ? { status: filter } : {};
-      const data = await getAdminInquiries(params);
-      setInquiries(data.inquiries || []);
+      const response = await getAdminInquiries(params);
+      setInquiries(response.data || []);
     } catch (error) {
       toast.error("Error loading inquiries");
       console.error("Error loading inquiries:", error);
@@ -49,13 +49,13 @@ export default function InquiriesPage() {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      new: { color: "bg-yellow-100 text-yellow-800", icon: FiClock, label: "New" },
-      read: { color: "bg-blue-100 text-blue-800", icon: FiEye, label: "Read" },
-      responded: { color: "bg-green-100 text-green-800", icon: FiCheck, label: "Responded" },
+      pending: { color: "bg-yellow-100 text-yellow-800", icon: FiClock, label: "Pending" },
+      in_progress: { color: "bg-blue-100 text-blue-800", icon: FiEye, label: "In Progress" },
+      completed: { color: "bg-green-100 text-green-800", icon: FiCheck, label: "Completed" },
       closed: { color: "bg-gray-100 text-gray-800", icon: FiX, label: "Closed" }
     };
     
-    const config = statusConfig[status] || statusConfig.new;
+    const config = statusConfig[status] || statusConfig.pending;
     const Icon = config.icon;
     
     return (
@@ -91,7 +91,7 @@ export default function InquiriesPage() {
         {/* Filter Tabs */}
         <div className="mb-6">
           <div className="flex space-x-1 bg-white rounded-lg shadow p-1">
-            {["all", "new", "read", "responded", "closed"].map((status) => (
+            {["all", "pending", "in_progress", "completed", "closed"].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilter(status)}
@@ -142,7 +142,7 @@ export default function InquiriesPage() {
                   </tr>
                 ) : (
                   inquiries.map((inquiry) => (
-                    <tr key={inquiry._id || inquiry.id} className="hover:bg-gray-50">
+                    <tr key={inquiry.id || inquiry._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10">
@@ -190,12 +190,12 @@ export default function InquiriesPage() {
                         >
                           View
                         </button>
-                        {inquiry.status === "new" && (
+                        {inquiry.status === "pending" && (
                           <button
-                            onClick={() => handleStatusChange(inquiry._id, "read")}
+                            onClick={() => handleStatusChange(inquiry.id || inquiry._id, "in_progress")}
                             className="text-green-600 hover:text-green-900"
                           >
-                            Mark Read
+                            Mark In Progress
                           </button>
                         )}
                       </td>
@@ -272,25 +272,25 @@ export default function InquiriesPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Update Status</label>
                   <div className="flex space-x-2">
-                    {selectedInquiry.status !== "read" && (
+                    {selectedInquiry.status !== "in_progress" && (
                       <button
-                        onClick={() => handleStatusChange(selectedInquiry._id, "read")}
+                        onClick={() => handleStatusChange(selectedInquiry.id || selectedInquiry._id, "in_progress")}
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                       >
-                        Mark as Read
+                        Mark In Progress
                       </button>
                     )}
-                    {selectedInquiry.status !== "responded" && (
+                    {selectedInquiry.status !== "completed" && (
                       <button
-                        onClick={() => handleStatusChange(selectedInquiry._id, "responded")}
+                        onClick={() => handleStatusChange(selectedInquiry.id || selectedInquiry._id, "completed")}
                         className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                       >
-                        Mark as Responded
+                        Mark Completed
                       </button>
                     )}
                     {selectedInquiry.status !== "closed" && (
                       <button
-                        onClick={() => handleStatusChange(selectedInquiry._id, "closed")}
+                        onClick={() => handleStatusChange(selectedInquiry.id || selectedInquiry._id, "closed")}
                         className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
                       >
                         Close Inquiry

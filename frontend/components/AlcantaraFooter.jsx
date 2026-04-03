@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Facebook from 'lucide-react/dist/esm/icons/facebook';
 import Twitter from 'lucide-react/dist/esm/icons/twitter';
@@ -7,9 +7,12 @@ import Youtube from 'lucide-react/dist/esm/icons/youtube';
 import Mail from 'lucide-react/dist/esm/icons/mail';
 import Phone from 'lucide-react/dist/esm/icons/phone';
 import MapPin from 'lucide-react/dist/esm/icons/map-pin';
+import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
+import InquiryForm from './InquiryForm';
 
 export default function AlcantaraFooter() {
   const currentYear = new Date().getFullYear();
+  const [showInquiryForm, setShowInquiryForm] = useState(false);
 
   return (
     <footer className="bg-primary-900 text-white py-12">
@@ -56,6 +59,15 @@ export default function AlcantaraFooter() {
               <li><Link href="/shipping" className="text-primary-200 hover:text-white transition-colors">Shipping Info</Link></li>
               <li><Link href="/returns" className="text-primary-200 hover:text-white transition-colors">Returns</Link></li>
               <li><Link href="/faq" className="text-primary-200 hover:text-white transition-colors">FAQ</Link></li>
+              <li>
+                <button 
+                  onClick={() => setShowInquiryForm(true)}
+                  className="text-primary-200 hover:text-white transition-colors flex items-center space-x-1"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Support Inquiry</span>
+                </button>
+              </li>
             </ul>
           </div>
           
@@ -85,6 +97,17 @@ export default function AlcantaraFooter() {
           </p>
         </div>
       </div>
+
+      {/* Inquiry Modal */}
+      {showInquiryForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <InquiryForm 
+              onClose={() => setShowInquiryForm(false)}
+            />
+          </div>
+        </div>
+      )}
     </footer>
   );
 }

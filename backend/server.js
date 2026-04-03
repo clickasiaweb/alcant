@@ -53,6 +53,8 @@ const updateRoutes = require('./routes/update');
 
 const filterController = require('./controllers/filterController');
 
+const inquiryRoutes = require('./routes/inquiries');
+
 
 
 // Initialize database connection
@@ -136,6 +138,8 @@ app.use('/api/products/bulk-upload', bulkUploadRoutes);
 app.use('/api/seed', seedRoutes);
 
 app.use('/api/update', updateRoutes);
+
+app.use('/api/inquiries', inquiryRoutes);
 
 
 

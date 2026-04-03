@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
+import InquiryForm from '../components/InquiryForm';
 import { 
   CreditCard, 
   Truck, 
@@ -13,13 +14,16 @@ import {
   Phone,
   Mail,
   Building2,
-  Lock
+  Lock,
+  MessageSquare,
+  HelpCircle
 } from 'lucide-react';
 
 const CheckoutPage = () => {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
   
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
@@ -628,12 +632,35 @@ const CheckoutPage = () => {
                       <span>30-day return policy</span>
                     </div>
                   </div>
+
+                  {/* Support Inquiry */}
+                  <div className="border-t pt-4 mt-6">
+                    <button
+                      onClick={() => setShowInquiryModal(true)}
+                      className="w-full flex items-center justify-center space-x-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-gray-700"
+                    >
+                      <HelpCircle className="w-4 h-4" />
+                      <span className="text-sm font-medium">Need Help? Ask a Question</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Inquiry Modal */}
+      {showInquiryModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <InquiryForm 
+              onClose={() => setShowInquiryModal(false)}
+              showTitle={true}
+            />
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

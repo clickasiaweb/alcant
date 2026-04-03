@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Share2, Star, Plus, Minus, Truck, Shield, RotateCcw, Package, Clock, Award, Heart } from 'lucide-react';
+import { ShoppingCart, Share2, Star, Plus, Minus, Truck, Shield, RotateCcw, Package, Clock, Award, Heart, MessageSquare } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
+import InquiryModal from '../InquiryModal';
 
 const ProductInfo = ({ 
   product, 
@@ -17,6 +18,7 @@ const ProductInfo = ({
   images = []
 }) => {
   const [selectedColor, setSelectedColor] = useState(null);
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   
@@ -238,6 +240,14 @@ const ProductInfo = ({
           </button>
           
           <button
+            onClick={() => setShowInquiryModal(true)}
+            className="flex-1 bg-gray-100 text-gray-700 py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center text-sm sm:text-base"
+          >
+            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+            Ask Question
+          </button>
+          
+          <button
             onClick={handleShare}
             className="p-2.5 sm:p-3 border border-gray-300 rounded-lg hover:bg-gray-50"
           >
@@ -283,6 +293,14 @@ const ProductInfo = ({
           </span>
         </div>
       </div>
+
+      {/* Inquiry Modal */}
+      <InquiryModal
+        isOpen={showInquiryModal}
+        onClose={() => setShowInquiryModal(false)}
+        productId={product.id}
+        productName={displayName}
+      />
     </div>
   );
 };
