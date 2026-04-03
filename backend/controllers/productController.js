@@ -198,8 +198,8 @@ exports.getFeaturedProducts = async (req, res) => {
     const { limit = 12, exclude } = req.query;
     const limitNum = parseInt(limit);
 
-    // For testing: Return some products as featured even if not marked in DB
-    const query = { is_active: true };
+    // Filter by featured products
+    const query = { featured: true, is_active: true };
 
     if (exclude) {
       const excludeIds = String(exclude)
