@@ -35,7 +35,7 @@ const Logo = ({ className = "", size = "default" }) => {
         
         {/* Brand Name */}
         <div className="ml-3 text-primary-900 font-semibold text-lg leading-tight hidden sm:inline">
-          ALCANSIDE
+          ALCANT
         </div>
       </div>
       

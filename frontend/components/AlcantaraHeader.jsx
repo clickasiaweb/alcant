@@ -312,7 +312,6 @@ const AlcantaraHeader = () => {
 
   // Drill-down navigation functions
   const navigateToMobileCategory = (category, level) => {
-    console.log('🚀 navigateToMobileCategory called:', { category, level, currentStack: mobileNavStack });
     setMobileNavStack(prev => [...prev, { category, level }]);
   };
 
@@ -321,10 +320,8 @@ const AlcantaraHeader = () => {
   };
 
   const getCurrentMobileView = () => {
-    console.log('🔍 getCurrentMobileView called, mobileNavStack:', mobileNavStack);
-    
     if (mobileNavStack.length === 0) {
-      const result = categories.map(cat => ({
+      return categories.map(cat => ({
         name: cat.name,
         title: cat.name,
         href: `/category/${cat.slug}`,
@@ -332,12 +329,9 @@ const AlcantaraHeader = () => {
         subcategories: cat.subcategories || [],
         slug: cat.slug
       }));
-      console.log('📱 Main categories:', result);
-      return result;
     }
     
     const current = mobileNavStack[mobileNavStack.length - 1];
-    console.log('📍 Current navigation level:', current);
     
     // If we're at category level (level 0), show subcategories
     if (mobileNavStack.length === 1 && current.category.subcategories) {
@@ -350,7 +344,6 @@ const AlcantaraHeader = () => {
         slug: sub.slug,
         parentCategorySlug: current.category.slug
       }));
-      console.log('📂 Subcategories:', result);
       return result;
     }
     
@@ -372,24 +365,15 @@ const AlcantaraHeader = () => {
             subcategories: [],
             slug: subSub.slug
           }));
-          console.log('📂 Sub-subcategories:', result);
           return result;
         }
       }
     }
     
-    console.log('❌ No items to display');
     return [];
   };
 
-  const getCurrentMobileTitle = () => {
-    if (mobileNavStack.length === 0) {
-      return "Menu";
-    }
-    const current = mobileNavStack[mobileNavStack.length - 1];
-    return current.category.name?.toUpperCase() || current.category.title?.toUpperCase();
-  };
-
+  
   return (
     <>
       <style jsx>{`
@@ -715,9 +699,7 @@ const AlcantaraHeader = () => {
                     </button>
                   )}
                   <Logo size="small" />
-                  <span className="text-lg font-bold text-gray-900">
-                    {mobileNavStack.length > 0 ? getCurrentMobileTitle() : "ALCANT"}
-                  </span>
+                  <span className="text-lg font-bold text-gray-900">ALCANT</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">

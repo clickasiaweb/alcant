@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Debug Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { margin: 10px 0; padding: 10px; background: #f5f5f5; border-radius: 3px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Search Functionality Debug Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Search API Endpoint</h2>
+        <button onclick="testSearchAPI()">Test Search API</button>
+        <div id="searchResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Products API Endpoint</h2>
+        <button onclick="testProductsAPI()">Test Products API</button>
+        <div id="productsResult"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5001/api';
+
+        async function testSearchAPI() {
+            const resultDiv = document.getElementById('searchResult');
+            resultDiv.innerHTML = '<div class="result">Testing search API...</div>';
+            
+            try {
+                console.log('🔍 Testing URL:', `${API_BASE_URL}/products/search?q=phone&limit=5`);
+                
+                const response = await fetch(`${API_BASE_URL}/products/search?q=phone&limit=5`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    mode: 'cors'
+                });
+                
+                console.log('📊 Response status:', response.status);
+                console.log('📊 Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('📦 Response data:', data);
+                
+                resultDiv.innerHTML = `
+                    <div class="result success">
+                        <h3>✅ Search API Working</h3>
+                        <p>Found ${data.products?.length || 0} products</p>
+                        ${data.products?.length > 0 ? `
+                            <h4>Sample Product:</h4>
+                            <p><strong>Name:</strong> ${data.products[0].name}</p>
+                            <p><strong>Price:</strong> $${data.products[0].price || data.products[0].final_price}</p>
+                            <p><strong>Category:</strong> ${data.products[0].category}</p>
+                            <p><strong>Image:</strong> ${data.products[0].image ? '✓' : '✗'}</p>
+                            <p><strong>Slug:</strong> ${data.products[0].slug}</p>
+                        ` : ''}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('❌ Search API Error:', error);
+                resultDiv.innerHTML = `<div class="result error">❌ Search API Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testProductsAPI() {
+            const resultDiv = document.getElementById('productsResult');
+            resultDiv.innerHTML = '<div class="result">Testing products API...</div>';
+            
+            try {
+                console.log('🔍 Testing URL:', `${API_BASE_URL}/products?limit=5`);
+                
+                const response = await fetch(`${API_BASE_URL}/products?limit=5`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    mode: 'cors'
+                });
+                
+                console.log('📊 Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('📦 Response data:', data);
+                
+                resultDiv.innerHTML = `
+                    <div class="result success">
+                        <h3>✅ Products API Working</h3>
+                        <p>Retrieved ${data.products?.length || 0} products</p>
+                        ${data.products?.length > 0 ? `
+                            <h4>Sample Product:</h4>
+                            <p><strong>Name:</strong> ${data.products[0].name}</p>
+                            <p><strong>Price:</strong> $${data.products[0].price || data.products[0].final_price}</p>
+                            <p><strong>Category:</strong> ${data.products[0].category}</p>
+                            <p><strong>Image:</strong> ${data.products[0].image ? '✓' : '✗'}</p>
+                        ` : ''}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('❌ Products API Error:', error);
+                resultDiv.innerHTML = `<div class="result error">❌ Products API Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
