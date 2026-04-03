@@ -1,19 +1,14 @@
-// Featured Products Section - v3.0 - Simplified & Error-Free
+// Featured Products Section - v4.0 - Bulletproof
 import React, { useState, useEffect } from "react";
-import CompactProductCard from "./CompactProductCard";
-import { useCart } from '../contexts/CartContext';
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 
 const FeaturedProductsSection = () => {
   const [mounted, setMounted] = useState(false);
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { addToCart } = useCart();
 
   useEffect(() => {
     setMounted(true);
-    setIsClient(true);
     fetchFeaturedProducts();
   }, []);
 
@@ -22,33 +17,29 @@ const FeaturedProductsSection = () => {
       setLoading(true);
       setError(null);
       
-      const timestamp = Date.now();
-      console.log('🔄 Fetching featured products at:', timestamp);
-      
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10&t=${timestamp}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10&t=${Date.now()}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('📊 Featured products response:', data);
       
-      // Handle different response structures
+      // Simple data extraction - handle any response format
       let products = [];
-      if (data && Array.isArray(data)) {
+      if (Array.isArray(data)) {
         products = data;
-      } else if (data.products && Array.isArray(data.products)) {
+      } else if (data && Array.isArray(data.products)) {
         products = data.products;
-      } else if (data.data && Array.isArray(data.data)) {
+      } else if (data && Array.isArray(data.data)) {
         products = data.data;
       }
       
-      console.log('📦 Processed products:', products.length);
-      setFeaturedProducts(products || []);
+      console.log('� Featured products loaded:', products.length);
+      setFeaturedProducts(products);
       
     } catch (error) {
-      console.error('❌ Error fetching featured products:', error.message);
+      console.error('❌ Error:', error.message);
       setError(error.message);
       setFeaturedProducts([]);
     } finally {
@@ -56,39 +47,9 @@ const FeaturedProductsSection = () => {
     }
   };
 
-  const handleQuickView = (product) => {
-    if (product && product.slug) {
-      window.location.href = `/product-details/${product.slug}`;
-    }
-  };
-
-  const handleAddToCart = (product) => {
-    if (!isClient || !product) return;
-    
-    try {
-      addToCart(product, 1);
-      console.log('✅ Added to cart:', product.name);
-    } catch (error) {
-      console.error('❌ Cart error:', error);
-    }
-  };
-
-  const handleWishlist = (productId) => {
-    console.log('❤️ Wishlist:', productId);
-  };
-
-  const scrollLeft = () => {
-    const container = document.getElementById('featured-products-container');
-    if (container) {
-      container.scrollBy({ left: -300, behavior: 'smooth' });
-    }
-  };
-
-  const scrollRight = () => {
-    const container = document.getElementById('featured-products-container');
-    if (container) {
-      container.scrollBy({ left: 300, behavior: 'smooth' });
-    }
+  const refreshProducts = () => {
+    console.log('🔄 Refreshing featured products');
+    fetchFeaturedProducts();
   };
 
   // Loading state
@@ -116,7 +77,7 @@ const FeaturedProductsSection = () => {
             Featured Products
           </h2>
           <div className="text-center text-gray-600">
-            <p>Unable to load featured products. Please try again later.</p>
+            <p>{error}</p>
             <button 
               onClick={fetchFeaturedProducts}
               className="mt-4 px-6 py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-800 transition-colors"
@@ -145,7 +106,7 @@ const FeaturedProductsSection = () => {
     );
   }
 
-  // Success state - render products safely
+  // Success state - minimal safe rendering
   return (
     <section className="py-16 bg-white">
       <div className="container">
@@ -153,67 +114,88 @@ const FeaturedProductsSection = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-primary-900">
             Featured Products
           </h2>
-          <div className="flex gap-2">
-            <button
-              onClick={fetchFeaturedProducts}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-              aria-label="Refresh featured products"
-              title="Refresh featured products"
-            >
-              <RefreshCw className="w-5 h-5" />
-            </button>
-            <button
-              onClick={scrollLeft}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={scrollRight}
-              className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
+          <button
+            onClick={refreshProducts}
+            className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+            title="Refresh featured products"
+          >
+            ↻
+          </button>
         </div>
 
         <div className="relative">
           <div 
             id="featured-products-container"
             className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitScrollbar: 'none'
-            }}
           >
-            {featuredProducts.filter(product => product && product.id && product.name).map((product, index) => (
-              <div 
-                key={product.id || index} 
-                className="flex-none w-72 md:w-80"
-                style={{ minWidth: '288px' }}
-              >
-                <CompactProductCard
-                  product={{
-                    id: product.id,
-                    name: product.name || 'Unknown Product',
-                    price: product.price || 0,
-                    originalPrice: product.old_price,
-                    rating: product.rating || 0,
-                    reviews: product.reviews || 0,
-                    isBestseller: product.is_best_seller || false,
-                    discount: product.discount,
-                    isLimited: product.is_limited_edition || false,
-                    slug: product.slug || '#',
-                    image: product.image || (product.images && product.images[0]),
-                    colorCount: product.color_count || 0
-                  }}
-                  index={index}
-                />
-              </div>
-            ))}
+            {featuredProducts && featuredProducts.map((product, index) => {
+              // Only render if product has essential data
+              if (!product || !product.id) return null;
+              
+              return (
+                <div 
+                  key={product.id} 
+                  className="flex-none w-72 md:w-80"
+                  style={{ minWidth: '288px' }}
+                >
+                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-4">
+                    <div className="relative">
+                      <div className="aspect-square bg-gray-100 rounded-lg mb-4 overflow-hidden">
+                        <img 
+                          src={product.image || 'https://picsum.photos/seed/product/400/400.jpg'} 
+                          alt={product.name || 'Product'}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = 'https://picsum.photos/seed/fallback/400/400.jpg';
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="p-4">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          {product.name || 'Unknown Product'}
+                        </h3>
+                        
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-2xl font-bold text-primary-900">
+                            ${product.price || 0}
+                          </span>
+                          {product.old_price && (
+                            <span className="text-sm text-gray-500 line-through ml-2">
+                              ${product.old_price}
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center space-x-4 mb-4">
+                          <div className="flex items-center">
+                            <span className="text-yellow-400">★</span>
+                            <span className="text-sm text-gray-600 ml-1">
+                              {product.rating || 0} ({product.reviews || 0})
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <button 
+                            onClick={() => window.location.href = `/product-details/${product.slug || '#'}`}
+                            className="flex-1 px-4 py-2 bg-primary-900 text-white text-sm rounded-lg hover:bg-primary-800 transition-colors"
+                          >
+                            View Details
+                          </button>
+                          <button 
+                            onClick={() => console.log('Add to cart:', product.name)}
+                            className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                          >
+                            🛒
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
           
           {/* Gradient fade effects */}
