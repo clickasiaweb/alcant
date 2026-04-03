@@ -1,13 +1,12 @@
-// Featured Products Section - Deployment v2.1
-// Forces Vercel deployment to sync featured products
+// Featured Products Section - v3.0 - Simplified & Error-Free
+import React, { useState, useEffect } from "react";
 import CompactProductCard from "./CompactProductCard";
 import { useCart } from '../contexts/CartContext';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 
 const FeaturedProductsSection = () => {
   const [mounted, setMounted] = useState(false);
   const [featuredProducts, setFeaturedProducts] = useState([]);
-  const [isClient, setIsClient] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { addToCart } = useCart();
@@ -21,9 +20,12 @@ const FeaturedProductsSection = () => {
   const fetchFeaturedProducts = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
       const timestamp = Date.now();
       console.log('🔄 Fetching featured products at:', timestamp);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10&t=${timestamp}&cb=${Math.random()}`);
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products/featured?limit=10&t=${timestamp}`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -34,40 +36,20 @@ const FeaturedProductsSection = () => {
       
       // Handle different response structures
       let products = [];
-      if (data.products && Array.isArray(data.products)) {
-        products = data.products;
-      } else if (Array.isArray(data)) {
+      if (data && Array.isArray(data)) {
         products = data;
+      } else if (data.products && Array.isArray(data.products)) {
+        products = data.products;
       } else if (data.data && Array.isArray(data.data)) {
         products = data.data;
       }
       
-      if (products.length > 0) {
-        setFeaturedProducts(products);
-      } else {
-        console.log('No featured products found, fetching regular products as fallback');
-        try {
-          const fallbackResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products?limit=6&sort=newest&t=${Date.now()}`);
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json();
-            setFeaturedProducts(fallbackData.products || fallbackData.data || []);
-          } else {
-            setFeaturedProducts([]);
-          }
-        } catch (fallbackError) {
-          console.error('Fallback fetch failed:', fallbackError);
-          setFeaturedProducts([]);
-        }
-      }
+      console.log('📦 Processed products:', products.length);
+      setFeaturedProducts(products || []);
+      
     } catch (error) {
-      console.error('❌ Error fetching featured products:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        stack: error.stack,
-        timestamp: new Date().toISOString()
-      });
+      console.error('❌ Error fetching featured products:', error.message);
       setError(error.message);
-      // Fallback to empty array to prevent crashes
       setFeaturedProducts([]);
     } finally {
       setLoading(false);
@@ -75,22 +57,24 @@ const FeaturedProductsSection = () => {
   };
 
   const handleQuickView = (product) => {
-    window.location.href = `/product-details/${product.slug}`;
+    if (product && product.slug) {
+      window.location.href = `/product-details/${product.slug}`;
+    }
   };
 
   const handleAddToCart = (product) => {
-    if (!isClient) return;
+    if (!isClient || !product) return;
     
-    console.log('Adding to cart from FeaturedProductsSection:', product.name);
     try {
       addToCart(product, 1);
+      console.log('✅ Added to cart:', product.name);
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error('❌ Cart error:', error);
     }
   };
 
   const handleWishlist = (productId) => {
-    console.log('Wishlist toggled for product:', productId);
+    console.log('❤️ Wishlist:', productId);
   };
 
   const scrollLeft = () => {
@@ -107,11 +91,7 @@ const FeaturedProductsSection = () => {
     }
   };
 
-  const refreshFeaturedProducts = () => {
-    console.log('🔄 Manually refreshing featured products');
-    fetchFeaturedProducts();
-  };
-
+  // Loading state
   if (!mounted || loading) {
     return (
       <section className="py-16 bg-white">
@@ -127,6 +107,7 @@ const FeaturedProductsSection = () => {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <section className="py-16 bg-white">
@@ -148,7 +129,8 @@ const FeaturedProductsSection = () => {
     );
   }
 
-  if (featuredProducts.length === 0) {
+  // Empty state
+  if (!featuredProducts || featuredProducts.length === 0) {
     return (
       <section className="py-16 bg-white">
         <div className="container">
@@ -157,23 +139,13 @@ const FeaturedProductsSection = () => {
           </h2>
           <div className="text-center text-gray-600">
             <p>No featured products available at the moment.</p>
-            <button 
-              onClick={fetchFeaturedProducts}
-              className="mt-4 px-6 py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-800 transition-colors"
-            >
-              Retry
-            </button>
           </div>
         </div>
       </section>
     );
   }
 
-  // Safety check for valid products
-  const validProducts = featuredProducts.filter(product => {
-    return product && product.id && product.name && product.slug;
-  });
-
+  // Success state - render products safely
   return (
     <section className="py-16 bg-white">
       <div className="container">
@@ -183,16 +155,12 @@ const FeaturedProductsSection = () => {
           </h2>
           <div className="flex gap-2">
             <button
-              onClick={refreshFeaturedProducts}
+              onClick={fetchFeaturedProducts}
               className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
               aria-label="Refresh featured products"
               title="Refresh featured products"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5.586a4 4 0 014.586 4h16a4 4 0 014.586-4V4a4 4 0 00-4-4H4z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21.5 10.5a1.5 1.5 0 11.5-1.5H17" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6.5 10.5a1.5 1.5 0 11.5-1.5H4" />
-              </svg>
+              <RefreshCw className="w-5 h-5" />
             </button>
             <button
               onClick={scrollLeft}
@@ -218,27 +186,27 @@ const FeaturedProductsSection = () => {
             style={{
               scrollbarWidth: 'none',
               msOverflowStyle: 'none',
-              WebkitScrollbar: { display: 'none' }
+              WebkitScrollbar: 'none'
             }}
           >
-            {validProducts.map((product, index) => (
+            {featuredProducts.filter(product => product && product.id && product.name).map((product, index) => (
               <div 
-                key={product.id} 
+                key={product.id || index} 
                 className="flex-none w-72 md:w-80"
                 style={{ minWidth: '288px' }}
               >
                 <CompactProductCard
                   product={{
                     id: product.id,
-                    name: product.name,
-                    price: product.price,
+                    name: product.name || 'Unknown Product',
+                    price: product.price || 0,
                     originalPrice: product.old_price,
-                    rating: product.rating,
-                    reviews: product.reviews,
-                    isBestseller: product.is_best_seller,
+                    rating: product.rating || 0,
+                    reviews: product.reviews || 0,
+                    isBestseller: product.is_best_seller || false,
                     discount: product.discount,
-                    isLimited: product.is_limited_edition,
-                    slug: product.slug,
+                    isLimited: product.is_limited_edition || false,
+                    slug: product.slug || '#',
                     image: product.image || (product.images && product.images[0]),
                     colorCount: product.color_count || 0
                   }}
