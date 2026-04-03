@@ -61,6 +61,27 @@ class SupabaseProduct {
       supabaseQuery = supabaseQuery.eq('featured', query.featured);
     }
     
+    // Add brand filter
+    if (query.brand) {
+      if (query.brand.$in) {
+        supabaseQuery = supabaseQuery.in('brand', query.brand.$in);
+      } else {
+        supabaseQuery = supabaseQuery.eq('brand', query.brand);
+      }
+    }
+    
+    // Add MagSafe filter
+    if (query.magSafeCompatible !== undefined) {
+      supabaseQuery = supabaseQuery.eq('magSafeCompatible', query.magSafeCompatible);
+    }
+    
+    // Add discount filter
+    if (query.old_price !== undefined) {
+      if (query.old_price.$exists) {
+        supabaseQuery = supabaseQuery.not('old_price', 'is', null);
+      }
+    }
+    
     // Apply sorting
     if (options.sort) {
       Object.entries(options.sort).forEach(([field, direction]) => {
@@ -298,6 +319,27 @@ class SupabaseProduct {
     if (query._id) {
       if (query._id.$nin) {
         supabaseQuery = supabaseQuery.not('id', 'in', `(${query._id.$nin.join(',')})`);
+      }
+    }
+    
+    // Add brand filter
+    if (query.brand) {
+      if (query.brand.$in) {
+        supabaseQuery = supabaseQuery.in('brand', query.brand.$in);
+      } else {
+        supabaseQuery = supabaseQuery.eq('brand', query.brand);
+      }
+    }
+    
+    // Add MagSafe filter
+    if (query.magSafeCompatible !== undefined) {
+      supabaseQuery = supabaseQuery.eq('magSafeCompatible', query.magSafeCompatible);
+    }
+    
+    // Add discount filter
+    if (query.old_price !== undefined) {
+      if (query.old_price.$exists) {
+        supabaseQuery = supabaseQuery.not('old_price', 'is', null);
       }
     }
     

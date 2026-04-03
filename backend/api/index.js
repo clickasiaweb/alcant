@@ -34,6 +34,7 @@ const setupRoutes = require("../routes/setup");
 const bulkUploadRoutes = require("../routes/bulkUpload");
 const seedRoutes = require("../routes/seed");
 const updateRoutes = require("../routes/update");
+const filterController = require("../controllers/filterController");
 
 const app = express();
 
@@ -101,6 +102,7 @@ app.use("/api/setup", setupRoutes);
 app.use("/api/products/bulk-upload", bulkUploadRoutes);
 app.use("/api/seed", seedRoutes);
 app.use("/api/update", updateRoutes);
+app.get("/api/products/filters", filterController.getAvailableFilters);
 
 // Health check with database status
 app.get("/api/health", (req, res) => {

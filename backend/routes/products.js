@@ -1,8 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const productController = require("../controllers/productController");
+const filterController = require("../controllers/filterController");
 const SupabaseProduct = require("../models/SupabaseProduct");
 const { authMiddleware, adminMiddleware } = require("../middleware/auth");
+
+console.log('🔍 Products router loaded with filter controller');
 
 // Temporary endpoint to add test product
 router.post("/add-test-product", async (req, res) => {
@@ -116,6 +119,7 @@ router.get("/test-filter", async (req, res) => {
 });
 
 // Public routes
+router.get("/filters", filterController.getAvailableFilters);
 router.get("/", productController.getProducts);
 router.get("/recommended", productController.getRecommendedProducts);
 router.get("/featured", productController.getFeaturedProducts);

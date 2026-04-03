@@ -38,6 +38,12 @@ exports.getProducts = async (req, res) => {
       limit = 24,
       sort = "featured",
       exclude,
+      colors,
+      brands,
+      magSafe,
+      isNew,
+      isLimitedEdition,
+      hasDiscount,
     } = req.query;
 
     const pageNum = parseInt(page);
@@ -85,6 +91,41 @@ exports.getProducts = async (req, res) => {
       if (excludeIds.length) {
         query._id = { $nin: excludeIds };
       }
+    }
+
+    // Add color filter
+    if (colors) {
+      const colorList = String(colors).split(",").map(c => c.trim()).filter(Boolean);
+      if (colorList.length > 0) {
+        query.$or = colorList.map(color => ({
+          'variants.color': { $regex: color, $options: "i" }
+        }));
+      }
+    }
+
+    // Add brand filter
+    if (brands) {
+      const brandList = String(brands).split(",").map(b => b.trim()).filter(Boolean);
+      if (brandList.length > 0) {
+        query.brand = { $in: brandList };
+      }
+    }
+
+    // Add boolean filters
+    if (magSafe === 'true') {
+      query.magSafeCompatible = true;
+    }
+
+    if (isNew === 'true') {
+      query.is_new = true;
+    }
+
+    if (isLimitedEdition === 'true') {
+      query.is_limited_edition = true;
+    }
+
+    if (hasDiscount === 'true') {
+      query.old_price = { $exists: true, $ne: null };
     }
 
     const [productsResult, total] = await Promise.all([

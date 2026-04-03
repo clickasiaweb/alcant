@@ -16,10 +16,12 @@ const ProductsPage = () => {
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [filters, setFilters] = useState({
     colors: [],
-    iphoneModel: [],
-    typeCase: [],
+    brands: [],
+    priceRanges: [],
     magSafe: false,
-    partnership: [],
+    isNew: false,
+    isLimitedEdition: false,
+    hasDiscount: false,
     search: search || "",
   });
 
@@ -40,54 +42,53 @@ const ProductsPage = () => {
         apiParams.search = currentFilters.search;
       }
 
-      // Add color filters - map colors to API format
+      // Add color filters
       if (currentFilters.colors && currentFilters.colors.length > 0) {
         apiParams.colors = currentFilters.colors.join(",");
       }
 
-      // Add iPhone model filters
-      if (currentFilters.iphoneModel && currentFilters.iphoneModel.length > 0) {
-        apiParams.iphoneModel = currentFilters.iphoneModel.join(",");
+      // Add brand filters
+      if (currentFilters.brands && currentFilters.brands.length > 0) {
+        apiParams.brands = currentFilters.brands.join(",");
       }
 
-      // Add type case filters
-      if (currentFilters.typeCase && currentFilters.typeCase.length > 0) {
-        apiParams.typeCase = currentFilters.typeCase.join(",");
-      }
-
-      // Add MagSafe filter
+      // Add boolean filters
       if (currentFilters.magSafe) {
-        apiParams.magSafe = true;
+        apiParams.magSafe = "true";
       }
 
-      // Add partnership filters
-      if (currentFilters.partnership && currentFilters.partnership.length > 0) {
-        apiParams.partnership = currentFilters.partnership.join(",");
+      if (currentFilters.isNew) {
+        apiParams.isNew = "true";
+      }
+
+      if (currentFilters.isLimitedEdition) {
+        apiParams.isLimitedEdition = "true";
+      }
+
+      if (currentFilters.hasDiscount) {
+        apiParams.hasDiscount = "true";
+      }
+
+      // Add price range filtering
+      if (currentFilters.priceRanges && currentFilters.priceRanges.length > 0) {
+        const priceRanges = currentFilters.priceRanges.map(range => {
+          const [min, max] = range.split('-').map(Number);
+          if (max === Infinity) return { min: min.toString() };
+          return { min: min.toString(), max: max.toString() };
+        });
+        
+        // For now, just use the first range for simplicity
+        if (priceRanges.length > 0) {
+          const range = priceRanges[0];
+          apiParams.min_price = range.min;
+          if (range.max) apiParams.max_price = range.max;
+        }
       }
 
       console.log("Fetching products with params:", apiParams);
 
       const response = await apiClient.get("/products", { params: apiParams });
       let products = response.data.products || [];
-
-      // Client-side filtering if API doesn't support all filters
-      if (currentFilters.colors && currentFilters.colors.length > 0) {
-        products = products.filter((product) => {
-          if (product.colors && Array.isArray(product.colors)) {
-            return currentFilters.colors.some((color) =>
-              product.colors.some((productColor) =>
-                productColor.toLowerCase().includes(color.toLowerCase()) ||
-                color.toLowerCase().includes(productColor.toLowerCase())
-              )
-            );
-          }
-          return false;
-        });
-      }
-
-      if (currentFilters.magSafe) {
-        products = products.filter((product) => product.magSafeCompatible);
-      }
 
       setProducts(products);
     } catch (error) {
@@ -142,43 +143,28 @@ const ProductsPage = () => {
     if (filterType === "clearAll") {
       newFilters = {
         colors: [],
-        iphoneModel: [],
-        typeCase: [],
+        brands: [],
+        priceRanges: [],
         magSafe: false,
-        partnership: [],
+        isNew: false,
+        isLimitedEdition: false,
+        hasDiscount: false,
         search: "",
       };
     } else if (filterType === 'colors') {
       newFilters = { ...filters, colors: value };
+    } else if (filterType === 'brands') {
+      newFilters = { ...filters, brands: value };
+    } else if (filterType === 'priceRanges') {
+      newFilters = { ...filters, priceRanges: value };
     } else if (filterType === 'magSafe') {
       newFilters = { ...filters, magSafe: value };
-    } else if (filterType === 'iphoneModel') {
-      const currentModels = [...filters.iphoneModel];
-      if (value.checked) {
-        currentModels.push(value.model);
-      } else {
-        const index = currentModels.indexOf(value.model);
-        if (index > -1) currentModels.splice(index, 1);
-      }
-      newFilters = { ...filters, iphoneModel: currentModels };
-    } else if (filterType === 'typeCase') {
-      const currentTypes = [...filters.typeCase];
-      if (value.checked) {
-        currentTypes.push(value.type);
-      } else {
-        const index = currentTypes.indexOf(value.type);
-        if (index > -1) currentTypes.splice(index, 1);
-      }
-      newFilters = { ...filters, typeCase: currentTypes };
-    } else if (filterType === 'partnership') {
-      const currentPartners = [...filters.partnership];
-      if (value.checked) {
-        currentPartners.push(value.partner);
-      } else {
-        const index = currentPartners.indexOf(value.partner);
-        if (index > -1) currentPartners.splice(index, 1);
-      }
-      newFilters = { ...filters, partnership: currentPartners };
+    } else if (filterType === 'isNew') {
+      newFilters = { ...filters, isNew: value };
+    } else if (filterType === 'isLimitedEdition') {
+      newFilters = { ...filters, isLimitedEdition: value };
+    } else if (filterType === 'hasDiscount') {
+      newFilters = { ...filters, hasDiscount: value };
     }
 
     setFilters(newFilters);
@@ -273,21 +259,21 @@ const ProductsPage = () => {
                     </p>
                     {/* Active filters summary for mobile */}
                     <div className="lg:hidden mt-2">
-                      {(filters.colors.length > 0 || filters.iphoneModel.length > 0 || filters.typeCase.length > 0 || filters.magSafe || filters.partnership.length > 0) && (
+                      {(filters.colors.length > 0 || filters.brands.length > 0 || filters.priceRanges.length > 0 || filters.magSafe || filters.isNew || filters.isLimitedEdition || filters.hasDiscount) && (
                         <div className="flex flex-wrap gap-1">
                           {filters.colors.length > 0 && (
                             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
                               {filters.colors.length} colors
                             </span>
                           )}
-                          {filters.iphoneModel.length > 0 && (
+                          {filters.brands.length > 0 && (
                             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                              {filters.iphoneModel.length} models
+                              {filters.brands.length} brands
                             </span>
                           )}
-                          {filters.typeCase.length > 0 && (
+                          {filters.priceRanges.length > 0 && (
                             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                              {filters.typeCase.length} types
+                              {filters.priceRanges.length} price ranges
                             </span>
                           )}
                           {filters.magSafe && (
@@ -295,9 +281,19 @@ const ProductsPage = () => {
                               MagSafe
                             </span>
                           )}
-                          {filters.partnership.length > 0 && (
+                          {filters.isNew && (
                             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-                              {filters.partnership.length} partners
+                              New
+                            </span>
+                          )}
+                          {filters.isLimitedEdition && (
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                              Limited Edition
+                            </span>
+                          )}
+                          {filters.hasDiscount && (
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                              On Sale
                             </span>
                           )}
                         </div>

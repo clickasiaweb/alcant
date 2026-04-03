@@ -51,6 +51,8 @@ const seedRoutes = require('./routes/seed');
 
 const updateRoutes = require('./routes/update');
 
+const filterController = require('./controllers/filterController');
+
 
 
 // Initialize database connection
