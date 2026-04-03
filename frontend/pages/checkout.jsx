@@ -157,34 +157,34 @@ const CheckoutPage = () => {
 
   return (
     <Layout title="Checkout">
-      <div className="bg-gray-50 py-8">
+      <div className="bg-gray-50 py-4 sm:py-8">
         <div className="container">
           <div className="max-w-6xl mx-auto">
             {/* Progress Steps */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between">
+            <div className="mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
                 {steps.map((stepItem, index) => (
-                  <div key={stepItem.id} className="flex items-center">
+                  <div key={stepItem.id} className="flex items-center w-full sm:w-auto">
                     <div className="flex items-center">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${
                         step >= stepItem.id
                           ? 'bg-primary-600 text-white'
                           : 'bg-gray-200 text-gray-600'
                       }`}>
                         {step > stepItem.id ? (
-                          <Check className="w-5 h-5" />
+                          <Check className="w-3 h-3 sm:w-5 sm:h-5" />
                         ) : (
-                          <stepItem.icon className="w-5 h-5" />
+                          <stepItem.icon className="w-3 h-3 sm:w-5 sm:h-5" />
                         )}
                       </div>
-                      <span className={`ml-2 text-sm font-medium ${
+                      <span className={`ml-2 text-xs sm:text-sm font-medium ${
                         step >= stepItem.id ? 'text-primary-600' : 'text-gray-500'
                       }`}>
                         {stepItem.name}
                       </span>
                     </div>
                     {index < steps.length - 1 && (
-                      <div className={`flex-1 h-0.5 mx-4 ${
+                      <div className={`hidden sm:flex flex-1 h-0.5 mx-4 ${
                         step > stepItem.id ? 'bg-primary-600' : 'bg-gray-200'
                       }`} />
                     )}
@@ -193,15 +193,15 @@ const CheckoutPage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
               {/* Main Content */}
               <div className="lg:col-span-2">
                 {/* Step 1: Shipping Information */}
                 {step === 1 && (
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6">Shipping Information</h2>
+                  <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Shipping Information</h2>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           First Name *
@@ -210,7 +210,8 @@ const CheckoutPage = () => {
                           type="text"
                           value={shippingInfo.firstName}
                           onChange={(e) => setShippingInfo({...shippingInfo, firstName: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                          placeholder="First Name"
                         />
                       </div>
                       <div>
@@ -221,7 +222,8 @@ const CheckoutPage = () => {
                           type="text"
                           value={shippingInfo.lastName}
                           onChange={(e) => setShippingInfo({...shippingInfo, lastName: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                          placeholder="Last Name"
                         />
                       </div>
                     </div>
@@ -234,11 +236,12 @@ const CheckoutPage = () => {
                         type="text"
                         value={shippingInfo.company}
                         onChange={(e) => setShippingInfo({...shippingInfo, company: e.target.value})}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                        placeholder="Company (Optional)"
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Email *
@@ -247,7 +250,9 @@ const CheckoutPage = () => {
                           type="email"
                           value={shippingInfo.email}
                           onChange={(e) => setShippingInfo({...shippingInfo, email: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                          placeholder="email@example.com"
+                          autoComplete="email"
                         />
                       </div>
                       <div>
@@ -258,7 +263,9 @@ const CheckoutPage = () => {
                           type="tel"
                           value={shippingInfo.phone}
                           onChange={(e) => setShippingInfo({...shippingInfo, phone: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                          placeholder="(555) 123-4567"
+                          autoComplete="tel"
                         />
                       </div>
                     </div>
@@ -271,11 +278,13 @@ const CheckoutPage = () => {
                         type="text"
                         value={shippingInfo.address}
                         onChange={(e) => setShippingInfo({...shippingInfo, address: e.target.value})}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                        placeholder="123 Main Street"
+                        autoComplete="street-address"
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           City *
@@ -284,7 +293,7 @@ const CheckoutPage = () => {
                           type="text"
                           value={shippingInfo.city}
                           onChange={(e) => setShippingInfo({...shippingInfo, city: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                       </div>
                       <div>
@@ -295,7 +304,7 @@ const CheckoutPage = () => {
                           type="text"
                           value={shippingInfo.state}
                           onChange={(e) => setShippingInfo({...shippingInfo, state: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                       </div>
                       <div>
@@ -306,7 +315,7 @@ const CheckoutPage = () => {
                           type="text"
                           value={shippingInfo.zipCode}
                           onChange={(e) => setShippingInfo({...shippingInfo, zipCode: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
                         />
                       </div>
                     </div>
@@ -315,8 +324,8 @@ const CheckoutPage = () => {
 
                 {/* Step 2: Billing Information */}
                 {step === 2 && (
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6">Billing Information</h2>
+                  <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Billing Information</h2>
                     
                     <div className="mb-6">
                       <label className="flex items-center">
@@ -423,8 +432,8 @@ const CheckoutPage = () => {
 
                 {/* Step 3: Payment Information */}
                 {step === 3 && (
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6">Payment Information</h2>
+                  <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Payment Information</h2>
                     
                     <div className="mb-6">
                       <div className="flex items-center space-x-2 mb-4">
@@ -446,7 +455,7 @@ const CheckoutPage = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Expiry Date *
@@ -501,8 +510,8 @@ const CheckoutPage = () => {
 
                 {/* Step 4: Review Order */}
                 {step === 4 && (
-                  <div className="bg-white rounded-lg p-6 shadow-sm">
-                    <h2 className="text-xl font-semibold text-gray-900 mb-6">Review Your Order</h2>
+                  <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
+                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Review Your Order</h2>
                     
                     {/* Order Items */}
                     <div className="mb-6">
@@ -551,11 +560,11 @@ const CheckoutPage = () => {
                 )}
 
                 {/* Navigation Buttons */}
-                <div className="flex justify-between mt-6">
+                <div className="flex flex-col sm:flex-row justify-between gap-3 sm:gap-4 mt-6 mb-24 lg:mb-0">
                   <button
                     onClick={handlePrevStep}
                     disabled={step === 1}
-                    className="flex items-center space-x-2 px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex items-center justify-center space-x-2 w-full sm:w-auto px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Previous</span>
@@ -564,7 +573,7 @@ const CheckoutPage = () => {
                   {step < 4 ? (
                     <button
                       onClick={handleNextStep}
-                      className="flex items-center space-x-2 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
+                      className="flex items-center justify-center space-x-2 w-full sm:w-auto bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
                     >
                       <span>Next</span>
                       <ArrowRight className="w-4 h-4" />
@@ -573,7 +582,7 @@ const CheckoutPage = () => {
                     <button
                       onClick={handlePlaceOrder}
                       disabled={loading}
-                      className="flex items-center space-x-2 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex items-center justify-center space-x-2 w-full sm:w-auto bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? (
                         <>
@@ -593,7 +602,7 @@ const CheckoutPage = () => {
 
               {/* Order Summary Sidebar */}
               <div className="lg:col-span-1">
-                <div className="bg-white rounded-lg p-6 shadow-sm sticky top-4">
+                <div className="hidden lg:block bg-white rounded-lg p-6 shadow-sm sticky top-4">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
                   
                   <div className="space-y-3 mb-6">
@@ -644,6 +653,37 @@ const CheckoutPage = () => {
                     </button>
                   </div>
                 </div>
+
+                {/* Mobile Order Summary - Sticky Bottom */}
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-40">
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-sm text-gray-600">Total</p>
+                        <p className="text-xl font-bold text-gray-900">${calculateTotal().toLocaleString()}</p>
+                      </div>
+                      <button
+                        onClick={() => setShowInquiryModal(true)}
+                        className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
+                      >
+                        <HelpCircle className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-gray-600">
+                      <div className="flex items-center space-x-1">
+                        <Truck className="w-3 h-3 text-primary-600" />
+                        <span>{calculateShipping() === 0 ? 'FREE' : `$${calculateShipping()}`} Shipping</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Shield className="w-3 h-3 text-primary-600" />
+                        <span>Secure</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Mobile Spacer to prevent content overlap */}
+                <div className="lg:hidden h-24"></div>
               </div>
             </div>
           </div>
@@ -652,8 +692,8 @@ const CheckoutPage = () => {
 
       {/* Inquiry Modal */}
       {showInquiryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
             <InquiryForm 
               onClose={() => setShowInquiryModal(false)}
               showTitle={true}
