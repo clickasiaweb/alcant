@@ -60,7 +60,12 @@ const FeaturedProductsSection = () => {
         }
       }
     } catch (error) {
-      console.error('Error fetching featured products:', error);
+      console.error('❌ Error fetching featured products:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
       setError(error.message);
       // Fallback to empty array to prevent crashes
       setFeaturedProducts([]);
@@ -152,11 +157,22 @@ const FeaturedProductsSection = () => {
           </h2>
           <div className="text-center text-gray-600">
             <p>No featured products available at the moment.</p>
+            <button 
+              onClick={fetchFeaturedProducts}
+              className="mt-4 px-6 py-2 bg-primary-900 text-white rounded-lg hover:bg-primary-800 transition-colors"
+            >
+              Retry
+            </button>
           </div>
         </div>
       </section>
     );
   }
+
+  // Safety check for valid products
+  const validProducts = featuredProducts.filter(product => {
+    return product && product.id && product.name && product.slug;
+  });
 
   return (
     <section className="py-16 bg-white">
@@ -205,7 +221,7 @@ const FeaturedProductsSection = () => {
               WebkitScrollbar: { display: 'none' }
             }}
           >
-            {featuredProducts.map((product, index) => (
+            {validProducts.map((product, index) => (
               <div 
                 key={product.id} 
                 className="flex-none w-72 md:w-80"
