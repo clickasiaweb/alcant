@@ -1,5 +1,8 @@
-// Featured Products Section - v4.0 - Bulletproof
+// Featured Products Section - v5.0 - Using existing ProductCard
 import React, { useState, useEffect } from "react";
+import ProductCard from "./ProductCard";
+import { useCart } from '../contexts/CartContext';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 
 const FeaturedProductsSection = () => {
   const [mounted, setMounted] = useState(false);
@@ -128,74 +131,31 @@ const FeaturedProductsSection = () => {
             id="featured-products-container"
             className="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
           >
-            {featuredProducts && featuredProducts.map((product, index) => {
-              // Only render if product has essential data
-              if (!product || !product.id) return null;
-              
-              return (
-                <div 
-                  key={product.id} 
-                  className="flex-none w-72 md:w-80"
-                  style={{ minWidth: '288px' }}
-                >
-                  <div className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-4">
-                    <div className="relative">
-                      <div className="aspect-square bg-gray-100 rounded-lg mb-4 overflow-hidden">
-                        <img 
-                          src={product.image || 'https://picsum.photos/seed/product/400/400.jpg'} 
-                          alt={product.name || 'Product'}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.src = 'https://picsum.photos/seed/fallback/400/400.jpg';
-                          }}
-                        />
-                      </div>
-                      
-                      <div className="p-4">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                          {product.name || 'Unknown Product'}
-                        </h3>
-                        
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-2xl font-bold text-primary-900">
-                            ${product.price || 0}
-                          </span>
-                          {product.old_price && (
-                            <span className="text-sm text-gray-500 line-through ml-2">
-                              ${product.old_price}
-                            </span>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center space-x-4 mb-4">
-                          <div className="flex items-center">
-                            <span className="text-yellow-400">★</span>
-                            <span className="text-sm text-gray-600 ml-1">
-                              {product.rating || 0} ({product.reviews || 0})
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex space-x-2">
-                          <button 
-                            onClick={() => window.location.href = `/product-details/${product.slug || '#'}`}
-                            className="flex-1 px-4 py-2 bg-primary-900 text-white text-sm rounded-lg hover:bg-primary-800 transition-colors"
-                          >
-                            View Details
-                          </button>
-                          <button 
-                            onClick={() => console.log('Add to cart:', product.name)}
-                            className="p-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                          >
-                            🛒
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {featuredProducts && featuredProducts.map((product, index) => (
+              <div 
+                key={product.id || index} 
+                className="flex-none w-72 md:w-80"
+                style={{ minWidth: '288px' }}
+              >
+                <ProductCard
+                  product={{
+                    id: product.id,
+                    name: product.name || 'Unknown Product',
+                    price: product.price || 0,
+                    oldPrice: product.old_price,
+                    rating: product.rating || 0,
+                    reviews: product.reviews || 0,
+                    isBestseller: product.is_best_seller || false,
+                    discount: product.discount,
+                    isLimited: product.is_limited_edition || false,
+                    slug: product.slug || '#',
+                    image: product.image || (product.images && product.images[0]),
+                    colorCount: product.color_count || 0
+                  }}
+                  index={index}
+                />
+              </div>
+            ))}
           </div>
           
           {/* Gradient fade effects */}
