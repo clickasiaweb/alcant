@@ -55,6 +55,8 @@ const filterController = require('./controllers/filterController');
 
 const inquiryRoutes = require('./routes/inquiries');
 
+const reviewRoutes = require('./routes/reviews');
+
 
 
 // Initialize database connection
@@ -140,6 +142,8 @@ app.use('/api/seed', seedRoutes);
 app.use('/api/update', updateRoutes);
 
 app.use('/api/inquiries', inquiryRoutes);
+
+app.use('/api/reviews', reviewRoutes);
 
 
 

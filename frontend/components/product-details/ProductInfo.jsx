@@ -137,7 +137,7 @@ const ProductInfo = ({
               <Star 
                 key={i} 
                 className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                  i < Math.floor(product.rating || 0) 
+                  i < Math.floor(product.average_rating || product.rating || 0) 
                     ? 'text-yellow-400 fill-current' 
                     : 'text-gray-300'
                 }`} 
@@ -145,17 +145,18 @@ const ProductInfo = ({
             ))}
           </div>
           <span className="text-sm text-gray-600">
-            {product.rating || 0}.0 ({product.reviews || 0} reviews)
+            {(product.average_rating || product.rating || 0).toFixed(1)} ({product.review_count || product.reviews || 0} reviews)
           </span>
         </div>
-      </div>
 
-      {/* Description */}
-      <div>
-        <h3 className="text-lg font-semibold mb-2">Description</h3>
-        <p className="text-gray-600 leading-relaxed">
-          {displayDescription}
-        </p>
+        {/* Short Description */}
+        {product.short_description && (
+          <div className="mb-4 sm:mb-6">
+            <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
+              {product.short_description}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Color Selection - Only show if colors are available */}

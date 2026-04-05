@@ -158,10 +158,10 @@ const ProductCard = ({ product, index = 0 }) => {
           {/* Rating */}
           <div className="flex items-center space-x-2 mb-3">
             <div className="flex items-center">
-              {renderStars(product.rating || 4.5)}
+              {renderStars(product.average_rating || product.rating || 0)}
             </div>
             <span className="text-xs text-secondary-500">
-              ({product.reviews || 128})
+              ({product.review_count || product.reviews || 0})
             </span>
           </div>
 

@@ -163,6 +163,7 @@ class SupabaseProduct {
       name: productData.name,
       slug: productData.slug,
       description: productData.description || null,
+      short_description: productData.short_description || null,
       price: productData.price || 0,
       old_price: productData.old_price || productData.oldPrice || null,
       final_price: productData.final_price || productData.finalPrice || productData.price || 0,
@@ -174,12 +175,16 @@ class SupabaseProduct {
       image: productData.image || null,
       rating: productData.rating || 0,
       reviews: productData.reviews || 0,
+      average_rating: productData.average_rating || 0,
+      review_count: productData.review_count || 0,
       stock: productData.stock || 0,
       is_new: productData.is_new || productData.isNew || false,
       is_limited_edition: productData.is_limited_edition || productData.isLimitedEdition || false,
       is_blue_monday_sale: productData.is_blue_monday_sale || productData.isBlueMondaySale || false,
       is_active: productData.is_active !== undefined ? productData.is_active : (productData.isActive !== undefined ? productData.isActive : true),
-      featured: productData.featured || false
+      featured: productData.featured || false,
+      brand: productData.brand || null,
+      weight: productData.weight || null
     };
     
     console.log('🚀 SupabaseProduct dbData:', JSON.stringify(dbData, null, 2));
@@ -254,6 +259,8 @@ class SupabaseProduct {
     if (updateData.brand !== undefined) dbData.brand = updateData.brand;
     if (updateData.short_description !== undefined) dbData.short_description = updateData.short_description;
     if (updateData.weight !== undefined) dbData.weight = updateData.weight;
+    if (updateData.average_rating !== undefined) dbData.average_rating = updateData.average_rating;
+    if (updateData.review_count !== undefined) dbData.review_count = updateData.review_count;
     
     // ❌ REMOVED: Fields that don't exist in Supabase schema
     // seo_meta_title, seo_meta_description, keywords

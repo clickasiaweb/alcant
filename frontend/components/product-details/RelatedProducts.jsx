@@ -1,67 +1,72 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import ProductCard from '../ProductCard';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 const RelatedProducts = ({ currentProduct }) => {
-  // Sample related products data
-  const relatedProducts = [
-    {
-      id: 1,
-      name: 'Premium Leather Case',
-      slug: 'premium-leather-case',
-      price: 89.99,
-      oldPrice: 119.99,
-      image: 'https://picsum.photos/seed/leather-case/400/400.jpg',
-      rating: 4.8,
-      reviews: 234,
-      isNew: true
-    },
-    {
-      id: 2,
-      name: 'Wireless Charging Pad',
-      slug: 'wireless-charging-pad',
-      price: 49.99,
-      image: 'https://picsum.photos/seed/charging-pad/400/400.jpg',
-      rating: 4.6,
-      reviews: 189
-    },
-    {
-      id: 3,
-      name: 'Screen Protector Pro',
-      slug: 'screen-protector-pro',
-      price: 29.99,
-      oldPrice: 39.99,
-      image: 'https://picsum.photos/seed/screen-protector/400/400.jpg',
-      rating: 4.7,
-      reviews: 412
-    },
-    {
-      id: 4,
-      name: 'Travel Backpack',
-      slug: 'travel-backpack',
-      price: 149.99,
-      image: 'https://picsum.photos/seed/backpack/400/400.jpg',
-      rating: 4.9,
-      reviews: 156
-    },
-    {
-      id: 5,
-      name: 'Smart Watch Band',
-      slug: 'smart-watch-band',
-      price: 39.99,
-      image: 'https://picsum.photos/seed/watch-band/400/400.jpg',
-      rating: 4.5,
-      reviews: 89
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (currentProduct?.subcategory_id || currentProduct?.subcategoryId) {
+      fetchRelatedProducts();
     }
-  ];
+  }, [currentProduct]);
+
+  const fetchRelatedProducts = async () => {
+    try {
+      setLoading(true);
+      const subcategoryId = currentProduct.subcategory_id || currentProduct.subcategoryId;
+      
+      const response = await fetch(
+        `/api/products?subcategory_id=${subcategoryId}&exclude=${currentProduct.id}&limit=8`
+      );
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setRelatedProducts(data.products || []);
+      } else {
+        console.error('Failed to fetch related products:', data.error);
+      }
+    } catch (error) {
+      console.error('Error fetching related products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Related Products</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-gray-200 h-64 rounded-lg mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (relatedProducts.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-16 bg-white">
       <div className="container">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4">More From Product Family</h2>
+          <h2 className="text-4xl font-bold mb-4">Related Products</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Discover complementary products that complete your experience
+            Discover more products from the same category
           </p>
         </div>
         

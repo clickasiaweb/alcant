@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Package, Heart, Truck, HelpCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Package, Heart, Truck, HelpCircle, Star } from 'lucide-react';
+import ProductReviews from './ProductReviews';
 
 const ProductAccordionSections = ({ product }) => {
   const [activeSection, setActiveSection] = useState('description');
@@ -52,62 +53,10 @@ const ProductAccordionSections = ({ product }) => {
       )
     },
     {
-      id: 'personalization',
-      title: 'Personalization',
-      icon: Heart,
-      content: (
-        <div className="space-y-4">
-          <p className="text-gray-600 leading-relaxed">
-            Make this product uniquely yours with our premium personalization options. 
-            Add a personal touch that reflects your style and personality.
-          </p>
-          
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Available Options:</h4>
-              <div className="space-y-3">
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">Custom Engraving</span>
-                    <span className="text-primary-600 font-semibold">+$15</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Add your name, initials, or special message</p>
-                </div>
-                
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">Color Customization</span>
-                    <span className="text-primary-600 font-semibold">+$25</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Choose from our premium color palette</p>
-                </div>
-                
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">Gift Packaging</span>
-                    <span className="text-primary-600 font-semibold">+$10</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Premium gift box with personalized message</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-primary-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-primary-900 mb-2">How to Personalize:</h4>
-              <ol className="list-decimal list-inside text-sm text-primary-800 space-y-1">
-                <li>Select your personalization options above</li>
-                <li>Enter your custom text in the order notes</li>
-                <li>Our team will create a digital preview</li>
-                <li>Production begins after your approval</li>
-              </ol>
-            </div>
-            
-            <div className="text-sm text-gray-600">
-              <p><strong>Note:</strong> Personalized items require 3-5 additional business days for production and cannot be returned.</p>
-            </div>
-          </div>
-        </div>
-      )
+      id: 'reviews',
+      title: 'Reviews',
+      icon: Star,
+      content: <ProductReviews productId={product?.id} />
     },
     {
       id: 'shipping',
