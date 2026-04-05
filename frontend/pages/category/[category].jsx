@@ -38,19 +38,19 @@ const CategoryPage = () => {
   const categoryMetadata = {
     'phone-cases': {
       title: 'Phone Cases',
-      description: 'Premium Alcantara cases for your smartphones'
+      description: 'Premium ΛʟcΛɴᴛ cases for your smartphones'
     },
     'wallets-cards': {
       title: 'Wallets & Cards',
-      description: 'Premium Alcantara wallets and card holders'
+      description: 'Premium ΛʟcΛɴᴛ wallets and card holders'
     },
     'accessories': {
       title: 'Accessories',
-      description: 'Premium Alcantara accessories for your devices'
+      description: 'Premium ΛʟcΛɴᴛ accessories for your devices'
     },
     'car-travel': {
       title: 'Car & Travel',
-      description: 'Premium Alcantara car and travel accessories'
+      description: 'Premium ΛʟcΛɴᴛ car and travel accessories'
     },
     'sale': {
       title: 'Sale',
@@ -262,7 +262,7 @@ const CategoryPage = () => {
     return (
       <Layout>
         <Head>
-          <title>Loading... - ALCANSIDE</title>
+          <title>Loading... - ΛʟcΛɴᴛ</title>
         </Head>
         <div className="container py-16">
           <div className="flex justify-center items-center min-h-[50vh]">
@@ -277,7 +277,7 @@ const CategoryPage = () => {
     return (
       <Layout>
         <Head>
-          <title>Error - ALCANSIDE</title>
+          <title>Error - ΛʟcΛɴᴛ</title>
         </Head>
         <div className="container py-16">
           <div className="text-center">
@@ -298,17 +298,17 @@ const CategoryPage = () => {
   return (
     <Layout>
       <Head>
-        <title>{pageData.title} - ALCANSIDE</title>
+        <title>{pageData.title} - ΛʟcΛɴᴛ</title>
         <meta name="description" content={pageData.description} />
-        <meta name="keywords" content={`${pageData.title}, alcantara, premium accessories, ${category}`} />
-        <meta property="og:title" content={`${pageData.title} - ALCANSIDE`} />
+        <meta name="keywords" content={`${pageData.title}, ΛʟcΛɴᴛ, premium accessories, ${category}`} />
+        <meta property="og:title" content={`${pageData.title} - ΛʟcΛɴᴛ`} />
         <meta property="og:description" content={pageData.description} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`https://www.alcanside.com/category/${category}`} />
+        <meta property="og:url" content={`https://www.ΛʟcΛɴᴛ.com/category/${category}`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${pageData.title} - ALCANSIDE`} />
+        <meta name="twitter:title" content={`${pageData.title} - ΛʟcΛɴᴛ`} />
         <meta name="twitter:description" content={pageData.description} />
-        <link rel="canonical" href={`https://www.alcanside.com/category/${category}`} />
+        <link rel="canonical" href={`https://www.ΛʟcΛɴᴛ.com/category/${category}`} />
       </Head>
       {/* Category Navigation */}
       <div className="bg-white border-b border-gray-200">
@@ -620,12 +620,12 @@ const CategoryPage = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">About {pageData.title}</h2>
           <div className="prose prose-gray max-w-none">
             <p className="text-gray-600 mb-4">
-              Experience the luxury and sophistication of Alcantara with our premium {pageData.title.toLowerCase()}. 
+              Experience the luxury and sophistication of ΛʟcΛɴᴛ with our premium {pageData.title.toLowerCase()}. 
               Each product is meticulously crafted to provide exceptional protection while maintaining an elegant aesthetic 
               that complements your lifestyle.
             </p>
             <p className="text-gray-600 mb-4">
-              Alcantara is a unique material that combines the softness of fabric with the durability of leather, 
+              ΛʟcΛɴᴛ is a unique material that combines the softness of fabric with the durability of leather, 
               making it the perfect choice for those who demand both style and functionality. Our {pageData.title.toLowerCase()} 
               feature precision engineering, attention to detail, and the finest materials to ensure your devices remain 
               protected in the most elegant way possible.
@@ -647,13 +647,13 @@ const CategoryPage = () => {
                 <div className="aspect-square bg-gray-100 flex items-center justify-center">
                   <img
                     src="/api/placeholder/300/300"
-                    alt="ALCANSIDE Screen Protector - iPhone 17 Pro"
+                    alt="ΛʟcΛɴᴛ Screen Protector - iPhone 17 Pro"
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="p-4">
                   <h3 className="text-sm font-medium text-gray-900 mb-2">
-                    ALCANSIDE Screen Protector - iPhone 17 Pro
+                    ΛʟcΛɴᴛ Screen Protector - iPhone 17 Pro
                   </h3>
                   <div className="flex items-center space-x-2">
                     <span className="text-lg font-bold text-gray-900">₹1,200</span>

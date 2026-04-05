@@ -405,11 +405,11 @@ export default function DynamicHeader() {
           <div className="flex items-center space-x-4">
             <span>Free shipping on orders over $100</span>
             <span className="hidden sm:inline">•</span>
-            <span className="hidden sm:inline">Premium Alcantara products</span>
+            <span className="hidden sm:inline">Premium ΛʟcΛɴᴛ products</span>
           </div>
           <div className="flex items-center space-x-4">
-            <a href="tel:+1-800-ALCANSIDE" className="hover:text-primary-400 transition-colors">
-              1-800-ALCANSIDE
+            <a href="tel:+1-800-ΛʟcΛɴᴛ" className="hover:text-primary-400 transition-colors">
+              1-800-ΛʟcΛɴᴛ
             </a>
             <a href="/contact" className="hover:text-primary-400 transition-colors">
               Contact Us
@@ -427,7 +427,7 @@ export default function DynamicHeader() {
               <Package className="w-6 h-6 text-white" />
             </div>
             <span className="text-2xl font-bold text-gray-900 hidden sm:inline">
-              ALCANSIDE
+              ΛʟcΛɴᴛ
             </span>
           </Link>
 

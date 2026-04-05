@@ -52,7 +52,7 @@ const CollectionPage = () => {
         },
         {
           id: 4,
-          name: 'iPhone 15 Pro Alcantara Case - Navy Blue',
+          name: 'iPhone 15 Pro ΛʟcΛɴᴛ Case - Navy Blue',
           image: '/api/placeholder/300/300',
           rating: 5,
           reviews: 195,
@@ -66,11 +66,11 @@ const CollectionPage = () => {
     },
     'accessories': {
       title: 'Accessories Collection',
-      description: 'Discover our premium Alcantara accessories for your devices',
+      description: 'Discover our premium ΛʟcΛɴᴛ accessories for your devices',
       products: [
         {
           id: 8,
-          name: 'AirPods Pro 3rd Generation Alcantara Case - Space Gray',
+          name: 'AirPods Pro 3rd Generation ΛʟcΛɴᴛ Case - Space Gray',
           image: '/api/placeholder/300/300',
           rating: 5,
           reviews: 245,
@@ -82,7 +82,7 @@ const CollectionPage = () => {
         },
         {
           id: 9,
-          name: 'AirPods Pro 3rd Generation Alcantara Case - Orange',
+          name: 'AirPods Pro 3rd Generation ΛʟcΛɴᴛ Case - Orange',
           image: '/api/placeholder/300/300',
           rating: 4,
           reviews: 198,
@@ -96,11 +96,11 @@ const CollectionPage = () => {
     },
     'wallets': {
       title: 'Wallets Collection',
-      description: 'Premium Alcantara wallets and card holders',
+      description: 'Premium ΛʟcΛɴᴛ wallets and card holders',
       products: [
         {
           id: 21,
-          name: 'Alcantara Leather Wallet - Black',
+          name: 'ΛʟcΛɴᴛ Leather Wallet - Black',
           image: '/api/placeholder/300/300',
           rating: 5,
           reviews: 189,
@@ -114,11 +114,11 @@ const CollectionPage = () => {
     },
     'office': {
       title: 'Office Collection',
-      description: 'Premium Alcantara office accessories',
+      description: 'Premium ΛʟcΛɴᴛ office accessories',
       products: [
         {
           id: 23,
-          name: 'Alcantara Desk Organizer - Navy Blue',
+          name: 'ΛʟcΛɴᴛ Desk Organizer - Navy Blue',
           image: '/api/placeholder/300/300',
           rating: 5,
           reviews: 98,
@@ -132,11 +132,11 @@ const CollectionPage = () => {
     },
     'car-travel': {
       title: 'Car & Travel Collection',
-      description: 'Premium Alcantara car and travel accessories',
+      description: 'Premium ΛʟcΛɴᴛ car and travel accessories',
       products: [
         {
           id: 24,
-          name: 'Alcantara Car Organizer - Black',
+          name: 'ΛʟcΛɴᴛ Car Organizer - Black',
           image: '/api/placeholder/300/300',
           rating: 4,
           reviews: 123,
@@ -184,7 +184,7 @@ const CollectionPage = () => {
   }
 
   return (
-    <Layout title={`${collectionData.title} - ALCANSIDE`} description={collectionData.description}>
+    <Layout title={`${collectionData.title} - ΛʟcΛɴᴛ`} description={collectionData.description}>
       <div className="container py-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -264,12 +264,12 @@ const CollectionPage = () => {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Collection</h2>
           <div className="prose prose-gray max-w-none">
             <p className="text-gray-600 mb-4">
-              Experience the luxury and sophistication of Alcantara with our premium {collectionData.title.toLowerCase()}. 
+              Experience the luxury and sophistication of ΛʟcΛɴᴛ with our premium {collectionData.title.toLowerCase()}. 
               Each product is meticulously crafted to provide exceptional protection while maintaining an elegant aesthetic 
               that complements your lifestyle.
             </p>
             <p className="text-gray-600 mb-4">
-              Alcantara is a unique material that combines the softness of fabric with the durability of leather, 
+              ΛʟcΛɴᴛ is a unique material that combines the softness of fabric with the durability of leather, 
               making it the perfect choice for those who demand both style and functionality. Our {collectionData.title.toLowerCase()} 
               feature precision engineering, attention to detail, and the finest materials to ensure your devices remain 
               protected in the most elegant way possible.

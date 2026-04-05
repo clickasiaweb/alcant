@@ -15,8 +15,8 @@ const Logo = ({ className = "", size = "default" }) => {
         <div className={`relative ${sizeClasses[size]} bg-primary-900 rounded-lg flex items-center justify-center transition-all duration-300 hover:bg-primary-800 group`}>
           {/* Alcantara Logo Image */}
           <img 
-            src="/alcant.png" 
-            alt="Alcantara Logo"
+            src="/ΛʟcΛɴᴛ.png" 
+            alt="ΛʟcΛɴᴛ Logo"
             className="w-full h-full object-contain p-2"
             onError={(e) => {
               console.error('Logo image failed to load:', e);

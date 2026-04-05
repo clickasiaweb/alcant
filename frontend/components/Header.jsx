@@ -295,8 +295,8 @@ export default function Header() {
             <span className="hidden sm:inline">Premium ΛʟcΛɴᴛ products</span>
           </div>
           <div className="flex items-center space-x-4">
-            <a href="tel:+1-800-ALCANSIDE" className="hover:text-primary-400 transition-colors">
-              1-800-ALCANSIDE
+            <a href="tel:+1-800-ΛʟcΛɴᴛ" className="hover:text-primary-400 transition-colors">
+              1-800-ΛʟcΛɴᴛ
             </a>
             <a href="/contact" className="hover:text-primary-400 transition-colors">
               Contact Us

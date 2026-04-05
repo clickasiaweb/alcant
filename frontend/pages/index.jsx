@@ -31,7 +31,7 @@ import Mail from "lucide-react/dist/esm/icons/mail";
 import Phone from "lucide-react/dist/esm/icons/phone";
 import MapPin from "lucide-react/dist/esm/icons/map-pin";
 
-const AlcantaraHome = ({ homeContent = {} }) => {
+const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
   const collections = homeContent.collections?.items || [
     {
       id: 1,
@@ -150,7 +150,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
         
         {/* Brand Name */}
         <div className="absolute bottom-2 sm:bottom-4 right-4 sm:right-6 text-white/80 text-xs sm:text-sm font-medium">
-          WWW.ALCANSIDE.COM
+          WWW.ΛʟcΛɴᴛ.COM
         </div>
       </section>
 
@@ -294,7 +294,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
         </div>
       </section>
 
-      {/* Alcantara for Automotive */}
+      {/* ΛʟcΛɴᴛ for Automotive */}
       <section className="py-16 bg-white">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -456,7 +456,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
         </div>
       </section>
 
-      {/* Team Alcantara */}
+      {/* Team ΛʟcΛɴᴛ */}
       <section className="py-16 bg-white">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -645,5 +645,5 @@ export default function HomePage() {
     );
   }
 
-  return <AlcantaraHome homeContent={homeContent} />;
+  return <ΛʟcΛɴᴛHome homeContent={homeContent} />;
 }

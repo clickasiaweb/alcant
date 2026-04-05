@@ -156,17 +156,17 @@ const SubSubCategoryPage = () => {
   return (
     <Layout>
       <Head>
-        <title>{meta.title} - ALCANSIDE</title>
+        <title>{meta.title} - ΛʟcΛɴᴛ</title>
         <meta name="description" content={meta.description} />
-        <meta name="keywords" content={`${meta.title}, alcantara, premium accessories, ${category}, ${subcategory || ''}, ${subsubcategory || ''}`} />
-        <meta property="og:title" content={`${meta.title} - ALCANSIDE`} />
+        <meta name="keywords" content={`${meta.title}, ΛʟcΛɴᴛ, premium accessories, ${category}, ${subcategory || ''}, ${subsubcategory || ''}`} />
+        <meta property="og:title" content={`${meta.title} - ΛʟcΛɴᴛ`} />
         <meta property="og:description" content={meta.description} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content={`https://www.alcanside.com/category/${category}${subcategory ? `/${subcategory}` : ''}${subsubcategory ? `/${subsubcategory}` : ''}`} />
+        <meta property="og:url" content={`https://www.ΛʟcΛɴᴛ.com/category/${category}${subcategory ? `/${subcategory}` : ''}${subsubcategory ? `/${subsubcategory}` : ''}`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${meta.title} - ALCANSIDE`} />
+        <meta name="twitter:title" content={`${meta.title} - ΛʟcΛɴᴛ`} />
         <meta name="twitter:description" content={meta.description} />
-        <link rel="canonical" href={`https://www.alcanside.com/category/${category}${subcategory ? `/${subcategory}` : ''}${subsubcategory ? `/${subsubcategory}` : ''}`} />
+        <link rel="canonical" href={`https://www.ΛʟcΛɴᴛ.com/category/${category}${subcategory ? `/${subcategory}` : ''}${subsubcategory ? `/${subsubcategory}` : ''}`} />
       </Head>
 
       {/* Breadcrumb Navigation */}

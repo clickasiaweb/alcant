@@ -264,7 +264,7 @@ const ProductAccordionSections = ({ product }) => {
               </div>
               <div className="text-gray-700">
                 <span className="font-medium">Gudelj</span>, <span className="font-medium">Dirk Schouten</span>, and 
-                <span className="font-medium text-primary-600"> 100,000+</span> others use ALCANSIDE
+                <span className="font-medium text-primary-600"> 100,000+</span> others use ΛʟcΛɴᴛ
               </div>
             </div>
           </div>
