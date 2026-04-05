@@ -137,7 +137,7 @@ const ProductInfo = ({
               <Star 
                 key={i} 
                 className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                  i < Math.floor(product.average_rating || product.rating || 0) 
+                  i < Math.floor((product.average_rating || product.rating || 0)) 
                     ? 'text-yellow-400 fill-current' 
                     : 'text-gray-300'
                 }`} 

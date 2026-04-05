@@ -22,14 +22,7 @@ class SupabaseReview {
   static async findByProductId(productId, options = {}) {
     let supabaseQuery = supabase
       .from('reviews')
-      .select(`
-        *,
-        user:users(
-          id,
-          name,
-          email
-        )
-      `)
+      .select('*')
       .eq('product_id', productId)
       .order('created_at', { ascending: false });
     
@@ -149,19 +142,7 @@ class SupabaseReview {
   static async findById(reviewId) {
     const { data, error } = await supabase
       .from('reviews')
-      .select(`
-        *,
-        user:users(
-          id,
-          name,
-          email
-        ),
-        product:products(
-          id,
-          name,
-          slug
-        )
-      `)
+      .select('*')
       .eq('id', reviewId)
       .single();
     

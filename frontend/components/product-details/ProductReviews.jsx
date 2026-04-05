@@ -243,13 +243,13 @@ const ProductReviews = ({ productId }) => {
           {reviews.map((review) => (
             <div key={review.id} className="border rounded-lg p-4">
               <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-start space-x-3">
                   <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-gray-600" />
                   </div>
                   <div>
                     <div className="font-medium text-gray-900">
-                      {review.user?.name || 'Anonymous User'}
+                      {review.user_id?.includes('demo-user') ? 'Demo User' : 'Anonymous User'}
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-gray-500">
                       <div className="flex">
