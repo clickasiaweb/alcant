@@ -7,18 +7,14 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    console.log('🔍 RelatedProductsBySubCategory - useEffect triggered');
+    console.log('📋 Current Product:', currentProduct);
+    
     if (currentProduct) {
-      console.log('🔍 Current Product:', currentProduct);
-      console.log('📋 Product Fields:', {
-        id: currentProduct.id,
-        name: currentProduct.name,
-        category: currentProduct.category,
-        subcategory: currentProduct.subcategory,
-        subcategoryId: currentProduct.subcategoryId,
-        sub_subcategory: currentProduct.sub_subcategory,
-        sub_subcategory_id: currentProduct.sub_subcategory_id
-      });
+      console.log('✅ Product exists, fetching related products...');
       fetchRelatedProducts();
+    } else {
+      console.log('❌ No product provided');
     }
   }, [currentProduct]);
 
@@ -95,13 +91,39 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
           </p>
         </div>
         
+        {/* Always show section title */}
+        <div className="mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Related Products {loading && '(Loading...)'}
+          </h3>
+        </div>
+        
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {relatedProducts.map((product) => (
-            <div key={product.id} className="group">
-              <ProductCard product={product} />
+          {loading ? (
+            // Show loading skeletons
+            [...Array(4)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="bg-white rounded-lg p-4 shadow-sm">
+                  <div className="bg-gray-200 h-40 rounded mb-3"></div>
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            ))
+          ) : relatedProducts.length > 0 ? (
+            // Show actual products
+            relatedProducts.map((product) => (
+              <div key={product.id} className="group">
+                <ProductCard product={product} />
+              </div>
+            ))
+          ) : (
+            // Show no products message
+            <div className="col-span-full text-center py-8">
+              <p className="text-gray-500">No related products found in this category.</p>
             </div>
-          ))}
+          )}
         </div>
         
         {/* View All Button */}
@@ -112,6 +134,7 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
               const categoryPath = currentProduct.category 
                 ? `/category/${encodeURIComponent(currentProduct.category.toLowerCase())}`
                 : '/products';
+              console.log('🔗 Navigating to:', categoryPath);
               window.location.href = categoryPath;
             }}
             className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors inline-flex items-center"
