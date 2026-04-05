@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import ProductCard from '../ProductCard';
-import { ArrowLeft, ArrowRight, Grid } from 'lucide-react';
+import EnhancedProductCard from '../EnhancedProductCard';
+import ViewAllProductsButton from '../ViewAllProductsButton';
+import { Grid } from 'lucide-react';
 import apiClient from '../../lib/api';
 
 const RelatedProductsBySubCategory = ({ currentProduct }) => {
@@ -135,19 +136,25 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
             // Show loading skeletons
             [...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse">
-                <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <div className="bg-gray-200 h-40 rounded mb-3"></div>
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="bg-white rounded-lg overflow-hidden shadow-sm">
+                  <div className="bg-gray-200 h-64"></div>
+                  <div className="p-4">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-3"></div>
+                    <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                  </div>
                 </div>
               </div>
             ))
           ) : relatedProducts.length > 0 ? (
             // Show actual products
-            relatedProducts.map((product) => (
-              <div key={product.id} className="group">
-                <ProductCard product={product} />
-              </div>
+            relatedProducts.map((product, index) => (
+              <EnhancedProductCard 
+                key={product.id} 
+                product={product} 
+                index={index}
+              />
             ))
           ) : (
             // Show no products message
@@ -159,20 +166,13 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
         
         {/* View All Button */}
         <div className="text-center mt-8">
-          <button 
-            onClick={() => {
-              // Navigate to category page
-              const categoryPath = currentProduct.category 
+          <ViewAllProductsButton 
+            href={
+              currentProduct.category 
                 ? `/category/${encodeURIComponent(currentProduct.category.toLowerCase())}`
-                : '/products';
-              console.log('🔗 Navigating to:', categoryPath);
-              window.location.href = categoryPath;
-            }}
-            className="bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors inline-flex items-center"
-          >
-            <Grid className="w-5 h-5 mr-2" />
-            View All Products
-          </button>
+                : '/products'
+            }
+          />
         </div>
       </div>
     </section>
