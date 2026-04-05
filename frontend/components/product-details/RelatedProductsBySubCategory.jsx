@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from '../ProductCard';
 import { ArrowLeft, ArrowRight, Grid } from 'lucide-react';
+import apiClient from '../../lib/api';
 
 const RelatedProductsBySubCategory = ({ currentProduct }) => {
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -28,14 +29,14 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
       if (currentProduct.subcategory) {
         // Check if subcategory is a UUID
         if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentProduct.subcategory)) {
-          apiUrl = `/api/products?subcategory=${currentProduct.subcategory}&exclude=${currentProduct.id}&limit=8`;
+          apiUrl = `/products?subcategory=${currentProduct.subcategory}&exclude=${currentProduct.id}&limit=8`;
           console.log('🎯 Using subcategory UUID:', currentProduct.subcategory);
         } else {
-          apiUrl = `/api/products?subcategory=${encodeURIComponent(currentProduct.subcategory)}&exclude=${currentProduct.id}&limit=8`;
+          apiUrl = `/products?subcategory=${encodeURIComponent(currentProduct.subcategory)}&exclude=${currentProduct.id}&limit=8`;
           console.log('🎯 Using subcategory name:', currentProduct.subcategory);
         }
       } else if (currentProduct.category) {
-        apiUrl = `/api/products?category=${encodeURIComponent(currentProduct.category)}&exclude=${currentProduct.id}&limit=8`;
+        apiUrl = `/products?category=${encodeURIComponent(currentProduct.category)}&exclude=${currentProduct.id}&limit=8`;
         console.log('🎯 Using category name:', currentProduct.category);
       } else {
         console.log('❌ No category info available');
@@ -46,17 +47,16 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
       
       console.log('🌐 Final API URL:', apiUrl);
       
-      const response = await fetch(apiUrl);
-      const data = await response.json();
+      const response = await apiClient.get(apiUrl);
+      const data = response.data;
       
       console.log('📦 API Response:', {
-        ok: response.ok,
         status: response.status,
         url: apiUrl,
         data: data
       });
       
-      if (response.ok) {
+      if (response.status === 200) {
         const products = data.products || [];
         setRelatedProducts(products);
         console.log('✅ Related products found:', products.length);
