@@ -157,7 +157,7 @@ const ProductGridSection = ({
                 <div>
                   <h4 className="text-sm font-medium text-gray-900 mb-3">Brand</h4>
                   <div className="space-y-2">
-                    {['Alcantara', 'Premium', 'Luxury'].map((brand) => (
+                    {['ΛʟcΛɴᴛ', 'Premium', 'Luxury'].map((brand) => (
                       <label key={brand} className="flex items-center">
                         <input
                           type="checkbox"

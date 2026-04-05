@@ -262,11 +262,11 @@ const WishlistPage = () => {
                         {/* Price */}
                         <div className="flex items-center space-x-2 mb-3">
                           <span className="text-lg font-semibold text-gray-900">
-                            ${item.price.toLocaleString()}
+                            ₹{item.price.toLocaleString()}
                           </span>
                           {item.originalPrice && (
                             <span className="text-sm text-gray-400 line-through">
-                              ${item.originalPrice.toLocaleString()}
+                              ₹{item.originalPrice.toLocaleString()}
                             </span>
                           )}
                         </div>

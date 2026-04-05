@@ -5,7 +5,7 @@ import ProductGridSection from '../components/ProductGridSection';
 const sampleProducts = [
   {
     id: 1,
-    name: "Premium Alcantara Phone Case",
+    name: "Premium ΛʟcΛɴᴛ Phone Case",
     features: "Magsafe Compatible",
     price: 2999,
     originalPrice: 3999,
@@ -13,12 +13,12 @@ const sampleProducts = [
     review_count: 846,
     colors: ["#000000", "#10B981", "#3B82F6", "#EF4444", "#6B7280"],
     isBestseller: true,
-    slug: "premium-alcantara-phone-case",
+    slug: "premium-ΛʟcΛɴᴛ-phone-case",
     image: null
   },
   {
     id: 2,
-    name: "Alcantara Travel Pillow",
+    name: "ΛʟcΛɴᴛ Travel Pillow",
     features: "Ergonomic Design",
     price: 3499,
     originalPrice: null,
@@ -26,7 +26,7 @@ const sampleProducts = [
     review_count: 324,
     colors: ["#1F2937", "#92400E", "#6B7280"],
     discount: 30,
-    slug: "alcantara-travel-pillow",
+    slug: "ΛʟcΛɴᴛ-travel-pillow",
     image: null
   },
   {
@@ -44,14 +44,14 @@ const sampleProducts = [
   },
   {
     id: 4,
-    name: "iPhone 17 Pro - Alcantara Case - Navy Blue",
+    name: "iPhone 17 Pro - ΛʟcΛɴᴛ Case - Navy Blue",
     features: "Magsafe Compatible",
     price: 10400,
     originalPrice: 7800,
     rating: 5,
     review_count: 5642,
     colors: ["#1E3A8A", "#10B981", "#EF4444", "#6B7280", "#F59E0B"],
-    slug: "iphone-17-pro-alcantara-case-navy-blue",
+    slug: "iphone-17-pro-ΛʟcΛɴᴛ-case-navy-blue",
     image: null
   }
 ];

@@ -36,7 +36,7 @@ const SearchResults = () => {
     const fetchCategories = async () => {
       try {
         const API_BASE_URL = process.env.NODE_ENV === 'production' 
-          ? 'https://alcant-backend.vercel.app/api' 
+          ? 'https://ΛʟcΛɴᴛ-backend.vercel.app/api' 
           : 'http://localhost:5001/api';
         
         const response = await fetch(`${API_BASE_URL}/products/categories`);
@@ -143,7 +143,7 @@ const SearchResults = () => {
       
       try {
         const API_BASE_URL = process.env.NODE_ENV === 'production' 
-          ? 'https://alcant-backend.vercel.app/api' 
+          ? 'https://ΛʟcΛɴᴛ-backend.vercel.app/api' 
           : 'http://localhost:5001/api';
         
         // Build search URL with parameters

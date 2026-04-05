@@ -113,7 +113,7 @@ const CompactProductCard = ({ product, index = 0 }) => {
         {/* Product Name */}
         <Link href={`/product-details/${product.slug}`}>
           <h3 className="text-[12px] sm:text-[14px] font-semibold text-gray-900 hover:text-blue-600 transition-colors leading-snug line-clamp-2 mb-2">
-            {product.name || 'iPhone 17 Pro Max - Alcantara Case - Space Grey'}
+            {product.name || 'iPhone 17 Pro Max - ΛʟcΛɴᴛ Case - Space Grey'}
           </h3>
         </Link>
 
@@ -148,11 +148,11 @@ const CompactProductCard = ({ product, index = 0 }) => {
         {/* Price */}
         <div className="flex items-center space-x-2">
           <span className="text-[13px] sm:text-[15px] font-bold text-gray-900">
-            Rs. {product.price || '7,700.00'}
+            ₹{product.price || '7,700.00'}
           </span>
           {product.originalPrice && (
             <span className="text-[11px] sm:text-[12px] text-gray-400 line-through">
-              Rs. {product.originalPrice}
+              ₹{product.originalPrice}
             </span>
           )}
         </div>

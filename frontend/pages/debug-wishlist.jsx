@@ -32,7 +32,7 @@ const DebugPage = () => {
             />
             <div>
               <p className="font-medium">{testProduct.name}</p>
-              <p className="text-gray-600">${testProduct.price}</p>
+              <p className="text-gray-600">₹{testProduct.price}</p>
             </div>
           </div>
         </div>

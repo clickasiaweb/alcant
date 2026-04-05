@@ -62,7 +62,7 @@ const TestProduct = () => {
   return (
     <div style={{ padding: '20px', border: '1px solid #ccc', margin: '10px' }}>
       <h3>{product.name}</h3>
-      <p>Price: ${product.price}</p>
+      <p>Price: ₹{product.price}</p>
       <button 
         onClick={() => addToCart(product, 1)}
         style={{ 
@@ -123,7 +123,7 @@ const TestCartDrawer = () => {
       <div style={{ padding: '20px' }}>
         {cartItems.map(item => (
           <div key={item.id} style={{ marginBottom: '10px' }}>
-            <p>{item.name} - ${item.price} × {item.quantity}</p>
+            <p>{item.name} - ₹{item.price} × {item.quantity}</p>
           </div>
         ))}
         {cartItems.length === 0 && <p>Cart is empty</p>}

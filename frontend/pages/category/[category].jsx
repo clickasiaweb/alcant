@@ -571,11 +571,11 @@ const CategoryPage = () => {
                     {/* Price */}
                     <div className="flex items-center space-x-2">
                       <span className="text-xl font-bold text-gray-900">
-                        ${product.price}
+                        ₹{product.price}
                       </span>
                       {product.old_price && (
                         <span className="text-sm text-gray-500 line-through">
-                          ${product.old_price}
+                          ₹{product.old_price}
                         </span>
                       )}
                     </div>

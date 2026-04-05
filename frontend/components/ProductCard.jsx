@@ -62,12 +62,20 @@ const ProductCard = ({ product, index = 0 }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative bg-white rounded-lg overflow-hidden shadow-card hover:shadow-card-hover transition-all duration-300">
+      <div className="relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
         {/* Product Image */}
-        <div className="relative aspect-w-3 aspect-h-4 bg-gradient-to-br from-primary-50 to-secondary-50 overflow-hidden">
-          <div className="w-full h-64 flex items-center justify-center">
-            <span className="text-primary-300 text-lg">Product Image</span>
-          </div>
+        <div className="relative bg-gray-50 h-64 overflow-hidden flex items-center justify-center">
+            {product.image ? (
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-full h-full object-contain p-3"
+              />
+            ) : (
+              <div className="w-32 h-40 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-gray-400 text-sm">Case</span>
+              </div>
+            )}
           
           {/* Overlay Actions */}
           <div className={`absolute inset-0 bg-gradient-to-t from-black/60 to-transparent transition-opacity duration-300 ${

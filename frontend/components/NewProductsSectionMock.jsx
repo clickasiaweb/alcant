@@ -16,49 +16,49 @@ const NewProductsSectionMock = () => {
     setNewProducts([
       {
         id: 1,
-        name: "iPhone 17 Pro Max - Alcantara Case - Space Grey",
+        name: "iPhone 17 Pro Max - ΛʟcΛɴᴛ Case - Space Grey",
         price: "7,700.00",
         originalPrice: "11,000.00",
         image: "https://picsum.photos/seed/iphone-space-grey/300/400.jpg",
         rating: 4.5,
         reviews: 5642,
         isBestseller: true,
-        slug: "iphone-17-pro-max-alcantara-case-space-grey",
+        slug: "iphone-17-pro-max-ΛʟcΛɴᴛ-case-space-grey",
         colorCount: 8
       },
       {
         id: 2,
-        name: "iPhone 16 Pro - Alcantara Case - Navy Blue",
+        name: "iPhone 16 Pro - ΛʟcΛɴᴛ Case - Navy Blue",
         price: "6,500.00",
         originalPrice: "9,000.00",
         image: "https://picsum.photos/seed/iphone-navy-blue/300/400.jpg",
         rating: 4.3,
         reviews: 3421,
         discount: 30,
-        slug: "iphone-16-pro-alcantara-case-navy-blue",
+        slug: "iphone-16-pro-ΛʟcΛɴᴛ-case-navy-blue",
         colorCount: 6
       },
       {
         id: 3,
-        name: "iPhone 15 - Alcantara Case - Rose Gold",
+        name: "iPhone 15 - ΛʟcΛɴᴛ Case - Rose Gold",
         price: "5,200.00",
         originalPrice: "7,500.00",
         image: "https://picsum.photos/seed/iphone-rose-gold/300/400.jpg",
         rating: 4.7,
         reviews: 8932,
         isLimited: true,
-        slug: "iphone-15-alcantara-case-rose-gold",
+        slug: "iphone-15-ΛʟcΛɴᴛ-case-rose-gold",
         colorCount: 5
       },
       {
         id: 4,
-        name: "iPhone 14 Pro - Alcantara Case - Forest Green",
+        name: "iPhone 14 Pro - ΛʟcΛɴᴛ Case - Forest Green",
         price: "4,800.00",
         originalPrice: "6,900.00",
         image: "https://picsum.photos/seed/iphone-forest-green/300/400.jpg",
         rating: 4.6,
         reviews: 2156,
-        slug: "iphone-14-pro-alcantara-case-forest-green",
+        slug: "iphone-14-pro-ΛʟcΛɴᴛ-case-forest-green",
         colorCount: 7
       }
     ]);

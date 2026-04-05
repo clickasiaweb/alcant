@@ -529,7 +529,7 @@ const CheckoutPage = () => {
                               <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
                             </div>
                             <p className="font-medium text-gray-900">
-                              ${(item.price * item.quantity).toLocaleString()}
+                              ₹{(item.price * item.quantity).toLocaleString()}
                             </p>
                           </div>
                         ))}

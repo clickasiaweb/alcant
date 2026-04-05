@@ -72,7 +72,7 @@ export default function Header() {
         categories: categories.map(category => ({
           title: category.name,
           href: `/category/${category.slug}`,
-          description: `Premium Alcantara ${category.name.toLowerCase()}`,
+          description: `Premium ΛʟcΛɴᴛ ${category.name.toLowerCase()}`,
           image: `https://via.placeholder.com/300x200/1a365d/ffffff?text=${encodeURIComponent(category.name)}`,
           subcategories: category.subcategories?.map(subcategory => ({
             name: subcategory.name,
@@ -292,7 +292,7 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <span>Free shipping on orders over $100</span>
             <span className="hidden sm:inline">•</span>
-            <span className="hidden sm:inline">Premium Alcantara products</span>
+            <span className="hidden sm:inline">Premium ΛʟcΛɴᴛ products</span>
           </div>
           <div className="flex items-center space-x-4">
             <a href="tel:+1-800-ALCANSIDE" className="hover:text-primary-400 transition-colors">
@@ -426,7 +426,7 @@ export default function Header() {
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <div className="flex items-center space-x-2">
                 <Logo size="small" />
-                <span className="text-lg font-bold text-gray-900">ALCANT</span>
+                <span className="text-lg font-bold text-gray-900">ΛʟcΛɴᴛ</span>
               </div>
               <div className="flex items-center space-x-2">
                 <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">

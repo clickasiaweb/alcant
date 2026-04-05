@@ -78,7 +78,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
       title: "Professional Car Tuner",
       image: "/api/placeholder/100/100",
       description:
-        "Specializing in luxury vehicle modifications with Alcantara interiors.",
+        "Specializing in luxury vehicle modifications with ΛʟcΛɴᴛ interiors."
     },
     {
       id: 2,
@@ -86,7 +86,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
       title: "Performance Specialist",
       image: "/api/placeholder/100/100",
       description:
-        "Expert in high-performance vehicle upgrades and custom Alcantara work.",
+        "Expert in high-performance vehicle upgrades and custom ΛʟcΛɴᴛ work."
     },
     {
       id: 3,
@@ -94,7 +94,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
       title: "Interior Designer",
       image: "/api/placeholder/100/100",
       description:
-        "Creating bespoke automotive interiors with premium Alcantara materials.",
+        "Creating bespoke automotive interiors with premium ΛʟcΛɴᴛ materials."
     },
   ];
 
@@ -106,8 +106,8 @@ const AlcantaraHome = ({ homeContent = {} }) => {
 
   return (
     <Layout
-      title="Alcantara Accessories - Premium Products"
-      description="Premium Alcantara accessories for every day"
+      title="ΛʟcΛɴᴛ Accessories - Premium Products"
+      description="Premium ΛʟcΛɴᴛ accessories for every day"
     >
       {/* Promotional Banner Section */}
       <section 
@@ -265,7 +265,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
                 {homeContent.newWeHave?.title || "New We Have"}
               </h2>
               <p className="text-base text-gray-600 mb-8">
-                {homeContent.newWeHave?.content || "Discover our latest collection of premium Alcantara accessories, designed to elevate your everyday luxury experience."}
+                {homeContent.newWeHave?.content || "Discover our latest collection of premium ΛʟcΛɴᴛ accessories, designed to elevate your everyday luxury experience."}
               </p>
               <Link
                 href={homeContent.newWeHave?.buttonLink || "/products"}
@@ -300,10 +300,10 @@ const AlcantaraHome = ({ homeContent = {} }) => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
               <h2 className="text-2xl md:text-3xl font-bold text-primary-900 mb-6">
-                {homeContent.automotive?.title || "ALCANTARA FOR AUTOMOTIVE"}
+                {homeContent.automotive?.title || "ΛʟcΛɴᴛ FOR AUTOMOTIVE"}
               </h2>
               <p className="text-base text-gray-600 mb-8">
-                {homeContent.automotive?.content || "Experience the luxury of Alcantara in your vehicle. Our premium automotive accessories provide the perfect combination of style, comfort, and durability for discerning car enthusiasts."}
+                {homeContent.automotive?.content || "Experience the luxury of ΛʟcΛɴᴛ in your vehicle. Our premium automotive accessories provide the perfect combination of style, comfort, and durability for discerning car enthusiasts."}
               </p>
               <Link
                 href={homeContent.automotive?.buttonLink || "/solutions/automotive"}
@@ -404,7 +404,7 @@ const AlcantaraHome = ({ homeContent = {} }) => {
                 {homeContent.partner?.title || "Proud partner of Conkero.com"}
               </h2>
               <p className="text-base text-primary-100 mb-8">
-                {homeContent.partner?.content || "We are honored to partner with Conkero.com to bring you the finest Alcantara products and accessories. Together, we deliver exceptional quality and service to our valued customers."}
+                {homeContent.partner?.content || "We are honored to partner with Conkero.com to bring you the finest ΛʟcΛɴᴛ products and accessories. Together, we deliver exceptional quality and service to our valued customers."}
               </p>
               <div className="flex space-x-4">
                 <Link
@@ -477,13 +477,13 @@ const AlcantaraHome = ({ homeContent = {} }) => {
             </div>
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-primary-900 mb-6">
-                {homeContent.team?.title || "Team Alcantara"}
+                {homeContent.team?.title || "Team ΛʟcΛɴᴛ"}
               </h2>
               <p className="text-base text-gray-600 mb-6">
-                {homeContent.team?.content || "Our dedicated team of professionals is committed to bringing you the finest Alcantara products and exceptional customer service. With years of experience in the luxury goods industry, we understand what it takes to deliver excellence."}
+                {homeContent.team?.content || "Our dedicated team of professionals is committed to bringing you the finest ΛʟcΛɴᴛ products and exceptional customer service. With years of experience in the luxury goods industry, we understand what it takes to deliver excellence."}
               </p>
               <p className="text-base text-gray-600 mb-8">
-                From our skilled craftsmen to our knowledgeable sales team, every member of Team Alcantara shares a passion for quality and a commitment to customer satisfaction.
+                From our skilled craftsmen to our knowledgeable sales team, every member of Team ΛʟcΛɴᴛ shares a passion for quality and a commitment to customer satisfaction.
               </p>
               <Link
                 href={homeContent.team?.buttonLink || "/about"}

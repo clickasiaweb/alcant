@@ -173,11 +173,11 @@ const SearchDropdown = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-semibold text-primary-600">
-                          ${product.price.toFixed(2)}
+                          ₹{product.price.toFixed(2)}
                         </p>
                         {product.oldPrice && (
                           <p className="text-xs text-gray-400 line-through">
-                            ${product.oldPrice.toFixed(2)}
+                            ₹{product.oldPrice.toFixed(2)}
                           </p>
                         )}
                       </div>

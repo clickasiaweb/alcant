@@ -231,11 +231,11 @@ const CartPage = () => {
 
                             <div className="text-right">
                               <div className="text-lg font-semibold text-gray-900">
-                                ${(item.price * item.quantity).toLocaleString()}
+                                ₹{(item.price * item.quantity).toLocaleString()}
                               </div>
                               {item.originalPrice && (
                                 <div className="text-sm text-gray-500 line-through">
-                                  ${(item.originalPrice * item.quantity).toLocaleString()}
+                                  ₹{(item.originalPrice * item.quantity).toLocaleString()}
                                 </div>
                               )}
                               <button

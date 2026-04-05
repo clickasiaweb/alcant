@@ -117,7 +117,7 @@ const ContextTest = () => {
         <h3>Cart Items:</h3>
         {cartItems.map(item => (
           <div key={item.id} style={{ margin: '10px 0', padding: '10px', border: '1px solid #ccc' }}>
-            {item.name} - ${item.price} × {item.quantity}
+            {item.name} - ₹{item.price} × {item.quantity}
           </div>
         ))}
         {cartItems.length === 0 && <p>Cart is empty</p>}

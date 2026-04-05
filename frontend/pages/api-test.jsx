@@ -115,7 +115,7 @@ export default function ApiTest() {
               {data?.products?.data?.map((product) => (
                 <div key={product.id} className="text-sm">
                   <span className="font-medium">{product.name}</span>
-                  <span className="text-gray-500 ml-2">${product.price}</span>
+                  <span className="text-gray-500 ml-2">₹{product.price}</span>
                 </div>
               ))}
             </div>

@@ -41,7 +41,7 @@ const BasicTest = () => {
         <strong>Cart Items: {items.length}</strong>
         {items.map(item => (
           <div key={item.id} style={{ margin: '10px 0', padding: '10px', border: '1px solid #ccc' }}>
-            {item.name} - ${item.price}
+            {item.name} - ₹{item.price}
             <button 
               onClick={() => removeItem(item.id)}
               style={{ marginLeft: '10px', padding: '5px 10px', backgroundColor: 'red', color: 'white', border: 'none', borderRadius: '4px' }}
@@ -77,7 +77,7 @@ const BasicTest = () => {
           <div style={{ padding: '20px' }}>
             {items.map(item => (
               <div key={item.id} style={{ marginBottom: '10px', padding: '10px', border: '1px solid #eee' }}>
-                {item.name} - ${item.price}
+                {item.name} - ₹{item.price}
               </div>
             ))}
             {items.length === 0 && <p>Cart is empty</p>}

@@ -75,18 +75,20 @@ const EnhancedProductCard = ({ product, index = 0 }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="relative bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
+      <div className="relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
         {/* Product Image */}
-        <div className="relative aspect-w-3 aspect-h-4 bg-gray-100 overflow-hidden">
+        <div className="relative bg-gray-50 h-64 overflow-hidden flex items-center justify-center">
           <div className="w-full h-64 flex items-center justify-center bg-gray-50">
             {product.image ? (
               <img 
                 src={product.image} 
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain p-3"
               />
             ) : (
-              <span className="text-gray-400 text-lg">Product Image</span>
+              <div className="w-32 h-40 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-gray-400 text-sm">Case</span>
+              </div>
             )}
           </div>
           
@@ -176,11 +178,11 @@ const EnhancedProductCard = ({ product, index = 0 }) => {
           {/* Price */}
           <div className="flex items-center space-x-2">
             <span className="text-lg font-semibold text-gray-900">
-              Rs. {product.price}
+              ₹{product.price}
             </span>
             {product.originalPrice && (
               <span className="text-sm text-gray-400 line-through">
-                Rs. {product.originalPrice}
+                ₹{product.originalPrice}
               </span>
             )}
           </div>

@@ -62,7 +62,7 @@ export default function MinimalDynamicHeader() {
     <header className="bg-white shadow-md p-4">
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
-          <div className="text-xl font-bold">Alcantara Store</div>
+          <div className="text-xl font-bold">ΛʟcΛɴᴛ Store</div>
           
           <nav className="flex space-x-6">
             <a href="/" className="text-gray-700 hover:text-blue-600">Home</a>

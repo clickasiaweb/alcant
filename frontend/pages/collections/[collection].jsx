@@ -12,11 +12,11 @@ const CollectionPage = () => {
   const collectionsData = {
     'phone-cases': {
       title: 'Phone Cases Collection',
-      description: 'Explore our complete collection of premium Alcantara phone cases',
+      description: 'Explore our complete collection of premium ΛʟcΛɴᴛ phone cases',
       products: [
         {
           id: 1,
-          name: 'iPhone 15 Pro Alcantara Case - Space Gray',
+          name: 'iPhone 15 Pro ΛʟcΛɴᴛ Case - Space Gray',
           image: '/api/placeholder/300/300',
           rating: 5,
           reviews: 211,
@@ -28,7 +28,7 @@ const CollectionPage = () => {
         },
         {
           id: 2,
-          name: 'iPhone 15 Pro Alcantara Case - Orange',
+          name: 'iPhone 15 Pro ΛʟcΛɴᴛ Case - Orange',
           image: '/api/placeholder/300/300',
           rating: 4,
           reviews: 180,

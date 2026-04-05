@@ -130,7 +130,7 @@ const OrderConfirmationPage = () => {
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-gray-900">
-                            ${(item.price * item.quantity).toLocaleString()}
+                            ₹{(item.price * item.quantity).toLocaleString()}
                           </p>
                         </div>
                       </div>

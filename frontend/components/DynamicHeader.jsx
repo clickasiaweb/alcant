@@ -42,7 +42,7 @@ export default function DynamicHeader() {
       const navigationCategories = categoriesList.map(category => ({
         title: category.name,
         href: `/category/${category.slug}`,
-        description: category.description || `Premium Alcantara ${category.name.toLowerCase()}`,
+        description: category.description || `Premium ΛʟcΛɴᴛ ${category.name.toLowerCase()}`,
         image: `https://via.placeholder.com/300x200/1a365d/ffffff?text=${encodeURIComponent(category.name)}`,
         subcategories: (category.subcategories || []).map(sub => ({
           name: sub.name,
@@ -115,8 +115,8 @@ export default function DynamicHeader() {
           title: "Featured Products",
           products: featuredProducts.map(product => ({
             name: product.name,
-            description: product.description || 'Premium Alcantara product',
-            price: `$${product.price || '89.99'}`,
+            description: product.description || 'Premium ΛʟcΛɴᴛ product',
+            price: `₹${product.price || '89.99'}`,
             image: product.image || `https://via.placeholder.com/200x150/1a365d/ffffff?text=${encodeURIComponent(product.name)}`,
             href: `/product/${product.slug || product.id}`
           }))
@@ -133,7 +133,7 @@ export default function DynamicHeader() {
           {
             title: "New Arrivals",
             href: "/products?filter=new",
-            description: "Latest Alcantara products",
+            description: "Latest ΛʟcΛɴᴛ products",
             image: "https://via.placeholder.com/300x200/1a365d/ffffff?text=New+Arrivals",
             subcategories: [
               { name: "This Week", href: "/products?filter=new&period=week" },
@@ -144,7 +144,7 @@ export default function DynamicHeader() {
           {
             title: "Best Sellers",
             href: "/products?filter=best-sellers",
-            description: "Most popular Alcantara items",
+            description: "Most popular ΛʟcΛɴᴛ items",
             image: "https://via.placeholder.com/300x200/2c5282/ffffff?text=Best+Sellers",
             subcategories: categories.slice(0, 3).map(cat => ({
               name: cat.title,
@@ -156,7 +156,7 @@ export default function DynamicHeader() {
           title: "Featured Collections",
           products: featuredProducts.slice(0, 3).map(product => ({
             name: product.name,
-            description: `Complete ${product.category || 'Alcantara'} collection`,
+            description: `Complete ${product.category || 'ΛʟcΛɴᴛ'} collection`,
             image: product.image || `https://via.placeholder.com/200x150/1a365d/ffffff?text=${encodeURIComponent(product.name)}`,
             href: `/collection/${product.slug || product.id}`
           }))
@@ -173,7 +173,7 @@ export default function DynamicHeader() {
           {
             title: "Product Care",
             href: "/support/product-care",
-            description: "How to care for your Alcantara products",
+            description: "How to care for your ΛʟcΛɴᴛ products",
             image: "https://via.placeholder.com/300x200/1a365d/ffffff?text=Product+Care",
             subcategories: [
               { name: "Cleaning Guide", href: "/support/product-care/cleaning" },

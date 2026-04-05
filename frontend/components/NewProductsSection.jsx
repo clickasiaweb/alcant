@@ -386,10 +386,10 @@ const NewProductsSection = () => {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <p className="text-lg font-bold text-primary-800">
-                          ${price}
+                          ₹{price}
                           {oldPrice && (
                             <span className="text-gray-500 line-through ml-2 text-sm">
-                              ${oldPrice}
+                              ₹{oldPrice}
                             </span>
                           )}
                         </p>

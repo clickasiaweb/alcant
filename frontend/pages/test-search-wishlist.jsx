@@ -89,9 +89,9 @@ const TestSearchAndWishlist = () => {
                 <h3 className="font-semibold text-gray-900 mb-2">{product.name}</h3>
                 <p className="text-sm text-gray-600 mb-2">{product.variant}</p>
                 <div className="flex items-center space-x-2 mb-4">
-                  <span className="text-lg font-bold text-gray-900">${product.price}</span>
+                  <span className="text-lg font-bold text-gray-900">₹{product.price}</span>
                   {product.originalPrice && (
-                    <span className="text-sm text-gray-400 line-through">${product.originalPrice}</span>
+                    <span className="text-sm text-gray-400 line-through">₹{product.originalPrice}</span>
                   )}
                 </div>
                 
@@ -127,7 +127,7 @@ const TestSearchAndWishlist = () => {
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900">{item.name}</h3>
                     <p className="text-sm text-gray-600">{item.variant}</p>
-                    <p className="font-semibold text-gray-900">${item.price}</p>
+                    <p className="font-semibold text-gray-900">₹{item.price}</p>
                   </div>
                 </div>
               ))}

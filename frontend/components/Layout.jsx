@@ -13,14 +13,14 @@ export default function Layout({ children, title, description }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
           name="description"
-          content={description || "Alcantara Accessories - Premium Products"}
+          content={description || "ΛʟcΛɴᴛ Accessories - Premium Products"}
         />
         <meta
           name="keywords"
-          content="alcantara, accessories, premium, luxury, automotive, phone cases, bags"
+          content="alcant, accessories, premium, luxury, automotive, phone cases, bags"
         />
         <title>
-          {title ? `${title} - Alcantara` : "Alcantara Accessories"}
+          {title ? `${title} - ΛʟcΛɴᴛ` : "ΛʟcΛɴᴛ Accessories"}
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
