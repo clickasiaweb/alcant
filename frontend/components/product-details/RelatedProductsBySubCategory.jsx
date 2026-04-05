@@ -7,7 +7,17 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (currentProduct?.subcategory_id || currentProduct?.subcategoryId || currentProduct?.sub_subcategory_id) {
+    if (currentProduct) {
+      console.log('🔍 Current Product:', currentProduct);
+      console.log('📋 Product Fields:', {
+        id: currentProduct.id,
+        name: currentProduct.name,
+        category: currentProduct.category,
+        subcategory: currentProduct.subcategory,
+        subcategoryId: currentProduct.subcategoryId,
+        sub_subcategory: currentProduct.sub_subcategory,
+        sub_subcategory_id: currentProduct.sub_subcategory_id
+      });
       fetchRelatedProducts();
     }
   }, [currentProduct]);
@@ -16,32 +26,29 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
     try {
       setLoading(true);
       
-      // Try multiple sub-category fields for better matching
-      let subcategoryId = currentProduct.subcategory_id || currentProduct.subcategoryId;
-      let subSubcategoryId = currentProduct.sub_subcategory_id;
+      // Use category name for reliable matching
+      const category = currentProduct.category;
+      const apiUrl = `/api/products?category=${encodeURIComponent(category)}&exclude=${currentProduct.id}&limit=8`;
       
-      let apiUrl;
-      if (subSubcategoryId) {
-        // If we have sub-subcategory, use that for more specific results
-        apiUrl = `/api/products?sub_subcategory_id=${subSubcategoryId}&exclude=${currentProduct.id}&limit=8`;
-      } else if (subcategoryId) {
-        // Fallback to subcategory
-        apiUrl = `/api/products?subcategory_id=${subcategoryId}&exclude=${currentProduct.id}&limit=8`;
-      } else {
-        // Final fallback to category name
-        apiUrl = `/api/products?category=${encodeURIComponent(currentProduct.category)}&exclude=${currentProduct.id}&limit=8`;
-      }
+      console.log('🌐 Fetching related products:', apiUrl);
       
       const response = await fetch(apiUrl);
       const data = await response.json();
       
+      console.log('📦 API Response:', {
+        ok: response.ok,
+        status: response.status,
+        data: data
+      });
+      
       if (response.ok) {
         setRelatedProducts(data.products || []);
+        console.log('✅ Related products found:', data.products?.length || 0);
       } else {
-        console.error('Failed to fetch related products:', data.error);
+        console.error('❌ Failed to fetch related products:', data.error);
       }
     } catch (error) {
-      console.error('Error fetching related products:', error);
+      console.error('❌ Error fetching related products:', error);
     } finally {
       setLoading(false);
     }
