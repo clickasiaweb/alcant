@@ -10,7 +10,7 @@ import MapPin from 'lucide-react/dist/esm/icons/map-pin';
 import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
 import InquiryForm from './InquiryForm';
 
-export default function AlcantaraFooter() {
+export default function ΛʟcΛɴᴛFooter() {
   const currentYear = new Date().getFullYear();
   const [showInquiryForm, setShowInquiryForm] = useState(false);
 
@@ -20,9 +20,9 @@ export default function AlcantaraFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-xl font-bold mb-4">Alcantara</h3>
+            <h3 className="text-xl font-bold mb-4">ΛʟcΛɴᴛ</h3>
             <p className="text-primary-200 mb-4">
-              Premium Alcantara accessories for every day luxury and comfort.
+              Premium ΛʟcΛɴᴛ accessories for every day luxury and comfort.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-primary-200 hover:text-white transition-colors">
@@ -93,7 +93,7 @@ export default function AlcantaraFooter() {
         {/* Divider */}
         <div className="border-t border-primary-800 pt-8">
           <p className="text-center text-primary-200">
-            © {currentYear} Alcantara Accessories. All rights reserved.
+            © {currentYear} ΛʟcΛɴᴛ Accessories. All rights reserved.
           </p>
         </div>
       </div>

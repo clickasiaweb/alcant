@@ -22,12 +22,12 @@ const Logo = ({ size = "default", className = "" }) => {
   
   return (
     <div className={`font-bold text-primary-600 ${sizeClasses[size]} ${className}`}>
-      ALCANT
+      ΛʟcΛɴᴛ
     </div>
   );
 };
 
-const AlcantaraHeader = () => {
+const ΛʟcΛɴᴛHeader = () => {
   const router = useRouter();
   const { openCart, calculateTotalItems } = useCart();
   const { openSearch } = useSearch();
@@ -92,11 +92,11 @@ const AlcantaraHeader = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        console.log('🔄 AlcantaraHeader: Fetching categories with hierarchy...');
+        console.log('🔄 ΛʟcΛɴᴛHeader: Fetching categories with hierarchy...');
         
         // Use hierarchy endpoint to get all data at once
         const categoriesData = await categoryService.getCategoriesWithHierarchy();
-        console.log('📊 AlcantaraHeader: Categories data received:', categoriesData);
+        console.log('📊 ΛʟcΛɴᴛHeader: Categories data received:', categoriesData);
         
         const categoriesList = categoriesData.data || [];
         setCategories(categoriesList);
@@ -134,9 +134,9 @@ const AlcantaraHeader = () => {
           }
         }
         
-        console.log('✅ AlcantaraHeader: Data loaded successfully');
+        console.log('✅ ΛʟcΛɴᴛHeader: Data loaded successfully');
       } catch (err) {
-        console.error('❌ AlcantaraHeader: Failed to fetch data:', err);
+        console.error('❌ ΛʟcΛɴᴛHeader: Failed to fetch data:', err);
       } finally {
         setLoading(false);
       }
@@ -699,7 +699,7 @@ const AlcantaraHeader = () => {
                     </button>
                   )}
                   <Logo size="small" />
-                  <span className="text-lg font-bold text-gray-900">ALCANT</span>
+                  <span className="text-lg font-bold text-gray-900">ΛʟcΛɴᴛ</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
@@ -847,4 +847,4 @@ const AlcantaraHeader = () => {
   );
 };
 
-export default AlcantaraHeader;
+export default ΛʟcΛɴᴛHeader;
