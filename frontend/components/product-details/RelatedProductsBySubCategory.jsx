@@ -22,11 +22,38 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
     try {
       setLoading(true);
       
-      // Use category name for reliable matching
-      const category = currentProduct.category;
-      const apiUrl = `/api/products?category=${encodeURIComponent(category)}&exclude=${currentProduct.id}&limit=8`;
+      // Try multiple subcategory levels for better matching
+      let apiUrl;
       
-      console.log('🌐 Fetching related products:', apiUrl);
+      // Priority 1: Try sub_subcategory_id (most specific)
+      if (currentProduct.sub_subcategory_id) {
+        apiUrl = `/api/products?sub_subcategory_id=${currentProduct.sub_subcategory_id}&exclude=${currentProduct.id}&limit=8`;
+        console.log('🎯 Using sub_subcategory_id:', currentProduct.sub_subcategory_id);
+      }
+      // Priority 2: Try subcategory_id
+      else if (currentProduct.subcategoryId) {
+        apiUrl = `/api/products?subcategory_id=${currentProduct.subcategoryId}&exclude=${currentProduct.id}&limit=8`;
+        console.log('🎯 Using subcategory_id:', currentProduct.subcategoryId);
+      }
+      // Priority 3: Try subcategory name
+      else if (currentProduct.subcategory) {
+        apiUrl = `/api/products?subcategory=${encodeURIComponent(currentProduct.subcategory)}&exclude=${currentProduct.id}&limit=8`;
+        console.log('🎯 Using subcategory name:', currentProduct.subcategory);
+      }
+      // Priority 4: Fallback to category name
+      else if (currentProduct.category) {
+        apiUrl = `/api/products?category=${encodeURIComponent(currentProduct.category)}&exclude=${currentProduct.id}&limit=8`;
+        console.log('� Using category name:', currentProduct.category);
+      }
+      // Final fallback
+      else {
+        console.log('❌ No category info available');
+        setRelatedProducts([]);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('🌐 Final API URL:', apiUrl);
       
       const response = await fetch(apiUrl);
       const data = await response.json();
