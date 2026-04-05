@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Package, Heart, Truck, HelpCircle, Star } from 'lucide-react';
-import ProductReviews from './ProductReviews';
+import { ChevronDown, ChevronUp, Package, Truck, HelpCircle } from 'lucide-react';
 
 const ProductAccordionSections = ({ product }) => {
   const [activeSection, setActiveSection] = useState('description');
@@ -51,12 +50,6 @@ const ProductAccordionSections = ({ product }) => {
           </div>
         </div>
       )
-    },
-    {
-      id: 'reviews',
-      title: 'Reviews',
-      icon: Star,
-      content: <ProductReviews productId={product?.id} />
     },
     {
       id: 'shipping',

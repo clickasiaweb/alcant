@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Share2, Star, Plus, Minus, Truck, Shield, RotateCcw, Package, Clock, Award, Heart, MessageSquare } from 'lucide-react';
+import { ShoppingCart, Share2, Plus, Minus, Truck, Shield, RotateCcw, Package, Clock, Award, Heart, MessageSquare } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
 import InquiryModal from '../InquiryModal';
@@ -121,32 +121,13 @@ const ProductInfo = ({
         
         <div className="flex flex-col sm:flex-row sm:items-baseline sm:space-x-3 mb-3 sm:mb-4">
           <span className="text-2xl sm:text-3xl font-bold text-primary-600">
-            ${typeof currentPrice === 'number' ? currentPrice.toFixed(2) : currentPrice}
+            ₹{typeof currentPrice === 'number' ? currentPrice.toFixed(2) : currentPrice}
           </span>
           {oldPrice && oldPrice > currentPrice && (
             <span className="text-lg sm:text-xl text-gray-500 line-through">
-              ${typeof oldPrice === 'number' ? oldPrice.toFixed(2) : oldPrice}
+              ₹{typeof oldPrice === 'number' ? oldPrice.toFixed(2) : oldPrice}
             </span>
           )}
-        </div>
-
-        {/* Rating */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-4 sm:mb-6">
-          <div className="flex items-center mb-2 sm:mb-0">
-            {[...Array(5)].map((_, i) => (
-              <Star 
-                key={i} 
-                className={`w-4 h-4 sm:w-5 sm:h-5 ${
-                  i < Math.floor((product.average_rating || product.rating || 0)) 
-                    ? 'text-yellow-400 fill-current' 
-                    : 'text-gray-300'
-                }`} 
-              />
-            ))}
-          </div>
-          <span className="text-sm text-gray-600">
-            {(product.average_rating || product.rating || 0).toFixed(1)} ({product.review_count || product.reviews || 0} reviews)
-          </span>
         </div>
 
         {/* Short Description */}
