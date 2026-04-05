@@ -23,10 +23,16 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
     try {
       setLoading(true);
       
-      // Simple filtering by subcategory name only
+      // Priority-based filtering: sub-subcategory first, then subcategory
       let apiUrl;
       
-      if (currentProduct.subcategory) {
+      // Priority 1: Try sub_subcategory (Level 3 - most specific)
+      if (currentProduct.sub_subcategory) {
+        apiUrl = `/products?sub_subcategory=${encodeURIComponent(currentProduct.sub_subcategory)}&exclude=${currentProduct.id}&limit=8`;
+        console.log('🎯 Using sub-subcategory name:', currentProduct.sub_subcategory);
+      }
+      // Priority 2: Try subcategory (Level 2)
+      else if (currentProduct.subcategory) {
         // Check if subcategory is a UUID
         if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(currentProduct.subcategory)) {
           apiUrl = `/products?subcategory=${currentProduct.subcategory}&exclude=${currentProduct.id}&limit=8`;
@@ -35,7 +41,9 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
           apiUrl = `/products?subcategory=${encodeURIComponent(currentProduct.subcategory)}&exclude=${currentProduct.id}&limit=8`;
           console.log('🎯 Using subcategory name:', currentProduct.subcategory);
         }
-      } else if (currentProduct.category) {
+      }
+      // Priority 3: Fallback to category
+      else if (currentProduct.category) {
         apiUrl = `/products?category=${encodeURIComponent(currentProduct.category)}&exclude=${currentProduct.id}&limit=8`;
         console.log('🎯 Using category name:', currentProduct.category);
       } else {
@@ -105,23 +113,7 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
   }
 
   if (relatedProducts.length === 0) {
-    return (
-      <section className="py-8 bg-gray-50">
-        <div className="container">
-          <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Related Products</h2>
-            <p className="text-gray-600">No related products found in this category.</p>
-          </div>
-          {/* Debug information - remove in production */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-yellow-800">
-              <strong>Debug Info:</strong> No related products found. 
-              Check console for API response details.
-            </p>
-          </div>
-        </div>
-      </section>
-    );
+    return null; // Don't show anything if no related products found
   }
 
   return (
@@ -130,18 +122,11 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
         <div className="text-center mb-6">
           <div className="flex items-center justify-center mb-3">
             <Grid className="w-6 h-6 text-primary-600 mr-2" />
-            <h2 className="text-2xl font-bold text-gray-900">Products in Same Category</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Related Products</h2>
           </div>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Discover more products from the same category and sub-category
+            Discover more products from the same sub-subcategory and subcategory
           </p>
-        </div>
-        
-        {/* Always show section title */}
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Related Products {loading && '(Loading...)'}
-          </h3>
         </div>
         
         {/* Products Grid */}
