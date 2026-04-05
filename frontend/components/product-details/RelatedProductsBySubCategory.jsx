@@ -25,25 +25,30 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
       // Try multiple subcategory levels for better matching
       let apiUrl;
       
-      // Priority 1: Try sub_subcategory_id (most specific)
+      // Priority 1: Try sub_subcategory_id (most specific - Level 3)
       if (currentProduct.sub_subcategory_id) {
         apiUrl = `/api/products?sub_subcategory_id=${currentProduct.sub_subcategory_id}&exclude=${currentProduct.id}&limit=8`;
         console.log('🎯 Using sub_subcategory_id:', currentProduct.sub_subcategory_id);
       }
-      // Priority 2: Try subcategory_id
-      else if (currentProduct.subcategoryId) {
-        apiUrl = `/api/products?subcategory_id=${currentProduct.subcategoryId}&exclude=${currentProduct.id}&limit=8`;
-        console.log('🎯 Using subcategory_id:', currentProduct.subcategoryId);
+      // Priority 2: Try subcategory_id (Level 2) - Fixed field name
+      else if (currentProduct.subcategory_id) {
+        apiUrl = `/api/products?subcategory_id=${currentProduct.subcategory_id}&exclude=${currentProduct.id}&limit=8`;
+        console.log('🎯 Using subcategory_id:', currentProduct.subcategory_id);
       }
-      // Priority 3: Try subcategory name
+      // Priority 3: Try sub_subcategory name (Level 3 text)
+      else if (currentProduct.sub_subcategory) {
+        apiUrl = `/api/products?sub_subcategory=${encodeURIComponent(currentProduct.sub_subcategory)}&exclude=${currentProduct.id}&limit=8`;
+        console.log('🎯 Using sub_subcategory name:', currentProduct.sub_subcategory);
+      }
+      // Priority 4: Try subcategory name (Level 2 text)
       else if (currentProduct.subcategory) {
         apiUrl = `/api/products?subcategory=${encodeURIComponent(currentProduct.subcategory)}&exclude=${currentProduct.id}&limit=8`;
         console.log('🎯 Using subcategory name:', currentProduct.subcategory);
       }
-      // Priority 4: Fallback to category name
+      // Priority 5: Fallback to category name
       else if (currentProduct.category) {
         apiUrl = `/api/products?category=${encodeURIComponent(currentProduct.category)}&exclude=${currentProduct.id}&limit=8`;
-        console.log('� Using category name:', currentProduct.category);
+        console.log('🎯 Using category name:', currentProduct.category);
       }
       // Final fallback
       else {

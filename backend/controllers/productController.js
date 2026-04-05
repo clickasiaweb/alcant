@@ -61,7 +61,7 @@ exports.getProducts = async (req, res) => {
     }
 
     if (subcategory_id) {
-      query.subcategoryId = subcategory_id;
+      query.subcategory_id = subcategory_id;
     }
 
     if (sub_subcategory_id) {
@@ -663,7 +663,7 @@ exports.getRecommendedProducts = async (req, res) => {
     const query = { isActive: true };
 
     if (subcategory_id) {
-      query.subcategoryId = subcategory_id;
+      query.subcategory_id = subcategory_id;
     }
 
     if (sub_subcategory_id) {

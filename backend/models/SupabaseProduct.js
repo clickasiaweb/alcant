@@ -20,16 +20,12 @@ class SupabaseProduct {
       supabaseQuery = supabaseQuery.eq('subcategory', query.subcategory);
     }
     
-    if (query.subcategoryId) {
-      supabaseQuery = supabaseQuery.eq('subcategory_id', query.subcategoryId);
+    if (query.subcategory_id) {
+      supabaseQuery = supabaseQuery.eq('subcategory_id', query.subcategory_id);
     }
     
     if (query.sub_subcategory) {
       supabaseQuery = supabaseQuery.eq('sub_subcategory', query.sub_subcategory);
-    }
-    
-    if (query.sub_subcategory_id) {
-      supabaseQuery = supabaseQuery.eq('sub_subcategory_id', query.sub_subcategory_id);
     }
     
     if (query._id) {
