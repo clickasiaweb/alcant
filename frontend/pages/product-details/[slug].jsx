@@ -9,9 +9,7 @@ import ProductLoader from "../../components/product-details/ProductLoader";
 import ProductNotFound from "../../components/product-details/ProductNotFound";
 import ProductFeaturesSection from "../../components/product-details/ProductFeaturesSection";
 import ProductVideoSection from "../../components/product-details/ProductVideoSection";
-import RelatedProducts from "../../components/product-details/RelatedProducts";
 import RelatedProductsBySubCategory from "../../components/product-details/RelatedProductsBySubCategory";
-import CustomerTrustSection from "../../components/product-details/CustomerTrustSection";
 import ProductFAQ from "../../components/product-details/ProductFAQ";
 import ProductAccordionSections from "../../components/product-details/ProductAccordionSections";
 
@@ -166,8 +164,6 @@ const ProductDetailPage = ({ slugFromServer }) => {
         {/* Additional Sections */}
         <ProductFeaturesSection product={product} />
         <ProductVideoSection product={product} />
-        <RelatedProducts currentProduct={product} />
-        <CustomerTrustSection />
         <ProductFAQ product={product} />
       </div>
     </Layout>
