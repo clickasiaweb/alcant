@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 const CartContext = createContext();
 
@@ -16,35 +16,6 @@ export const CartProvider = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   console.log('CartProvider - Rendering with cartItems:', cartItems.length);
-
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    try {
-      const savedCart = localStorage.getItem('cartItems');
-      if (savedCart) {
-        const parsedCart = JSON.parse(savedCart);
-        setCartItems(parsedCart);
-        console.log('CartProvider - Loaded cart from localStorage:', parsedCart.length);
-      }
-    } catch (error) {
-      console.error('CartProvider - Error loading cart from localStorage:', error);
-    }
-  }, []);
-
-  // Save cart to localStorage whenever it changes
-  useEffect(() => {
-    try {
-      if (cartItems.length > 0) {
-        localStorage.setItem('cartItems', JSON.stringify(cartItems));
-        console.log('CartProvider - Saved cart to localStorage:', cartItems.length);
-      } else {
-        // Clear localStorage if cart is empty
-        localStorage.removeItem('cartItems');
-      }
-    } catch (error) {
-      console.error('CartProvider - Error saving cart to localStorage:', error);
-    }
-  }, [cartItems]);
 
   // Add item to cart
   const addToCart = (product, quantity = 1) => {

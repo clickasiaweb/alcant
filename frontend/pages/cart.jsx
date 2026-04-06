@@ -17,14 +17,12 @@ import {
 
 const CartPage = () => {
   const router = useRouter();
-  const { cartItems, updateQuantity, removeItem, clearCart } = useCart();
+  const { cartItems, updateQuantity, removeItem, clearCart, addToCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
 
   // Add sample item for testing (you can remove this once you have proper add to cart functionality)
-  const { addToCart } = useCart();
-  
   const addSampleItem = () => {
     const sampleItem = {
       id: '507f1f77bcf86cd799439011', // Use a real product ID from your database

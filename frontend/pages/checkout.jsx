@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
+import { useCart } from '../contexts/CartContext';
 import InquiryForm from '../components/InquiryForm';
 import { 
   CreditCard, 
@@ -21,6 +22,7 @@ import {
 
 const CheckoutPage = () => {
   const router = useRouter();
+  const { cartItems, clearCart } = useCart();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
@@ -143,16 +145,14 @@ const CheckoutPage = () => {
     setLoading(true);
     
     try {
-      // Get cart items from localStorage
-      const cartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
-      
+      // Check if cart has items
       if (cartItems.length === 0) {
         alert('Your cart is empty');
         setLoading(false);
         return;
       }
 
-      // Prepare order data
+      // Prepare order data using cartItems from CartContext
       const orderData = {
         products: cartItems.map(item => ({
           productId: item.id,
@@ -206,8 +206,8 @@ const CheckoutPage = () => {
       const result = await response.json();
 
       if (result.success) {
-        // Clear cart
-        localStorage.removeItem('cartItems');
+        // Clear cart using CartContext
+        clearCart();
         // Store order info for confirmation page
         localStorage.setItem('lastOrder', JSON.stringify(result.data));
         // Redirect to order confirmation
