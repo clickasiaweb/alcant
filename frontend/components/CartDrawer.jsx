@@ -64,6 +64,7 @@ const CartDrawer = () => {
 
   // Calculate cart totals
   const calculateSubtotal = () => {
+    if (!cartItems || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => {
       const itemPrice = item.originalPrice || item.price;
       return total + (itemPrice * item.quantity);
@@ -137,7 +138,7 @@ const CartDrawer = () => {
     addToCart(product, 1);
   };
 
-  const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const itemCount = cartItems ? cartItems.reduce((total, item) => total + item.quantity, 0) : 0;
   const subtotal = calculateSubtotal();
   const freeShippingProgress = calculateFreeShippingProgress();
   const freeShippingRemaining = getFreeShippingRemaining();
@@ -221,7 +222,7 @@ const CartDrawer = () => {
 
             {/* Cart Items */}
             <div className="px-6 py-4">
-              {cartItems.length === 0 ? (
+              {!cartItems || cartItems.length === 0 ? (
                 <div className="text-center py-8">
                   <ShoppingBag className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500">Your cart is empty</p>
@@ -298,7 +299,7 @@ const CartDrawer = () => {
             </div>
 
             {/* Cross-Sell Section */}
-            {crossSellProducts.length > 0 && cartItems.length > 0 && (
+            {crossSellProducts && crossSellProducts.length > 0 && cartItems && cartItems.length > 0 && (
               <div className="px-6 py-4 border-t border-gray-100">
                 <h3 className="text-sm font-semibold text-gray-900 mb-3">People also bought</h3>
                 <div className="space-y-3">
@@ -362,9 +363,9 @@ const CartDrawer = () => {
             {/* Checkout CTA */}
             <button
               onClick={handleCheckout}
-              disabled={cartItems.length === 0 || isCheckoutLoading}
+              disabled={!cartItems || cartItems.length === 0 || isCheckoutLoading}
               className={`w-full py-3 rounded-lg font-medium transition-all duration-200 ${
-                cartItems.length === 0 || isCheckoutLoading
+                !cartItems || cartItems.length === 0 || isCheckoutLoading
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                   : 'bg-black text-white hover:bg-gray-800 hover:shadow-lg'
               }`}
