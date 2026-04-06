@@ -38,7 +38,12 @@ const CartDrawer = () => {
     setIsClient(true);
   }, []);
 
-  console.log('CartDrawer - State:', { isCartOpen, cartItems, crossSellProducts });
+  // Debug logging (remove in production)
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('CartDrawer - State:', { isCartOpen, cartItems: cartItems.length, crossSellProducts: crossSellProducts.length });
+    }
+  }, [isCartOpen, cartItems.length, crossSellProducts.length]);
 
   // Detect mobile screen size
   useEffect(() => {

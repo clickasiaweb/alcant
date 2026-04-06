@@ -15,11 +15,8 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  console.log('CartProvider - Rendering with cartItems:', cartItems.length);
-
   // Add item to cart
   const addToCart = (product, quantity = 1) => {
-    console.log('CartContext - addToCart called with:', product, quantity);
     try {
       const newItem = {
         id: product.id,
@@ -43,18 +40,15 @@ export const CartProvider = ({ children }) => {
               ? { ...item, quantity: item.quantity + quantity }
               : item
           );
-          console.log('CartContext - Updated existing item:', newItems);
           return newItems;
         } else {
           // Add new item
           const newItems = [...prev, newItem];
-          console.log('CartContext - Added new item:', newItems);
           return newItems;
         }
       });
 
       // Open cart drawer when item is added
-      console.log('CartContext - Opening cart drawer');
       setIsCartOpen(true);
     } catch (error) {
       console.error('CartContext - Error in addToCart:', error);
@@ -95,12 +89,10 @@ export const CartProvider = ({ children }) => {
 
   // Open/close cart drawer
   const openCart = () => {
-    console.log('CartContext - openCart called');
     setIsCartOpen(true);
   };
   
   const closeCart = () => {
-    console.log('CartContext - closeCart called');
     setIsCartOpen(false);
   };
 
@@ -125,7 +117,6 @@ export const CartProvider = ({ children }) => {
   const value = {
     cartItems,
     isCartOpen,
-    crossSellProducts,
     addToCart,
     updateQuantity,
     removeItem,
@@ -137,7 +128,7 @@ export const CartProvider = ({ children }) => {
     setIsCartOpen
   };
 
-  console.log('CartProvider - Providing value:', { cartItems: cartItems.length, isCartOpen });
+  console.log('CartProvider - Rendering with cartItems:', cartItems.length);
 
   return (
     <CartContext.Provider value={value}>
