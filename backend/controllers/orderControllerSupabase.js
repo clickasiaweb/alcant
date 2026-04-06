@@ -182,6 +182,17 @@ exports.createOrder = async (req, res) => {
     const defaultUserId = '00000000-0000-0000-0000-000000000000';
 
     // Create order
+    console.log('Creating order with data:', {
+      order_id: orderId,
+      user_id: defaultUserId,
+      products_count: orderProducts.length,
+      subtotal,
+      tax,
+      shipping,
+      total_amount: totalAmount,
+      payment_method: paymentMethod
+    });
+
     const { data: order, error } = await supabaseService
       .from('orders')
       .insert({
@@ -211,6 +222,13 @@ exports.createOrder = async (req, res) => {
       .single();
 
     if (error) {
+      console.error('Supabase insert error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       throw error;
     }
 
