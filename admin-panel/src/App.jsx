@@ -10,6 +10,8 @@ import SubCategoriesPage from './pages/SubCategoriesPage';
 import SubSubCategoriesPage from './pages/SubSubCategoriesPage';
 import InquiriesPage from './pages/InquiriesPage';
 import ContentPage from './pages/ContentPage';
+import OrdersPage from './pages/OrdersPage';
+import OrderDetailsPage from './pages/OrderDetailsPage';
 import './index.css';
 
 function App() {
@@ -27,6 +29,8 @@ function App() {
           <Route path="/sub-subcategories" element={<SubSubCategoriesPage />} />
           <Route path="/inquiries" element={<InquiriesPage />} />
           <Route path="/content" element={<ContentPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/orders/:id" element={<OrderDetailsPage />} />
         </Routes>
       </div>
     </Router>

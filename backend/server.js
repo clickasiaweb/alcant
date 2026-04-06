@@ -57,6 +57,8 @@ const inquiryRoutes = require('./routes/inquiries');
 
 const reviewRoutes = require('./routes/reviews');
 
+const orderRoutes = require('./routes/orders');
+
 
 
 // Initialize database connection
@@ -144,6 +146,8 @@ app.use('/api/update', updateRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 
 app.use('/api/reviews', reviewRoutes);
+
+app.use('/api/orders', orderRoutes);
 
 
 

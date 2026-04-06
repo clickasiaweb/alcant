@@ -11,6 +11,7 @@ import {
   FaUpload,
   FaFolderPlus,
   FaFolderOpen,
+  FaShoppingCart,
 } from "react-icons/fa";
 
 export default function SidebarNoAuth() {
@@ -146,6 +147,23 @@ export default function SidebarNoAuth() {
           className="sidebar-btn"
         >
           <FaEnvelope style={{ marginRight: "0.5rem" }} /> Inquiries
+        </button>
+
+        <button
+          onClick={() => navigate("/orders")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "white",
+            textAlign: "left",
+            cursor: "pointer",
+            fontSize: "1rem",
+            padding: "0.5rem 1rem",
+            borderRadius: "0.5rem",
+          }}
+          className="sidebar-btn"
+        >
+          <FaShoppingCart style={{ marginRight: "0.5rem" }} /> Orders
         </button>
 
         <button
