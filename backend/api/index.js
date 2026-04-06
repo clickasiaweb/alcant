@@ -36,6 +36,7 @@ const seedRoutes = require("../routes/seed");
 const updateRoutes = require("../routes/update");
 const filterController = require("../controllers/filterController");
 const inquiryRoutes = require("../routes/inquiries");
+const orderRoutes = require("../routes/orders");
 
 const app = express();
 
@@ -104,6 +105,7 @@ app.use("/api/products/bulk-upload", bulkUploadRoutes);
 app.use("/api/seed", seedRoutes);
 app.use("/api/update", updateRoutes);
 app.use("/api/inquiries", inquiryRoutes);
+app.use("/api/orders", orderRoutes);
 app.get("/api/products/filters", filterController.getAvailableFilters);
 
 // Health check with database status
@@ -128,7 +130,8 @@ app.get("/", (req, res) => {
       "bulk-upload": "/api/products/bulk-upload",
       categories: "/api/categories",
       content: "/api/content",
-      auth: "/api/auth"
+      auth: "/api/auth",
+      orders: "/api/orders"
     },
     timestamp: new Date().toISOString()
   });

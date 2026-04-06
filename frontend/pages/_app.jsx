@@ -1,7 +1,6 @@
 import React from "react";
 import Head from "next/head";
 import '../styles/globals.css';
-import { AuthProvider } from '../contexts/AuthContext';
 import { CartProvider } from '../contexts/CartContext';
 import { SearchProvider } from '../contexts/SearchContext';
 import { WishlistProvider } from '../contexts/WishlistContext';
@@ -18,15 +17,13 @@ function MyApp({ Component, pageProps }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <ErrorBoundary>
-        <AuthProvider>
-          <SearchProvider>
-            <WishlistProvider>
-              <CartProvider>
-                <Component {...pageProps} />
-              </CartProvider>
-            </WishlistProvider>
-          </SearchProvider>
-        </AuthProvider>
+        <SearchProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <Component {...pageProps} />
+            </CartProvider>
+          </WishlistProvider>
+        </SearchProvider>
       </ErrorBoundary>
     </>
   );

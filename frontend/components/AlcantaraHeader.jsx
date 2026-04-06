@@ -665,8 +665,8 @@ const ΛʟcΛɴᴛHeader = () => {
               {/* User Profile Icon */}
               <button 
                 className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200"
-                onClick={() => setIsProfileOpen(true)}
-                aria-label="Open user profile"
+                onClick={() => alert('Login functionality is currently disabled for testing. Please use the cart and checkout features.')}
+                aria-label="User profile (disabled)"
               >
                 <User className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
@@ -716,7 +716,7 @@ const ΛʟcΛɴᴛHeader = () => {
                       </span>
                     )}
                   </button>
-                  <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
+                  <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors" onClick={() => alert('Login functionality is currently disabled for testing. Please use the cart and checkout features.')}>
                     <User className="w-5 h-5" />
                   </button>
                   <button
@@ -820,7 +820,7 @@ const ΛʟcΛɴᴛHeader = () => {
                     </button>
                     <button
                       className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors p-3 rounded-lg hover:bg-gray-50"
-                      onClick={() => setIsProfileOpen(true)}
+                      onClick={() => alert('Login functionality is currently disabled for testing. Please use the cart and checkout features.')}
                     >
                       <User className="w-5 h-5" />
                       <span>Account</span>
