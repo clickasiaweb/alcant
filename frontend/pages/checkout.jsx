@@ -98,10 +98,26 @@ const CheckoutPage = () => {
 
   const validatePaymentInfo = () => {
     const required = ['cardNumber', 'expiryDate', 'cvv', 'cardName'];
-    return required.every(field => paymentInfo[field].trim() !== '');
+    const isValid = required.every(field => paymentInfo[field].trim() !== '');
+    
+    // Debug: Log payment validation
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Payment validation:', {
+        paymentInfo,
+        required,
+        isValid,
+        emptyFields: required.filter(field => !paymentInfo[field].trim())
+      });
+    }
+    
+    return isValid;
   };
 
   const handleNextStep = () => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Next step clicked, current step:', step);
+    }
+    
     if (step === 1 && !validateShippingInfo()) {
       alert('Please fill in all required shipping information');
       return;
@@ -134,7 +150,9 @@ const CheckoutPage = () => {
         console.log('Checkout - Placing order with data:', {
           cartItems,
           shippingInfo,
-          billingInfo
+          billingInfo,
+          paymentInfo,
+          currentStep: step
         });
       }
       
@@ -145,11 +163,21 @@ const CheckoutPage = () => {
         return;
       }
 
-      // Validate shipping information
-      if (!shippingInfo.firstName || !shippingInfo.lastName || !shippingInfo.email || 
-          !shippingInfo.phone || !shippingInfo.address || !shippingInfo.city || 
-          !shippingInfo.state || !shippingInfo.zipCode) {
-        alert('Please fill in all required shipping information fields');
+      // Validate all information before placing order
+      if (!validateShippingInfo()) {
+        alert('Please fill in all required shipping information');
+        setLoading(false);
+        return;
+      }
+
+      if (!validateBillingInfo()) {
+        alert('Please fill in all required billing information');
+        setLoading(false);
+        return;
+      }
+
+      if (!validatePaymentInfo()) {
+        alert('Please fill in all required payment information');
         setLoading(false);
         return;
       }
