@@ -77,6 +77,7 @@ export const CartProvider = ({ children }) => {
 
   // Calculate cart totals
   const calculateSubtotal = () => {
+    if (!cartItems || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => {
       const itemPrice = item.originalPrice || item.price;
       return total + (itemPrice * item.quantity);
@@ -84,6 +85,7 @@ export const CartProvider = ({ children }) => {
   };
 
   const calculateTotalItems = () => {
+    if (!cartItems || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
@@ -115,8 +117,8 @@ export const CartProvider = ({ children }) => {
   ];
 
   const value = {
-    cartItems,
-    isCartOpen,
+    cartItems: cartItems || [],
+    isCartOpen: isCartOpen || false,
     addToCart,
     updateQuantity,
     removeItem,

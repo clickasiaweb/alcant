@@ -44,6 +44,7 @@ const CartPage = () => {
   };
 
   const calculateSubtotal = () => {
+    if (!cartItems || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => {
       const itemPrice = item.originalPrice || item.price;
       return total + (itemPrice * item.quantity);
