@@ -223,7 +223,7 @@ exports.createOrder = async (req, res) => {
           status: 'Pending',
           timestamp: new Date().toISOString(),
           note: 'Order placed',
-          updatedBy: defaultUserId // Use default user ID
+          updatedBy: 'system' // Use system instead of user ID
         }]
       })
       .select()

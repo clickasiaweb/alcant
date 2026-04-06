@@ -38,17 +38,6 @@ const CartDrawer = () => {
     setIsClient(true);
   }, []);
 
-  // Debug logging (remove in production)
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('CartDrawer - State:', { 
-        isCartOpen, 
-        cartItems: cartItems?.length || 0, 
-        crossSellProducts: crossSellProducts?.length || 0 
-      });
-    }
-  }, [isCartOpen, cartItems?.length, crossSellProducts?.length]);
-
   // Detect mobile screen size
   useEffect(() => {
     if (!isClient) return;
