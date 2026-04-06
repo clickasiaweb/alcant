@@ -59,7 +59,7 @@ exports.getOrderById = async (req, res) => {
 
 // @desc    Get order by Order ID
 // @route   GET /api/orders/order/:orderId
-// @access  Private
+// @access  Public (authentication disabled)
 exports.getOrderByOrderId = async (req, res) => {
   try {
     const { data: order, error } = await supabaseService
@@ -85,13 +85,13 @@ exports.getOrderByOrderId = async (req, res) => {
       throw error;
     }
 
-    // Check if user is admin or the order belongs to the user
-    if (req.user.role !== 'admin' && order.user_id !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to access this order'
-      });
-    }
+    // Authentication disabled - skip user access check
+    // if (req.user.role !== 'admin' && order.user_id !== req.user.id) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: 'Not authorized to access this order'
+    //   });
+    // }
 
     res.status(200).json({
       success: true,
@@ -133,7 +133,7 @@ exports.getUserOrders = async (req, res) => {
 
 // @desc    Create new order
 // @route   POST /api/orders
-// @access  Private
+// @access  Public (authentication disabled)
 exports.createOrder = async (req, res) => {
   try {
     const {
@@ -204,12 +204,15 @@ exports.createOrder = async (req, res) => {
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const orderId = `ORD${timestamp}${random}`;
 
+    // Authentication disabled - use default user ID
+    const defaultUserId = '00000000-0000-0000-0000-000000000000';
+
     // Create order
     const { data: order, error } = await supabaseService
       .from('orders')
       .insert({
         order_id: orderId,
-        user_id: req.user.id,
+        user_id: defaultUserId, // Use default user ID when authentication is disabled
         products: orderProducts,
         subtotal,
         tax,
@@ -227,7 +230,7 @@ exports.createOrder = async (req, res) => {
           status: 'Pending',
           timestamp: new Date().toISOString(),
           note: 'Order placed',
-          updatedBy: req.user.id
+          updatedBy: defaultUserId // Use default user ID
         }]
       })
       .select()
@@ -335,7 +338,7 @@ exports.updateOrderStatus = async (req, res) => {
       status,
       timestamp: new Date().toISOString(),
       note: note || `Status updated to ${status}`,
-      updatedBy: req.user.id
+      updatedBy: 'admin-user' // Use default when authentication is disabled
     });
     updateData.status_history = statusHistory;
 
@@ -433,7 +436,7 @@ exports.updatePaymentStatus = async (req, res) => {
 
 // @desc    Cancel order
 // @route   PUT /api/orders/:id/cancel
-// @access  Private
+// @access  Public (authentication disabled)
 exports.cancelOrder = async (req, res) => {
   try {
     const { reason } = req.body;
@@ -455,13 +458,13 @@ exports.cancelOrder = async (req, res) => {
       throw fetchError;
     }
 
-    // Check if user is admin or the order belongs to the user
-    if (req.user.role !== 'admin' && currentOrder.user_id !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to cancel this order'
-      });
-    }
+    // Authentication disabled - skip user access check
+    // if (req.user.role !== 'admin' && currentOrder.user_id !== req.user.id) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: 'Not authorized to cancel this order'
+    //   });
+    // }
 
     // Check if order can be cancelled
     if (currentOrder.order_status === 'Cancelled') {
@@ -484,7 +487,7 @@ exports.cancelOrder = async (req, res) => {
       status: 'Cancelled',
       timestamp: new Date().toISOString(),
       note: reason || 'Order cancelled',
-      updatedBy: req.user.id
+      updatedBy: 'admin-user' // Use default when authentication is disabled
     });
 
     const { data: order, error } = await supabaseService
