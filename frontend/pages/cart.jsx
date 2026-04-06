@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
+import { useCart } from '../contexts/CartContext';
 import { 
   ShoppingBag, 
   Plus, 
@@ -16,28 +17,14 @@ import {
 
 const CartPage = () => {
   const router = useRouter();
-  const [cartItems, setCartItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { cartItems, updateQuantity, removeItem, clearCart } = useCart();
+  const [loading, setLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
 
-  // Load cart items from localStorage on mount
-  useEffect(() => {
-    const savedCart = localStorage.getItem('cartItems');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
-    }
-    setLoading(false);
-  }, []);
-
-  // Save cart items to localStorage whenever they change
-  useEffect(() => {
-    if (cartItems.length > 0) {
-      localStorage.setItem('cartItems', JSON.stringify(cartItems));
-    }
-  }, [cartItems]);
-
   // Add sample item for testing (you can remove this once you have proper add to cart functionality)
+  const { addToCart } = useCart();
+  
   const addSampleItem = () => {
     const sampleItem = {
       id: '507f1f77bcf86cd799439011', // Use a real product ID from your database
@@ -55,26 +42,7 @@ const CartPage = () => {
       }
     };
     
-    const existingItem = cartItems.find(item => item.id === sampleItem.id);
-    if (existingItem) {
-      updateQuantity(sampleItem.id, existingItem.quantity + 1);
-    } else {
-      setCartItems([...cartItems, sampleItem]);
-    }
-  };
-
-  const updateQuantity = (id, newQuantity) => {
-    if (newQuantity < 1) return;
-    
-    setCartItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
-
-  const removeItem = (id) => {
-    setCartItems(items => items.filter(item => item.id !== id));
+    addToCart(sampleItem);
   };
 
   const calculateSubtotal = () => {

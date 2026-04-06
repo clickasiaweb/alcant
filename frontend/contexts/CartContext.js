@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();
 
@@ -17,6 +17,35 @@ export const CartProvider = ({ children }) => {
 
   console.log('CartProvider - Rendering with cartItems:', cartItems.length);
 
+  // Load cart from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedCart = localStorage.getItem('cartItems');
+      if (savedCart) {
+        const parsedCart = JSON.parse(savedCart);
+        setCartItems(parsedCart);
+        console.log('CartProvider - Loaded cart from localStorage:', parsedCart.length);
+      }
+    } catch (error) {
+      console.error('CartProvider - Error loading cart from localStorage:', error);
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      if (cartItems.length > 0) {
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+        console.log('CartProvider - Saved cart to localStorage:', cartItems.length);
+      } else {
+        // Clear localStorage if cart is empty
+        localStorage.removeItem('cartItems');
+      }
+    } catch (error) {
+      console.error('CartProvider - Error saving cart to localStorage:', error);
+    }
+  }, [cartItems]);
+
   // Add item to cart
   const addToCart = (product, quantity = 1) => {
     console.log('CartContext - addToCart called with:', product, quantity);
@@ -34,9 +63,23 @@ export const CartProvider = ({ children }) => {
       };
       
       setCartItems(prev => {
-        const newItems = [...prev, newItem];
-        console.log('CartContext - New cart items:', newItems);
-        return newItems;
+        // Check if item already exists
+        const existingItem = prev.find(item => item.id === product.id);
+        if (existingItem) {
+          // Update quantity if item exists
+          const newItems = prev.map(item =>
+            item.id === product.id 
+              ? { ...item, quantity: item.quantity + quantity }
+              : item
+          );
+          console.log('CartContext - Updated existing item:', newItems);
+          return newItems;
+        } else {
+          // Add new item
+          const newItems = [...prev, newItem];
+          console.log('CartContext - Added new item:', newItems);
+          return newItems;
+        }
       });
 
       // Open cart drawer when item is added
