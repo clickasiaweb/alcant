@@ -64,14 +64,7 @@ exports.getOrderByOrderId = async (req, res) => {
   try {
     const { data: order, error } = await supabaseService
       .from('orders')
-      .select(`
-        *,
-        users!orders_user_id_fkey (
-          name,
-          email,
-          phone
-        )
-      `)
+      .select('*')
       .eq('order_id', req.params.orderId)
       .single();
 

@@ -36,14 +36,7 @@ class OrderService {
 
       let query = supabaseService
         .from('orders')
-        .select(`
-          *,
-          users!orders_user_id_fkey (
-            name,
-            email,
-            phone
-          )
-        `, { count: 'exact' });
+        .select('*', { count: 'exact' });
 
       // Search functionality
       if (search) {
@@ -92,14 +85,7 @@ class OrderService {
     try {
       const { data, error } = await supabaseService
         .from('orders')
-        .select(`
-          *,
-          users!orders_user_id_fkey (
-            name,
-            email,
-            phone
-          )
-        `)
+        .select('*')
         .eq('id', id)
         .single();
 
@@ -116,14 +102,7 @@ class OrderService {
     try {
       const { data, error } = await supabaseService
         .from('orders')
-        .select(`
-          *,
-          users!orders_user_id_fkey (
-            name,
-            email,
-            phone
-          )
-        `)
+        .select('*')
         .eq('order_id', orderId)
         .single();
 
@@ -262,13 +241,7 @@ class OrderService {
       // Get recent orders
       const { data: recentOrders, error: recentError } = await supabaseService
         .from('orders')
-        .select(`
-          *,
-          users!orders_user_id_fkey (
-            name,
-            email
-          )
-        `)
+        .select('*')
         .gte('created_at', startDateStr)
         .order('created_at', { ascending: false })
         .limit(5);
