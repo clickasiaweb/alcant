@@ -158,7 +158,10 @@ const CheckoutPage = () => {
       const orderData = {
         products: cartItems.map(item => ({
           productId: item.id,
+          name: item.name || `Product ${item.id}`,
+          price: item.price || item.final_price || 1000,
           quantity: item.quantity,
+          image: item.image || '/images/products/default.jpg',
           variant: {
             color: item.variant?.color || 'Standard',
             size: item.variant?.size || 'Standard'
@@ -196,6 +199,11 @@ const CheckoutPage = () => {
         notes: 'Order placed from checkout'
       };
 
+      // Debug: Log the complete order data
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Checkout - Complete order data being sent:', JSON.stringify(orderData, null, 2));
+      }
+
       // Create order via API
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/orders`, {
         method: 'POST',
@@ -206,6 +214,12 @@ const CheckoutPage = () => {
       });
 
       const result = await response.json();
+
+      // Debug: Log the API response
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Checkout - API response:', result);
+        console.log('Checkout - Response status:', response.status);
+      }
 
       if (result.success) {
         // Clear cart using CartContext
