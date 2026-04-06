@@ -41,6 +41,13 @@ const CheckoutPage = () => {
     country: 'United States'
   });
 
+  // Debug: Log shipping info changes
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Checkout - shippingInfo updated:', shippingInfo);
+    }
+  }, [shippingInfo]);
+
   const [billingInfo, setBillingInfo] = useState({
     sameAsShipping: true,
     firstName: '',
@@ -61,40 +68,17 @@ const CheckoutPage = () => {
     saveCard: false
   });
 
-  const [orderSummary] = useState([
-    {
-      id: 1,
-      name: 'Premium Industrial Automation System',
-      price: 25000,
-      quantity: 1,
-      image: 'https://via.placeholder.com/60x60/1a365d/ffffff?text=Automation'
-    },
-    {
-      id: 2,
-      name: 'Quality Control System',
-      price: 15000,
-      quantity: 2,
-      image: 'https://via.placeholder.com/60x60/2b6cb0/ffffff?text=QC'
-    },
-    {
-      id: 3,
-      name: 'Industrial Robot Arm',
-      price: 45000,
-      quantity: 1,
-      image: 'https://via.placeholder.com/60x60/3182ce/ffffff?text=Robot'
-    }
-  ]);
-
+  // Calculate order totals from cart items
   const calculateSubtotal = () => {
-    return orderSummary.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
   const calculateTax = () => {
-    return calculateSubtotal() * 0.08; // 8% tax
+    return calculateSubtotal() * 0.18; // 18% GST
   };
 
   const calculateShipping = () => {
-    return calculateSubtotal() > 10000 ? 0 : 500; // Free shipping over $10,000
+    return calculateSubtotal() > 1000 ? 0 : 50; // Free shipping above 1000
   };
 
   const calculateTotal = () => {
@@ -145,9 +129,27 @@ const CheckoutPage = () => {
     setLoading(true);
     
     try {
+      // Debug: Log the current state
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Checkout - Placing order with data:', {
+          cartItems,
+          shippingInfo,
+          billingInfo
+        });
+      }
+      
       // Check if cart has items
       if (cartItems.length === 0) {
         alert('Your cart is empty');
+        setLoading(false);
+        return;
+      }
+
+      // Validate shipping information
+      if (!shippingInfo.firstName || !shippingInfo.lastName || !shippingInfo.email || 
+          !shippingInfo.phone || !shippingInfo.address || !shippingInfo.city || 
+          !shippingInfo.state || !shippingInfo.zipCode) {
+        alert('Please fill in all required shipping information fields');
         setLoading(false);
         return;
       }
@@ -592,10 +594,10 @@ const CheckoutPage = () => {
                     <div className="mb-6">
                       <h3 className="font-medium text-gray-900 mb-4">Order Items</h3>
                       <div className="space-y-3">
-                        {orderSummary.map((item) => (
+                        {cartItems.map((item) => (
                           <div key={item.id} className="flex items-center space-x-4">
                             <img
-                              src={item.image}
+                              src={item.image || '/images/products/default.jpg'}
                               alt={item.name}
                               className="w-12 h-12 object-cover rounded"
                             />
