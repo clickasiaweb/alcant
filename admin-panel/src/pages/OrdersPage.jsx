@@ -61,12 +61,7 @@ export default function OrdersPage() {
   const fetchOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const token = getAuthToken();
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-
+      
       const params = new URLSearchParams({
         page: pagination.page,
         limit: pagination.limit,
@@ -80,7 +75,6 @@ export default function OrdersPage() {
 
       const response = await fetch(`${API_BASE_URL}/orders?${params}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -126,11 +120,9 @@ export default function OrdersPage() {
 
   const handleStatusUpdate = async (orderId, newStatus) => {
     try {
-      const token = getAuthToken();
       const response = await fetch(`${API_BASE_URL}/orders/${orderId}/status`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: newStatus }),

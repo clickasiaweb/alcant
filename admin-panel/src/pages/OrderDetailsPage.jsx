@@ -67,15 +67,9 @@ export default function OrderDetailsPage() {
   const fetchOrder = async () => {
     try {
       setLoading(true);
-      const token = getAuthToken();
-      if (!token) {
-        navigate('/login');
-        return;
-      }
 
       const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
@@ -107,11 +101,9 @@ export default function OrderDetailsPage() {
 
   const handleStatusUpdate = async () => {
     try {
-      const token = getAuthToken();
       const response = await fetch(`${API_BASE_URL}/orders/${id}/status`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
@@ -143,11 +135,9 @@ export default function OrderDetailsPage() {
 
   const handlePaymentStatusUpdate = async (newPaymentStatus) => {
     try {
-      const token = getAuthToken();
       const response = await fetch(`${API_BASE_URL}/orders/${id}/payment-status`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 

@@ -24,18 +24,18 @@ exports.getAllOrders = async (req, res) => {
 
 // @desc    Get single order by ID
 // @route   GET /api/orders/:id
-// @access  Private
+// @access  Public (authentication disabled)
 exports.getOrderById = async (req, res) => {
   try {
     const order = await OrderService.getOrderById(req.params.id);
 
-    // Check if user is admin or the order belongs to the user
-    if (req.user.role !== 'admin' && order.user_id !== req.user.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to access this order'
-      });
-    }
+    // Authentication disabled - skip user access check
+    // if (req.user.role !== 'admin' && order.user_id !== req.user.id) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: 'Not authorized to access this order'
+    //   });
+    // }
 
     res.status(200).json({
       success: true,
@@ -109,10 +109,12 @@ exports.getOrderByOrderId = async (req, res) => {
 
 // @desc    Get user's orders
 // @route   GET /api/my-orders
-// @access  Private
+// @access  Public (authentication disabled)
 exports.getUserOrders = async (req, res) => {
   try {
-    const result = await OrderService.getUserOrders(req.user.id, req.query);
+    // Authentication disabled - use a default user ID or get from query params
+    const userId = req.query.userId || 'default-user-id';
+    const result = await OrderService.getUserOrders(userId, req.query);
     
     res.status(200).json({
       success: true,

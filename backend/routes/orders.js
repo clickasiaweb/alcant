@@ -12,27 +12,22 @@ const {
   getOrderStats
 } = require('../controllers/orderControllerSupabase');
 
-// Import middleware
-const { authMiddleware, adminMiddleware } = require('../middleware/auth');
+// Public routes - Authentication disabled for now
+// All order routes are publicly accessible
 
-// Public routes (none for orders - all orders require authentication)
-
-// Protected routes
-router.use(authMiddleware); // All order routes require authentication
-
-// Admin routes
-router.get('/', adminMiddleware, getAllOrders);
-router.get('/stats', adminMiddleware, getOrderStats);
+// Admin routes (authentication disabled)
+router.get('/', getAllOrders);
+router.get('/stats', getOrderStats);
 router.get('/order/:orderId', getOrderByOrderId);
 
-// User routes
+// User routes (authentication disabled)
 router.get('/my-orders', getUserOrders);
 router.post('/', createOrder);
 
-// Order management routes
+// Order management routes (authentication disabled)
 router.get('/:id', getOrderById);
-router.put('/:id/status', adminMiddleware, updateOrderStatus);
-router.put('/:id/payment-status', adminMiddleware, updatePaymentStatus);
+router.put('/:id/status', updateOrderStatus);
+router.put('/:id/payment-status', updatePaymentStatus);
 router.put('/:id/cancel', cancelOrder);
 
 module.exports = router;
