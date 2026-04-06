@@ -14,7 +14,8 @@ import {
   FiX,
   FiCheckCircle,
   FiClock,
-  FiAlertCircle
+  FiAlertCircle,
+  FiXCircle
 } from "react-icons/fi";
 import SidebarNoAuth from "../components/SidebarNoAuth";
 import { toast } from "react-toastify";

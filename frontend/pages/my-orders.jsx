@@ -13,7 +13,8 @@ import {
   FiClock,
   FiAlertCircle,
   FiArrowLeft,
-  FiRefreshCw
+  FiRefreshCw,
+  FiXCircle
 } from 'react-icons/fi';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
