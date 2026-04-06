@@ -5,54 +5,64 @@ import { Check, Package, Truck, Mail, Phone, ArrowRight } from 'lucide-react';
 
 const OrderConfirmationPage = () => {
   const router = useRouter();
-  const { order_id } = router.query;
+  const [orderData, setOrderData] = useState(null);
 
-  // Mock order data
-  const orderData = {
-    id: order_id || 'ORD-2024-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-    date: new Date().toLocaleDateString(),
-    status: 'Processing',
-    estimatedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-    items: [
-      {
-        id: 1,
-        name: 'Premium Industrial Automation System',
-        price: 25000,
-        quantity: 1,
-        image: 'https://via.placeholder.com/60x60/1a365d/ffffff?text=Automation'
-      },
-      {
-        id: 2,
-        name: 'Quality Control System',
-        price: 15000,
-        quantity: 2,
-        image: 'https://via.placeholder.com/60x60/2b6cb0/ffffff?text=QC'
-      },
-      {
-        id: 3,
-        name: 'Industrial Robot Arm',
-        price: 45000,
-        quantity: 1,
-        image: 'https://via.placeholder.com/60x60/3182ce/ffffff?text=Robot'
-      }
-    ],
-    shipping: {
-      name: 'John Doe',
-      address: '123 Industrial Park Drive',
-      city: 'Manufacturing City',
-      state: 'CA',
-      zipCode: '90210',
-      country: 'United States'
-    },
-    payment: {
-      method: 'Credit Card',
-      lastFour: '1234',
-      total: 100000
+  useEffect(() => {
+    // Get order data from localStorage
+    const savedOrder = localStorage.getItem('lastOrder');
+    if (savedOrder) {
+      setOrderData(JSON.parse(savedOrder));
+      // Clear the order data after displaying
+      localStorage.removeItem('lastOrder');
+    } else {
+      // Fallback to mock data for testing
+      setOrderData({
+        order_id: 'ORD-2024-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+        created_at: new Date().toISOString(),
+        order_status: 'Confirmed',
+        total_amount: 100000,
+        products: [
+          {
+            name: 'Premium Industrial Automation System',
+            price: 25000,
+            quantity: 1,
+            image: 'https://via.placeholder.com/60x60/1a365d/ffffff?text=Automation'
+          }
+        ],
+        shipping_address: {
+          firstName: 'John',
+          lastName: 'Doe',
+          address: '123 Industrial Park Drive',
+          city: 'Manufacturing City',
+          state: 'CA',
+          postalCode: '90210',
+          country: 'United States',
+          phone: '+1 (555) 123-4567',
+          email: 'john.doe@example.com'
+        },
+        payment_method: 'Credit Card'
+      });
     }
-  };
+  }, []);
+
+  if (!orderData) {
+    return (
+      <Layout title="Order Confirmation">
+        <div className="container py-16">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="animate-pulse">
+              <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/4 mx-auto mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/3 mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const calculateSubtotal = () => {
-    return orderData.items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return orderData.products.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
   const calculateTax = () => {
@@ -90,7 +100,7 @@ const OrderConfirmationPage = () => {
                   Thank you for your purchase. Your order has been successfully placed.
                 </p>
                 <p className="text-gray-600 mb-6">
-                  Order ID: <span className="font-semibold">{orderData.id}</span>
+                  Order ID: <span className="font-semibold">{orderData.order_id}</span>
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                   <button
@@ -117,7 +127,7 @@ const OrderConfirmationPage = () => {
                 <div className="bg-white rounded-lg p-6 shadow-sm">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Items</h2>
                   <div className="space-y-4">
-                    {orderData.items.map((item) => (
+                    {orderData.products.map((item) => (
                       <div key={item.id} className="flex items-center space-x-4 pb-4 border-b last:border-b-0">
                         <img
                           src={item.image}
@@ -145,17 +155,17 @@ const OrderConfirmationPage = () => {
                     <div>
                       <h3 className="font-medium text-gray-900 mb-3">Shipping Address</h3>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p>{orderData.shipping.name}</p>
-                        <p>{orderData.shipping.address}</p>
-                        <p>{orderData.shipping.city}, {orderData.shipping.state} {orderData.shipping.zipCode}</p>
-                        <p>{orderData.shipping.country}</p>
+                        <p>{orderData.shipping_address.firstName} {orderData.shipping_address.lastName}</p>
+                        <p>{orderData.shipping_address.address}</p>
+                        <p>{orderData.shipping_address.city}, {orderData.shipping_address.state} {orderData.shipping_address.postalCode}</p>
+                        <p>{orderData.shipping_address.country}</p>
                       </div>
                     </div>
                     <div>
                       <h3 className="font-medium text-gray-900 mb-3">Delivery Details</h3>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p>Status: <span className="font-medium text-green-600">{orderData.status}</span></p>
-                        <p>Estimated Delivery: <span className="font-medium">{orderData.estimatedDelivery}</span></p>
+                        <p>Status: <span className="font-medium text-green-600">{orderData.order_status}</span></p>
+                        <p>Estimated Delivery: <span className="font-medium">{new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span></p>
                         <p>Shipping Method: <span className="font-medium">Standard</span></p>
                       </div>
                     </div>
@@ -169,8 +179,8 @@ const OrderConfirmationPage = () => {
                     <div>
                       <h3 className="font-medium text-gray-900 mb-3">Payment Method</h3>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p>{orderData.payment.method}</p>
-                        <p>Ending in {orderData.payment.lastFour}</p>
+                        <p>{orderData.payment_method}</p>
+                        <p>Transaction ID: {orderData.payment_details?.transactionId || 'N/A'}</p>
                       </div>
                     </div>
                     <div>
@@ -179,7 +189,7 @@ const OrderConfirmationPage = () => {
                         <p>Subtotal: <span className="font-medium">${calculateSubtotal().toLocaleString()}</span></p>
                         <p>Tax: <span className="font-medium">${calculateTax().toLocaleString()}</span></p>
                         <p>Shipping: <span className="font-medium">{calculateShipping() === 0 ? 'FREE' : `$${calculateShipping().toLocaleString()}`}</span></p>
-                        <p className="font-semibold text-gray-900 pt-2 border-t">Total: <span className="font-semibold">${calculateTotal().toLocaleString()}</span></p>
+                        <p className="font-semibold text-gray-900 pt-2 border-t">Total: <span className="font-semibold">₹{orderData.total_amount.toLocaleString()}</span></p>
                       </div>
                     </div>
                   </div>
@@ -198,7 +208,7 @@ const OrderConfirmationPage = () => {
                       </div>
                       <div>
                         <p className="font-medium text-gray-900">Order Placed</p>
-                        <p className="text-sm text-gray-600">{orderData.date}</p>
+                        <p className="font-medium text-gray-900">{new Date(orderData.created_at).toLocaleDateString()}</p>
                       </div>
                     </div>
                     <div className="flex items-start space-x-3">

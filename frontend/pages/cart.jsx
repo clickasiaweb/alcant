@@ -21,10 +21,26 @@ const CartPage = () => {
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
 
-  // Mock cart data
-  const mockCartItems = [
-    {
-      id: 1,
+  // Load cart items from localStorage on mount
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cartItems');
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
+    }
+    setLoading(false);
+  }, []);
+
+  // Save cart items to localStorage whenever they change
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    }
+  }, [cartItems]);
+
+  // Add sample item for testing (you can remove this once you have proper add to cart functionality)
+  const addSampleItem = () => {
+    const sampleItem = {
+      id: '507f1f77bcf86cd799439011', // Use a real product ID from your database
       name: 'Premium Industrial Automation System',
       slug: 'premium-industrial-automation-system',
       price: 25000,
@@ -33,43 +49,19 @@ const CartPage = () => {
       image: 'https://via.placeholder.com/100x100/1a365d/ffffff?text=Automation',
       category: 'Automation',
       inStock: true,
-      variant: 'Standard Model'
-    },
-    {
-      id: 2,
-      name: 'Quality Control System',
-      slug: 'quality-control-system',
-      price: 15000,
-      quantity: 2,
-      image: 'https://via.placeholder.com/100x100/2b6cb0/ffffff?text=QC',
-      category: 'Quality Control',
-      inStock: true,
-      variant: 'Professional Model'
-    },
-    {
-      id: 3,
-      name: 'Industrial Robot Arm',
-      slug: 'industrial-robot-arm',
-      price: 45000,
-      originalPrice: 50000,
-      quantity: 1,
-      image: 'https://via.placeholder.com/100x100/3182ce/ffffff?text=Robot',
-      category: 'Robotics',
-      inStock: true,
-      variant: 'Standard Model'
-    }
-  ];
-
-  useEffect(() => {
-    // Simulate loading cart data
-    const loadCart = async () => {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setCartItems(mockCartItems);
-      setLoading(false);
+      variant: {
+        color: 'Standard',
+        size: 'Medium'
+      }
     };
     
-    loadCart();
-  }, []);
+    const existingItem = cartItems.find(item => item.id === sampleItem.id);
+    if (existingItem) {
+      updateQuantity(sampleItem.id, existingItem.quantity + 1);
+    } else {
+      setCartItems([...cartItems, sampleItem]);
+    }
+  };
 
   const updateQuantity = (id, newQuantity) => {
     if (newQuantity < 1) return;
@@ -175,13 +167,22 @@ const CartPage = () => {
                 <p className="text-gray-600 mb-8">
                   Looks like you haven't added any products to your cart yet.
                 </p>
-                <button
-                  onClick={() => router.push('/products')}
-                  className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors inline-flex items-center"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Continue Shopping
-                </button>
+                <div className="space-y-4">
+                  <button
+                    onClick={addSampleItem}
+                    className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors inline-flex items-center"
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Sample Product
+                  </button>
+                  <button
+                    onClick={() => router.push('/products')}
+                    className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors inline-flex items-center"
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Continue Shopping
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

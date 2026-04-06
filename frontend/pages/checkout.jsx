@@ -141,11 +141,86 @@ const CheckoutPage = () => {
 
   const handlePlaceOrder = async () => {
     setLoading(true);
-    // Simulate order processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setLoading(false);
-    // Redirect to order confirmation
-    router.push('/order-confirmation');
+    
+    try {
+      // Get cart items from localStorage
+      const cartItems = JSON.parse(localStorage.getItem('cartItems') || '[]');
+      
+      if (cartItems.length === 0) {
+        alert('Your cart is empty');
+        setLoading(false);
+        return;
+      }
+
+      // Prepare order data
+      const orderData = {
+        products: cartItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity,
+          variant: {
+            color: item.variant?.color || 'Standard',
+            size: item.variant?.size || 'Standard'
+          }
+        })),
+        shippingAddress: {
+          firstName: shippingInfo.firstName,
+          lastName: shippingInfo.lastName,
+          company: shippingInfo.company,
+          address: shippingInfo.address,
+          city: shippingInfo.city,
+          state: shippingInfo.state,
+          postalCode: shippingInfo.zipCode,
+          country: shippingInfo.country,
+          phone: shippingInfo.phone,
+          email: shippingInfo.email
+        },
+        billingAddress: billingInfo.sameAsShipping ? undefined : {
+          firstName: billingInfo.firstName,
+          lastName: billingInfo.lastName,
+          company: billingInfo.company,
+          address: billingInfo.address,
+          city: billingInfo.city,
+          state: billingInfo.state,
+          postalCode: billingInfo.zipCode,
+          country: billingInfo.country,
+          phone: shippingInfo.phone,
+          email: shippingInfo.email
+        },
+        paymentMethod: 'Credit Card',
+        paymentDetails: {
+          paidAt: new Date().toISOString(),
+          transactionId: 'TXN' + Date.now()
+        },
+        notes: 'Order placed from checkout'
+      };
+
+      // Create order via API
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Clear cart
+        localStorage.removeItem('cartItems');
+        // Store order info for confirmation page
+        localStorage.setItem('lastOrder', JSON.stringify(result.data));
+        // Redirect to order confirmation
+        router.push('/order-confirmation');
+      } else {
+        alert('Failed to place order: ' + (result.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error placing order:', error);
+      alert('Failed to place order. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const steps = [
