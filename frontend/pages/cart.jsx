@@ -31,7 +31,7 @@ const CartPage = () => {
       price: 25000,
       originalPrice: 28000,
       quantity: 1,
-      image: 'https://via.placeholder.com/100x100/1a365d/ffffff?text=Automation',
+      image: '/images/products/automation-system.jpg',
       category: 'Automation',
       inStock: true,
       variant: {

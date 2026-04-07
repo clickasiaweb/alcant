@@ -128,7 +128,7 @@ const SearchDropdown = () => {
               <div className="inline-block w-6 h-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
               <p className="mt-2 text-sm text-gray-500">Searching...</p>
             </div>
-          ) : searchQuery.length >= 2 ? (
+          ) : inputValue.length >= 2 ? (
             <>
               {searchResults.length > 0 ? (
                 <div className="p-2">
