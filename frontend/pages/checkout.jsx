@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import { useCart } from '../contexts/CartContext';
@@ -77,35 +77,35 @@ const CheckoutPage = () => {
   });
 
   // Calculate order totals from cart items
-  const calculateSubtotal = () => {
+  const calculateSubtotal = useCallback(() => {
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
+  }, [cartItems]);
 
-  const calculateTax = () => {
+  const calculateTax = useCallback(() => {
     return calculateSubtotal() * 0.18; // 18% GST
-  };
+  }, [calculateSubtotal]);
 
-  const calculateShipping = () => {
+  const calculateShipping = useCallback(() => {
     return calculateSubtotal() > 1000 ? 0 : 50; // Free shipping above 1000
-  };
+  }, [calculateSubtotal]);
 
-  const calculateTotal = () => {
+  const calculateTotal = useCallback(() => {
     return calculateSubtotal() + calculateTax() + calculateShipping();
-  };
+  }, [calculateSubtotal, calculateTax, calculateShipping]);
 
-  const validateShippingInfo = () => {
+  const validateShippingInfo = useCallback(() => {
     const required = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'zipCode'];
     return required.every(field => shippingInfo[field].trim() !== '');
-  };
+  }, [shippingInfo]);
 
-  const validateBillingInfo = () => {
+  const validateBillingInfo = useCallback(() => {
     if (billingInfo.sameAsShipping) return true;
     const required = ['firstName', 'lastName', 'address', 'city', 'state', 'zipCode'];
     return required.every(field => billingInfo[field].trim() !== '');
-  };
+  }, [billingInfo]);
 
-  const validatePaymentInfo = () => {
+  const validatePaymentInfo = useCallback(() => {
     const required = ['cardNumber', 'expiryDate', 'cvv', 'cardName'];
     const isValid = required.every(field => paymentInfo[field].trim() !== '');
     
@@ -120,9 +120,9 @@ const CheckoutPage = () => {
     }
     
     return isValid;
-  };
+  }, [paymentInfo]);
 
-  const handleNextStep = () => {
+  const handleNextStep = useCallback(() => {
     if (process.env.NODE_ENV === 'development') {
       console.log('Next step clicked, current step:', step);
     }
@@ -142,15 +142,15 @@ const CheckoutPage = () => {
     if (step < 4) {
       setStep(step + 1);
     }
-  };
+  }, [step, validateShippingInfo, validateBillingInfo, validatePaymentInfo]);
 
-  const handlePrevStep = () => {
+  const handlePrevStep = useCallback(() => {
     if (step > 1) {
       setStep(step - 1);
     }
-  };
+  }, [step]);
 
-  const handlePlaceOrder = async () => {
+  const handlePlaceOrder = useCallback(async () => {
     if (!isMounted.current) return;
     
     setLoading(true);
@@ -285,7 +285,7 @@ const CheckoutPage = () => {
         setLoading(false);
       }
     }
-  };
+  }, [cartItems, shippingInfo, billingInfo, paymentInfo, step, validateShippingInfo, validateBillingInfo, validatePaymentInfo, clearCart, router]);
 
   const steps = [
     { id: 1, name: 'Shipping', icon: MapPin },
