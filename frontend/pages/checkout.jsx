@@ -294,6 +294,26 @@ const CheckoutPage = () => {
     { id: 4, name: 'Review', icon: Check }
   ];
 
+  // Early return for empty cart - AFTER all hooks are defined
+  if (!cartItems || cartItems.length === 0) {
+    return (
+      <Layout title="Checkout">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
+            <p className="text-gray-600 mb-6">Add some products to your cart before checking out.</p>
+            <button
+              onClick={() => router.push('/')}
+              className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Continue Shopping
+            </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout title="Checkout">
       <div className="bg-gray-50 py-4 sm:py-8">

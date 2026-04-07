@@ -17,7 +17,7 @@ export const CartProvider = ({ children }) => {
   const isMounted = useRef(true);
 
   // Cleanup effect
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       isMounted.current = false;
     };
