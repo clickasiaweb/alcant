@@ -25,6 +25,7 @@ const Logo = ({ size = "default", className = "" }) => {
 };
 
 const AlcantaraHeader = () => {
+  console.log("AlcantaraHeader Component Rendered");
   const router = useRouter();
   const { openCart, calculateTotalItems } = useCart();
   const { openSearch } = useSearch();
@@ -55,7 +56,7 @@ const AlcantaraHeader = () => {
   const hasFetchedData = useRef(false);
 
   // Fetch products for a category
-  const fetchCategoryProducts = async (categorySlug) => {
+  const fetchCategoryProducts = useCallback(async (categorySlug) => {
     try {
       if (!isMounted.current) return;
       setProductsLoading(prev => ({ ...prev, [categorySlug]: true }));
@@ -73,10 +74,10 @@ const AlcantaraHeader = () => {
         setProductsLoading(prev => ({ ...prev, [categorySlug]: false }));
       }
     }
-  };
+  }, []);
 
   // Fetch sub-subcategories for a subcategory
-  const fetchSubSubcategories = async (categorySlug, subcategorySlug) => {
+  const fetchSubSubcategories = useCallback(async (categorySlug, subcategorySlug) => {
     try {
       if (!isMounted.current) return;
       setSubSubcategoriesLoading(prev => ({ ...prev, [subcategorySlug]: true }));
@@ -94,7 +95,7 @@ const AlcantaraHeader = () => {
         setSubSubcategoriesLoading(prev => ({ ...prev, [subcategorySlug]: false }));
       }
     }
-  };
+  }, []);
 
   // Handle subcategory selection
   const handleSubcategorySelect = (categorySlug, subcategory) => {
@@ -180,7 +181,7 @@ const AlcantaraHeader = () => {
     if (category && !categoryProducts[category.slug]) {
       await fetchCategoryProducts(category.slug);
     }
-  }, [categories, categoryProducts]);
+  }, [fetchCategoryProducts]); // Only depend on the memoized function
 
   const handleDropdownLeave = () => {
     dropdownTimeoutRef.current = setTimeout(() => {
