@@ -1,4 +1,5 @@
 const OrderService = require('../models/SupabaseOrder');
+const { supabaseService } = require('../config/supabase');
 
 // @desc    Get all orders (Admin only)
 // @route   GET /api/orders
