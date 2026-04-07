@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
+import React, { createContext, useContext, useState, useRef, useCallback, useMemo } from 'react';
 
 const CartContext = createContext();
 
@@ -92,12 +92,12 @@ export const CartProvider = ({ children }) => {
       const itemPrice = item.originalPrice || item.price;
       return total + (itemPrice * item.quantity);
     }, 0);
-  }, [cartItems]);
+  }, [cartItems]); // ✅ FIXED - Add cartItems dependency
 
   const calculateTotalItems = useCallback(() => {
     if (!cartItems || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => total + item.quantity, 0);
-  }, [cartItems]);
+  }, [cartItems]); // ✅ FIXED - Add cartItems dependency
 
   // Open/close cart drawer
   const openCart = useCallback(() => {
@@ -126,9 +126,9 @@ export const CartProvider = ({ children }) => {
     }
   ];
 
-  const value = {
-    cartItems: cartItems || [],
-    isCartOpen: isCartOpen || false,
+  const value = useMemo(() => ({
+    cartItems,
+    isCartOpen,
     addToCart,
     updateQuantity,
     removeItem,
@@ -138,7 +138,7 @@ export const CartProvider = ({ children }) => {
     openCart,
     closeCart,
     setIsCartOpen
-  };
+  }), [cartItems, isCartOpen]); // ✅ ONLY STATE DEPENDENCIES
 
   return (
     <CartContext.Provider value={value}>

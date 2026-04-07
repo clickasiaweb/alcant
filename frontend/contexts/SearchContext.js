@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import searchService from '../lib/searchService';
 
 const SearchContext = createContext();
@@ -19,12 +19,24 @@ export const SearchProvider = ({ children }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
 
+  // Safe recent searches state update to prevent unnecessary re-renders
+  const updateRecentSearches = useCallback(() => {
+    const newSearches = searchService.getRecentSearches();
+    setRecentSearches(prev => {
+      // Prevent unnecessary re-render if data is same
+      if (JSON.stringify(prev) === JSON.stringify(newSearches)) {
+        return prev;
+      }
+      return newSearches;
+    });
+  }, []);
+
   // Open search dropdown
   const openSearch = useCallback(() => {
     setIsSearchOpen(true);
-    // Load recent searches when opening
-    setRecentSearches(searchService.getRecentSearches());
-  }, []);
+    // Load recent searches when opening safely
+    updateRecentSearches();
+  }, [updateRecentSearches]);
 
   // Close search dropdown
   const closeSearch = useCallback(() => {
@@ -63,14 +75,14 @@ export const SearchProvider = ({ children }) => {
     
     // Save to recent searches
     searchService.saveRecentSearch(query.trim());
-    setRecentSearches(searchService.getRecentSearches());
+    updateRecentSearches();
     
     // Navigate to search results page
     window.location.href = `/search?q=${encodeURIComponent(query.trim())}`;
     
     // Close search dropdown
     closeSearch();
-  }, [closeSearch]);
+  }, [closeSearch, updateRecentSearches]);
 
   // Handle recent search click
   const handleRecentSearchClick = useCallback((query) => {
@@ -89,9 +101,11 @@ export const SearchProvider = ({ children }) => {
   }, []);
 
   // Get popular suggestions
-  const popularSuggestions = searchService.getPopularSuggestions();
+  const popularSuggestions = useMemo(() => {
+    return searchService.getPopularSuggestions();
+  }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     isSearchOpen,
     searchQuery,
     searchResults,
@@ -105,7 +119,14 @@ export const SearchProvider = ({ children }) => {
     handleRecentSearchClick,
     handleSuggestionClick,
     clearRecentSearches
-  };
+  }), [
+    isSearchOpen,
+    searchQuery,
+    searchResults,
+    isSearching,
+    recentSearches,
+    popularSuggestions
+  ]); // ✅ only state + memo values
 
   return (
     <SearchContext.Provider value={value}>

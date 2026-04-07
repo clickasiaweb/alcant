@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import { useCart } from '../contexts/CartContext';
@@ -26,7 +26,7 @@ const CheckoutPage = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
-  const [isMounted, setIsMounted] = useState(true);
+  const isMounted = useRef(true);
   
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
@@ -52,7 +52,7 @@ const CheckoutPage = () => {
   // Cleanup effect to prevent state updates after unmount
   useEffect(() => {
     return () => {
-      setIsMounted(false);
+      isMounted.current = false;
     };
   }, []);
 
@@ -151,7 +151,7 @@ const CheckoutPage = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (!isMounted) return;
+    if (!isMounted.current) return;
     
     setLoading(true);
     
@@ -170,26 +170,26 @@ const CheckoutPage = () => {
       // Check if cart has items
       if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
         alert('Your cart is empty');
-        if (isMounted) setLoading(false);
+        if (isMounted.current) setLoading(false);
         return;
       }
 
       // Validate all information before placing order
       if (!validateShippingInfo()) {
         alert('Please fill in all required shipping information');
-        if (isMounted) setLoading(false);
+        if (isMounted.current) setLoading(false);
         return;
       }
 
       if (!validateBillingInfo()) {
         alert('Please fill in all required billing information');
-        if (isMounted) setLoading(false);
+        if (isMounted.current) setLoading(false);
         return;
       }
 
       if (!validatePaymentInfo()) {
         alert('Please fill in all required payment information');
-        if (isMounted) setLoading(false);
+        if (isMounted.current) setLoading(false);
         return;
       }
 
@@ -266,22 +266,22 @@ const CheckoutPage = () => {
         // Store order info for confirmation page
         localStorage.setItem('lastOrder', JSON.stringify(result.data));
         // Redirect to order confirmation only if component is still mounted
-        if (isMounted) {
+        if (isMounted.current) {
           router.push('/order-confirmation');
         }
       } else {
-        if (isMounted) {
+        if (isMounted.current) {
           alert('Failed to place order: ' + (result.message || 'Unknown error'));
         }
       }
     } catch (error) {
       console.error('Error placing order:', error);
-      if (isMounted) {
+      if (isMounted.current) {
         alert('Failed to place order. Please try again.');
       }
     } finally {
       // Only update loading state if component is still mounted
-      if (isMounted) {
+      if (isMounted.current) {
         setLoading(false);
       }
     }

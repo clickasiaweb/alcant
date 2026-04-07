@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import wishlistService from '../lib/wishlistService';
 
 const WishlistContext = createContext();
@@ -18,6 +18,18 @@ export const WishlistProvider = ({ children }) => {
   const [isClient, setIsClient] = useState(false);
   const isMounted = useRef(true);
 
+  // Safe wishlist state update to prevent unnecessary re-renders
+  const updateWishlistState = useCallback(() => {
+    const newWishlist = wishlistService.getWishlist();
+    setWishlistItems(prev => {
+      // Prevent unnecessary re-render if data is same
+      if (JSON.stringify(prev) === JSON.stringify(newWishlist)) {
+        return prev;
+      }
+      return newWishlist;
+    });
+  }, []);
+
   // Cleanup effect
   useEffect(() => {
     return () => {
@@ -28,17 +40,17 @@ export const WishlistProvider = ({ children }) => {
   // Initialize wishlist on client side
   useEffect(() => {
     setIsClient(true);
-    setWishlistItems(wishlistService.getWishlist());
+    updateWishlistState();
   }, []);
 
   // Open wishlist dropdown
   const openWishlist = useCallback(() => {
     if (isMounted.current) {
       setIsWishlistOpen(true);
-      // Refresh wishlist items
-      setWishlistItems(wishlistService.getWishlist());
+      // Refresh wishlist items safely
+      updateWishlistState();
     }
-  }, []);
+  }, [updateWishlistState]);
 
   // Close wishlist dropdown
   const closeWishlist = useCallback(() => {
@@ -51,28 +63,28 @@ export const WishlistProvider = ({ children }) => {
   const addToWishlist = useCallback((product) => {
     const success = wishlistService.addToWishlist(product);
     if (success && isMounted.current) {
-      setWishlistItems(wishlistService.getWishlist());
+      updateWishlistState();
     }
     return success;
-  }, []);
+  }, [updateWishlistState]);
 
   // Remove item from wishlist
   const removeFromWishlist = useCallback((productId) => {
     const success = wishlistService.removeFromWishlist(productId);
     if (success && isMounted.current) {
-      setWishlistItems(wishlistService.getWishlist());
+      updateWishlistState();
     }
     return success;
-  }, []);
+  }, [updateWishlistState]);
 
   // Toggle item in wishlist
   const toggleWishlist = useCallback((product) => {
     const isAdded = wishlistService.toggleWishlist(product);
     if (isMounted.current) {
-      setWishlistItems(wishlistService.getWishlist());
+      updateWishlistState();
     }
     return isAdded;
-  }, []);
+  }, [updateWishlistState]);
 
   // Check if item is in wishlist
   const isInWishlist = useCallback((productId) => {
@@ -92,20 +104,22 @@ export const WishlistProvider = ({ children }) => {
   const moveToCart = useCallback((productId, addToCartFunction) => {
     const success = wishlistService.moveToCart(productId, addToCartFunction);
     if (success && isMounted.current) {
-      setWishlistItems(wishlistService.getWishlist());
+      updateWishlistState();
     }
     return success;
-  }, []);
+  }, [updateWishlistState]);
 
   // Get wishlist count
   const getWishlistCount = useCallback(() => {
-    return wishlistService.getWishlistCount();
-  }, []);
+    return wishlistItems.length;
+  }, [wishlistItems]);
 
   // Get wishlist total
   const getWishlistTotal = useCallback(() => {
-    return wishlistService.getWishlistTotal();
-  }, []);
+    return wishlistItems.reduce((total, item) => {
+      return total + (item.price || 0);
+    }, 0);
+  }, [wishlistItems]);
 
   // Handle escape key
   useEffect(() => {
@@ -126,7 +140,7 @@ export const WishlistProvider = ({ children }) => {
     };
   }, [isWishlistOpen, closeWishlist]);
 
-  const value = {
+  const value = useMemo(() => ({
     wishlistItems,
     isWishlistOpen,
     isClient,
@@ -140,7 +154,7 @@ export const WishlistProvider = ({ children }) => {
     moveToCart,
     getWishlistCount,
     getWishlistTotal
-  };
+  }), [wishlistItems, isWishlistOpen, isClient]); // ✅ ONLY STATE DEPENDENCIES
 
   return (
     <WishlistContext.Provider value={value}>
