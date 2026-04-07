@@ -104,14 +104,17 @@ const searchService = {
     }
   },
 
+  // Get categories (exported for use in search page)
+  getCategories: getCategories,
+
   // Get popular suggestions
   getPopularSuggestions: () => {
     return [
-      'Phone cases',
-      'Wireless headphones',
-      'Leather wallets',
-      'Smart watches',
-      'Bluetooth speakers'
+      'iPhone 17 Pro Case',
+      'Leather Wallet',
+      'Alcantara Pet Bed',
+      'Premium Car Accessories',
+      'Minimalist Wallet'
     ];
   },
 
