@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import wishlistService from '../lib/wishlistService';
 
 const WishlistContext = createContext();
@@ -16,6 +16,14 @@ export const WishlistProvider = ({ children }) => {
   const [wishlistItems, setWishlistItems] = useState([]);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const isMounted = useRef(true);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // Initialize wishlist on client side
   useEffect(() => {
@@ -25,20 +33,24 @@ export const WishlistProvider = ({ children }) => {
 
   // Open wishlist dropdown
   const openWishlist = useCallback(() => {
-    setIsWishlistOpen(true);
-    // Refresh wishlist items
-    setWishlistItems(wishlistService.getWishlist());
+    if (isMounted.current) {
+      setIsWishlistOpen(true);
+      // Refresh wishlist items
+      setWishlistItems(wishlistService.getWishlist());
+    }
   }, []);
 
   // Close wishlist dropdown
   const closeWishlist = useCallback(() => {
-    setIsWishlistOpen(false);
+    if (isMounted.current) {
+      setIsWishlistOpen(false);
+    }
   }, []);
 
   // Add item to wishlist
   const addToWishlist = useCallback((product) => {
     const success = wishlistService.addToWishlist(product);
-    if (success) {
+    if (success && isMounted.current) {
       setWishlistItems(wishlistService.getWishlist());
     }
     return success;
@@ -47,7 +59,7 @@ export const WishlistProvider = ({ children }) => {
   // Remove item from wishlist
   const removeFromWishlist = useCallback((productId) => {
     const success = wishlistService.removeFromWishlist(productId);
-    if (success) {
+    if (success && isMounted.current) {
       setWishlistItems(wishlistService.getWishlist());
     }
     return success;
@@ -55,11 +67,10 @@ export const WishlistProvider = ({ children }) => {
 
   // Toggle item in wishlist
   const toggleWishlist = useCallback((product) => {
-    console.log('WishlistContext - toggleWishlist called', product);
     const isAdded = wishlistService.toggleWishlist(product);
-    console.log('WishlistContext - service toggleWishlist result:', isAdded);
-    setWishlistItems(wishlistService.getWishlist());
-    console.log('WishlistContext - updated wishlistItems:', wishlistService.getWishlist());
+    if (isMounted.current) {
+      setWishlistItems(wishlistService.getWishlist());
+    }
     return isAdded;
   }, []);
 
@@ -71,7 +82,7 @@ export const WishlistProvider = ({ children }) => {
   // Clear entire wishlist
   const clearWishlist = useCallback(() => {
     const success = wishlistService.clearWishlist();
-    if (success) {
+    if (success && isMounted.current) {
       setWishlistItems([]);
     }
     return success;
@@ -80,7 +91,7 @@ export const WishlistProvider = ({ children }) => {
   // Move item to cart
   const moveToCart = useCallback((productId, addToCartFunction) => {
     const success = wishlistService.moveToCart(productId, addToCartFunction);
-    if (success) {
+    if (success && isMounted.current) {
       setWishlistItems(wishlistService.getWishlist());
     }
     return success;

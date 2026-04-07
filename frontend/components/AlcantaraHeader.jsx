@@ -27,7 +27,7 @@ const Logo = ({ size = "default", className = "" }) => {
   );
 };
 
-const ΛʟcΛɴᴛHeader = () => {
+const AlcantaraHeader = () => {
   const router = useRouter();
   const { openCart, calculateTotalItems } = useCart();
   const { openSearch } = useSearch();
@@ -52,32 +52,47 @@ const ΛʟcΛɴᴛHeader = () => {
   const [mobileNavStack, setMobileNavStack] = useState([]);
   const dropdownTimeoutRef = useRef(null);
   const categoryButtonRefs = useRef({});
+  const isMounted = useRef(true);
 
   // Fetch products for a category
   const fetchCategoryProducts = async (categorySlug) => {
     try {
+      if (!isMounted.current) return;
       setProductsLoading(prev => ({ ...prev, [categorySlug]: true }));
       const productsData = await productService.getProductsByCategory(categorySlug, { limit: 8 });
-      setCategoryProducts(prev => ({ ...prev, [categorySlug]: productsData.products || [] }));
+      if (isMounted.current) {
+        setCategoryProducts(prev => ({ ...prev, [categorySlug]: productsData.products || [] }));
+      }
     } catch (error) {
       console.error('Failed to fetch category products:', error);
-      setCategoryProducts(prev => ({ ...prev, [categorySlug]: [] }));
+      if (isMounted.current) {
+        setCategoryProducts(prev => ({ ...prev, [categorySlug]: [] }));
+      }
     } finally {
-      setProductsLoading(prev => ({ ...prev, [categorySlug]: false }));
+      if (isMounted.current) {
+        setProductsLoading(prev => ({ ...prev, [categorySlug]: false }));
+      }
     }
   };
 
   // Fetch sub-subcategories for a subcategory
   const fetchSubSubcategories = async (categorySlug, subcategorySlug) => {
     try {
+      if (!isMounted.current) return;
       setSubSubcategoriesLoading(prev => ({ ...prev, [subcategorySlug]: true }));
       const subSubcategoriesData = await categoryService.getSubSubcategories(categorySlug, subcategorySlug);
-      setSubSubcategories(prev => ({ ...prev, [subcategorySlug]: subSubcategoriesData }));
+      if (isMounted.current) {
+        setSubSubcategories(prev => ({ ...prev, [subcategorySlug]: subSubcategoriesData }));
+      }
     } catch (error) {
       console.error('Failed to fetch sub-subcategories:', error);
-      setSubSubcategories(prev => ({ ...prev, [subcategorySlug]: [] }));
+      if (isMounted.current) {
+        setSubSubcategories(prev => ({ ...prev, [subcategorySlug]: [] }));
+      }
     } finally {
-      setSubSubcategoriesLoading(prev => ({ ...prev, [subcategorySlug]: false }));
+      if (isMounted.current) {
+        setSubSubcategoriesLoading(prev => ({ ...prev, [subcategorySlug]: false }));
+      }
     }
   };
 
@@ -91,12 +106,15 @@ const ΛʟcΛɴᴛHeader = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        if (!isMounted.current) return;
         setLoading(true);
-        console.log('🔄 ΛʟcΛɴᴛHeader: Fetching categories with hierarchy...');
+        console.log('AlcantaraHeader: Fetching categories with hierarchy...');
         
         // Use hierarchy endpoint to get all data at once
         const categoriesData = await categoryService.getCategoriesWithHierarchy();
-        console.log('📊 ΛʟcΛɴᴛHeader: Categories data received:', categoriesData);
+        console.log('AlcantaraHeader: Categories data received:', categoriesData);
+        
+        if (!isMounted.current) return;
         
         const categoriesList = categoriesData.data || [];
         setCategories(categoriesList);
@@ -116,8 +134,10 @@ const ΛʟcΛɴᴛHeader = () => {
           });
         });
         
-        setSubcategories(subcategoriesData);
-        setSubSubcategories(subSubcategoriesData);
+        if (isMounted.current) {
+          setSubcategories(subcategoriesData);
+          setSubSubcategories(subSubcategoriesData);
+        }
         
         console.log(' Subcategories:', subcategoriesData);
         console.log(' Sub-subcategories:', subSubcategoriesData);
@@ -130,19 +150,26 @@ const ΛʟcΛɴᴛHeader = () => {
           console.log(' iPhone Cases subcategory:', iPhoneSub);
           if (iPhoneSub) {
             console.log(' iPhone Cases sub-subcategories:', iPhoneSub.sub_subcategories);
-            console.log('📱 iPhone Cases sub-subcategories:', iPhoneSub.sub_subcategories);
+            console.log(' iPhone Cases sub-subcategories:', iPhoneSub.sub_subcategories);
           }
         }
         
-        console.log('✅ ΛʟcΛɴᴛHeader: Data loaded successfully');
+        console.log(' AlcantaraHeader: Data loaded successfully');
       } catch (err) {
-        console.error('❌ ΛʟcΛɴᴛHeader: Failed to fetch data:', err);
+        console.error(' AlcantaraHeader: Failed to fetch data:', err);
       } finally {
-        setLoading(false);
+        if (isMounted.current) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
+
+    // Cleanup function
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   // Handle dropdown hover with delay
@@ -172,6 +199,8 @@ const ΛʟcΛɴᴛHeader = () => {
 
   // Add effect to control body scroll based on dropdown state
   useEffect(() => {
+    if (!isMounted.current) return;
+    
     if (activeDropdown || isProfileOpen) {
       // Disable body scrolling when any modal/dropdown is active
       document.body.style.overflow = 'hidden';
@@ -248,6 +277,8 @@ const ΛʟcΛɴᴛHeader = () => {
 
   // Close dropdown on click outside
   useEffect(() => {
+    if (!isMounted.current) return;
+    
     const handleClickOutside = (e) => {
       if (!e.target.closest('.mega-menu-container')) {
         setActiveDropdown(null);
