@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .search-box {
+            margin: 20px 0;
+        }
+        input {
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .product {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .product img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search API Test</h1>
+    
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search for products..." value="phone">
+        <button onclick="performSearch()">Search</button>
+        <button onclick="clearResults()">Clear</button>
+    </div>
+    
+    <div id="results" class="results"></div>
+
+    <script>
+        async function performSearch() {
+            const query = document.getElementById('searchInput').value;
+            const resultsDiv = document.getElementById('results');
+            
+            if (!query || query.trim().length < 2) {
+                resultsDiv.innerHTML = '<p>Please enter at least 2 characters</p>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<p>Searching...</p>';
+            
+            try {
+                const response = await fetch(`https://alcant-backend.vercel.app/api/products/search?q=${encodeURIComponent(query.trim())}&limit=5`);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('API response:', data);
+                
+                if (data.products && data.products.length > 0) {
+                    const productsHtml = data.products.map(product => `
+                        <div class="product">
+                            <img src="${product.image || product.images?.[0] || 'https://picsum.photos/seed/product/60/60.jpg'}" alt="${product.name}">
+                            <div>
+                                <h3>${product.name}</h3>
+                                <p>Price: $${product.price || product.final_price || 0}</p>
+                                <p>Category: ${product.category || 'Unknown'}</p>
+                                ${product.rating ? `<p>Rating: ${product.rating} ${product.reviews ? `(${product.reviews} reviews)` : ''}</p>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    resultsDiv.innerHTML = `
+                        <h2>Found ${data.products.length} products for "${query}"</h2>
+                        ${productsHtml}
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `<p>No products found for "${query}"</p>`;
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('searchInput').value = '';
+        }
+        
+        // Auto-search on page load
+        window.addEventListener('load', performSearch);
+    </script>
+</body>
+</html>

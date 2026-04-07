@@ -35,17 +35,15 @@ const SearchResults = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const API_BASE_URL = process.env.NODE_ENV === 'production' 
-          ? 'https://ΛʟcΛɴᴛ-backend.vercel.app/api' 
-          : 'http://localhost:5001/api';
+        const API_BASE_URL = 'https://alcant-backend.vercel.app/api';
         
-        const response = await fetch(`${API_BASE_URL}/products/categories`);
+        const response = await fetch(`${API_BASE_URL}/categories`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        const categoryList = Object.keys(data.categories || {});
+        const categoryList = (data.categories || []).map(cat => cat.name);
         setCategories(['All Categories', ...categoryList]);
         
       } catch (error) {
@@ -142,9 +140,15 @@ const SearchResults = () => {
       setLoading(true);
       
       try {
-        const API_BASE_URL = process.env.NODE_ENV === 'production' 
-          ? 'https://ΛʟcΛɴᴛ-backend.vercel.app/api' 
-          : 'http://localhost:5001/api';
+        const API_BASE_URL = 'https://alcant-backend.vercel.app/api';
+        
+        // Fetch categories for mapping
+        const categoriesResponse = await fetch(`${API_BASE_URL}/categories`);
+        const categoriesData = await categoriesResponse.json();
+        const categoryMap = {};
+        (categoriesData.categories || []).forEach(cat => {
+          categoryMap[cat.id] = cat.name;
+        });
         
         // Build search URL with parameters
         const params = new URLSearchParams();
@@ -174,7 +178,7 @@ const SearchResults = () => {
           }
           
           const url = `${API_BASE_URL}/products?${generalParams.toString()}`;
-          console.log('🔍 General products URL:', url);
+          console.log(' General products URL:', url);
           
           const response = await fetch(url);
           if (!response.ok) {
@@ -182,7 +186,7 @@ const SearchResults = () => {
           }
           
           const data = await response.json();
-          console.log('📊 Products response:', data);
+          console.log(' Products response:', data);
           
           // Transform products to match expected format
           const transformedProducts = (data.products || []).map(product => ({
@@ -194,13 +198,13 @@ const SearchResults = () => {
             rating: product.rating || 0,
             reviews: product.reviews || 0,
             image: product.image || product.images?.[0] || 'https://picsum.photos/seed/product/300x300.jpg',
-            category: product.category || 'Unknown',
+            category: categoryMap[product.category] || product.category || 'Unknown',
             isNew: product.is_new || false,
             discount: product.old_price ? Math.round((1 - product.price / product.old_price) * 100) : 0,
             description: product.description
           }));
           
-          console.log('📦 Transformed products:', transformedProducts);
+          console.log(' Transformed products:', transformedProducts);
           setProducts(transformedProducts);
           setLoading(false);
           return;
@@ -227,7 +231,7 @@ const SearchResults = () => {
         }
         
         const url = `${API_BASE_URL}/products/search?${params.toString()}`;
-        console.log('🔍 Search URL:', url);
+        console.log(' Search URL:', url);
         
         const response = await fetch(url);
         if (!response.ok) {
@@ -235,7 +239,7 @@ const SearchResults = () => {
         }
         
         const data = await response.json();
-        console.log('📊 Search response:', data);
+        console.log(' Search response:', data);
         
         // Transform products to match expected format
         const transformedProducts = (data.products || []).map(product => ({
@@ -247,13 +251,13 @@ const SearchResults = () => {
           rating: product.rating || 0,
           reviews: product.reviews || 0,
           image: product.image || product.images?.[0] || 'https://picsum.photos/seed/product/300x300.jpg',
-          category: product.category || 'Unknown',
+          category: categoryMap[product.category] || product.category || 'Unknown',
           isNew: product.is_new || false,
           discount: product.old_price ? Math.round((1 - product.price / product.old_price) * 100) : 0,
           description: product.description
         }));
         
-        console.log('📦 Transformed products:', transformedProducts);
+        console.log(' Transformed products:', transformedProducts);
         setProducts(transformedProducts);
         
       } catch (error) {

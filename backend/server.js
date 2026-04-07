@@ -101,7 +101,8 @@ app.use(
       "https://admin.alcant.in",
       "http://localhost:3000",
       "http://localhost:3001",
-      "http://localhost:3002"
+      "http://localhost:3002",
+      "null" // Allow local file access for testing
     ],
     credentials: true,
   }),
