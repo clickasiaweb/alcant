@@ -62,6 +62,7 @@ const OrderConfirmationPage = () => {
   }
 
   const calculateSubtotal = () => {
+    if (!orderData.products || !Array.isArray(orderData.products)) return 0;
     return orderData.products.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
@@ -127,24 +128,30 @@ const OrderConfirmationPage = () => {
                 <div className="bg-white rounded-lg p-6 shadow-sm">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Items</h2>
                   <div className="space-y-4">
-                    {orderData.products.map((item) => (
-                      <div key={item.id} className="flex items-center space-x-4 pb-4 border-b last:border-b-0">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{item.name}</h3>
-                          <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                    {orderData.products && orderData.products.length > 0 ? (
+                      orderData.products.map((item) => (
+                        <div key={item.id || item.productId} className="flex items-center space-x-4 pb-4 border-b last:border-b-0">
+                          <img
+                            src={item.image || '/images/products/default.jpg'}
+                            alt={item.name}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                          <div className="flex-1">
+                            <h3 className="font-medium text-gray-900">{item.name || 'Product'}</h3>
+                            <p className="text-sm text-gray-600">Quantity: {item.quantity || 1}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-gray-900">
+                              ₹{((item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-gray-900">
-                            ₹{(item.price * item.quantity).toLocaleString()}
-                          </p>
-                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p>No product details available</p>
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
 
@@ -155,10 +162,10 @@ const OrderConfirmationPage = () => {
                     <div>
                       <h3 className="font-medium text-gray-900 mb-3">Shipping Address</h3>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p>{orderData.shipping_address.firstName} {orderData.shipping_address.lastName}</p>
-                        <p>{orderData.shipping_address.address}</p>
-                        <p>{orderData.shipping_address.city}, {orderData.shipping_address.state} {orderData.shipping_address.postalCode}</p>
-                        <p>{orderData.shipping_address.country}</p>
+                        <p>{(orderData.shipping_address?.firstName || '')} {(orderData.shipping_address?.lastName || '')}</p>
+                        {orderData.shipping_address?.address && <p>{orderData.shipping_address.address}</p>}
+                        {orderData.shipping_address?.city && <p>{orderData.shipping_address.city}, {orderData.shipping_address.state || ''} {orderData.shipping_address.postalCode || ''}</p>}
+                        {orderData.shipping_address?.country && <p>{orderData.shipping_address.country}</p>}
                       </div>
                     </div>
                     <div>
@@ -283,7 +290,7 @@ const OrderConfirmationPage = () => {
                     </li>
                     <li className="flex items-start space-x-2">
                       <Check className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      <span>Your order will be delivered by {orderData.estimatedDelivery}</span>
+                      <span>Your order will be delivered by {new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}</span>
                     </li>
                   </ul>
                 </div>
