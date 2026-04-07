@@ -379,134 +379,45 @@ exports.searchProducts = async (req, res) => {
     const skip = (pageNum - 1) * limitNum;
     const searchQueryLower = query.toLowerCase().trim();
 
-    console.log('🔍 Search query:', searchQueryLower);
+    console.log('Search query:', searchQueryLower);
 
-    // Create multiple search queries with different priority levels
-    const queries = [];
-
-    // Priority 1: Exact name match (highest priority)
-    queries.push({
-      match: 'exact_name',
-      query: {
-        $and: [
-          { isActive: true },
-          { name: { $regex: `^${searchQueryLower}$`, $options: "i" } }
-        ]
-      }
-    });
-
-    // Priority 2: Name starts with query (high priority)
-    queries.push({
-      match: 'name_starts',
-      query: {
-        $and: [
-          { isActive: true },
-          { name: { $regex: `^${searchQueryLower}`, $options: "i" } }
-        ]
-      }
-    });
-
-    // Priority 3: Name contains query (medium priority)
-    queries.push({
-      match: 'name_contains',
-      query: {
-        $and: [
-          { isActive: true },
-          { name: { $regex: searchQueryLower, $options: "i" } }
-        ]
-      }
-    });
-
-    // Priority 4: Category or description contains query (lower priority)
-    queries.push({
-      match: 'category_description',
-      query: {
-        $and: [
-          { isActive: true },
-          { 
-            $or: [
-              { category: { $regex: searchQueryLower, $options: "i" } },
-              { description: { $regex: searchQueryLower, $options: "i" } },
-              { subcategory: { $regex: searchQueryLower, $options: "i" } }
-            ]
-          }
-        ]
-      }
-    });
-
-    // Execute all queries
-    const results = await Promise.all(
-      queries.map(q => SupabaseProduct.find(q.query, { limit: limitNum }))
-    );
-
-    // Process results and add priority scores
-    const allProducts = [];
-    const seenIds = new Set();
-
-    results.forEach((result, index) => {
-      const priority = queries[index].match;
-      const products = result.data || [];
-      
-      products.forEach(product => {
-        if (!seenIds.has(product.id)) {
-          seenIds.add(product.id);
-          allProducts.push({
-            ...product,
-            _searchPriority: index,
-            _matchType: priority
-          });
-        }
-      });
-    });
-
-    // Sort by priority first, then by rating and reviews
-    allProducts.sort((a, b) => {
-      if (a._searchPriority !== b._searchPriority) {
-        return a._searchPriority - b._searchPriority;
-      }
-      // Within same priority, sort by rating and reviews
-      if (b.rating !== a.rating) {
-        return b.rating - a.rating;
-      }
-      return b.reviews - a.reviews;
-    });
-
-    // Remove priority fields and limit results
-    const finalProducts = allProducts
-      .slice(skip, skip + limitNum)
-      .map(({ _searchPriority, _matchType, ...product }) => product);
-
-    // Get total count
-    const totalQuery = {
-      $and: [
-        { isActive: true },
-        {
-          $or: [
-            { name: { $regex: searchQueryLower, $options: "i" } },
-            { description: { $regex: searchQueryLower, $options: "i" } },
-            { category: { $regex: searchQueryLower, $options: "i" } },
-            { subcategory: { $regex: searchQueryLower, $options: "i" } },
-          ],
-        },
-      ],
+    // Use a single search query with proper text search
+    const searchQuery = {
+      isActive: true,
+      $or: [
+        { name: { $regex: searchQueryLower, $options: "i" } },
+        { description: { $regex: searchQueryLower, $options: "i" } },
+        { category: { $regex: searchQueryLower, $options: "i" } },
+        { subcategory: { $regex: searchQueryLower, $options: "i" } },
+        { sub_subcategory: { $regex: searchQueryLower, $options: "i" } },
+        { brand: { $regex: searchQueryLower, $options: "i" } }
+      ]
     };
-    const total = await SupabaseProduct.countDocuments(totalQuery);
 
-    console.log('📊 Search results:', {
+    // Execute search query
+    const result = await SupabaseProduct.find(searchQuery, { 
+      limit: limitNum,
+      skip: skip 
+    });
+
+    // Get total count for pagination
+    const total = await SupabaseProduct.countDocuments(searchQuery);
+
+    console.log('Search results:', {
       query: searchQueryLower,
-      totalFound: allProducts.length,
-      returned: finalProducts.length,
-      firstResult: finalProducts[0]?.name
+      totalFound: total,
+      returned: result.data?.length || 0,
+      firstResult: result.data?.[0]?.name
     });
 
     res.json({
-      products: finalProducts,
+      products: result.data || [],
       query,
       pagination: {
         page: pageNum,
         limit: limitNum,
         total,
-        hasMore: skip + finalProducts.length < total,
+        hasMore: skip + (result.data?.length || 0) < total,
       },
     });
   } catch (error) {

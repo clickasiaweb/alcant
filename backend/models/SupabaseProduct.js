@@ -35,9 +35,32 @@ class SupabaseProduct {
     }
     
     if (query.$or) {
-      // Handle text search
-      const searchTerm = query.$or[0].name.$regex;
-      supabaseQuery = supabaseQuery.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,subcategory.ilike.%${searchTerm}%,sub_subcategory.ilike.%${searchTerm}%`);
+      // Handle text search with multiple $or conditions
+      const searchConditions = query.$or.map(condition => {
+        if (condition.name) {
+          return `name.ilike.%${condition.name.$regex}%`;
+        }
+        if (condition.description) {
+          return `description.ilike.%${condition.description.$regex}%`;
+        }
+        if (condition.category) {
+          return `category.ilike.%${condition.category.$regex}%`;
+        }
+        if (condition.subcategory) {
+          return `subcategory.ilike.%${condition.subcategory.$regex}%`;
+        }
+        if (condition.sub_subcategory) {
+          return `sub_subcategory.ilike.%${condition.sub_subcategory.$regex}%`;
+        }
+        if (condition.brand) {
+          return `brand.ilike.%${condition.brand.$regex}%`;
+        }
+        return '';
+      }).filter(condition => condition !== '');
+      
+      if (searchConditions.length > 0) {
+        supabaseQuery = supabaseQuery.or(searchConditions.join(','));
+      }
     }
     
     if (query.price) {
@@ -310,8 +333,32 @@ class SupabaseProduct {
     }
     
     if (query.$or) {
-      const searchTerm = query.$or[0].name.$regex;
-      supabaseQuery = supabaseQuery.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,subcategory.ilike.%${searchTerm}%,sub_subcategory.ilike.%${searchTerm}%`);
+      // Handle text search with multiple $or conditions (same logic as find method)
+      const searchConditions = query.$or.map(condition => {
+        if (condition.name) {
+          return `name.ilike.%${condition.name.$regex}%`;
+        }
+        if (condition.description) {
+          return `description.ilike.%${condition.description.$regex}%`;
+        }
+        if (condition.category) {
+          return `category.ilike.%${condition.category.$regex}%`;
+        }
+        if (condition.subcategory) {
+          return `subcategory.ilike.%${condition.subcategory.$regex}%`;
+        }
+        if (condition.sub_subcategory) {
+          return `sub_subcategory.ilike.%${condition.sub_subcategory.$regex}%`;
+        }
+        if (condition.brand) {
+          return `brand.ilike.%${condition.brand.$regex}%`;
+        }
+        return '';
+      }).filter(condition => condition !== '');
+      
+      if (searchConditions.length > 0) {
+        supabaseQuery = supabaseQuery.or(searchConditions.join(','));
+      }
     }
     
     if (query.price) {
