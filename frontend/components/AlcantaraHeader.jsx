@@ -154,9 +154,9 @@ const AlcantaraHeader = () => {
           }
         }
         
-        console.log(' AlcantaraHeader: Data loaded successfully');
+        console.log('AlcantaraHeader: Data loaded successfully');
       } catch (err) {
-        console.error(' AlcantaraHeader: Failed to fetch data:', err);
+        console.error('AlcantaraHeader: Failed to fetch data:', err);
       } finally {
         if (isMounted.current) {
           setLoading(false);
@@ -878,4 +878,4 @@ const AlcantaraHeader = () => {
   );
 };
 
-export default ΛʟcΛɴᴛHeader;
+export default AlcantaraHeader;
