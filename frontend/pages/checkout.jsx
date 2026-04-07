@@ -42,12 +42,12 @@ const CheckoutPage = () => {
     country: 'United States'
   });
 
-  // Debug: Log shipping info changes
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Checkout - shippingInfo updated:', shippingInfo);
-    }
-  }, [shippingInfo]);
+  // Debug: Log shipping info changes - REMOVED to prevent infinite re-renders
+  // useEffect(() => {
+  //   if (process.env.NODE_ENV === 'development') {
+  //     console.log('Checkout - shippingInfo updated:', shippingInfo);
+  //   }
+  // }, [shippingInfo]);
 
   // Cleanup effect to prevent state updates after unmount
   useEffect(() => {
@@ -168,7 +168,7 @@ const CheckoutPage = () => {
       }
       
       // Check if cart has items
-      if (cartItems.length === 0) {
+      if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
         alert('Your cart is empty');
         if (isMounted) setLoading(false);
         return;
@@ -195,7 +195,7 @@ const CheckoutPage = () => {
 
       // Prepare order data using cartItems from CartContext
       const orderData = {
-        products: cartItems.map(item => ({
+        products: (cartItems || []).map(item => ({
           productId: item.id,
           name: item.name || `Product ${item.id}`,
           price: item.price || item.final_price || 1000,
