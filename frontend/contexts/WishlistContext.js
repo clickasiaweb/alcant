@@ -124,27 +124,6 @@ export const WishlistProvider = ({ children }) => {
     }, 0);
   }, [wishlistItems]);
 
-  // Handle escape key
-  useEffect(() => {
-    console.log('WishlistContext - Escape key useEffect mounted, isWishlistOpen:', isWishlistOpen);
-    const handleEscape = (e) => {
-      if (e.key === 'Escape' && isWishlistOpen) {
-        closeWishlist();
-      }
-    };
-
-    if (isWishlistOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      console.log('WishlistContext - Escape key useEffect cleanup');
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isWishlistOpen, closeWishlist]);
-
   const value = useMemo(() => ({
     wishlistItems,
     isWishlistOpen,
