@@ -10,7 +10,7 @@ import MapPin from 'lucide-react/dist/esm/icons/map-pin';
 import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
 import InquiryForm from './InquiryForm';
 
-export default function ΛʟcΛɴᴛFooter() {
+export default function AlcantaraFooter() {
   const currentYear = new Date().getFullYear();
   const [showInquiryForm, setShowInquiryForm] = useState(false);
 

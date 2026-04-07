@@ -1,8 +1,8 @@
 import React from "react";
 import Head from "next/head";
 import AnnouncementBar from "./AnnouncementBar";
-import ΛʟcΛɴᴛHeader from "./AlcantaraHeader";
-import ΛʟcΛɴᴛFooter from "./AlcantaraFooter";
+import AlcantaraHeader from "./AlcantaraHeader";
+import AlcantaraFooter from "./AlcantaraFooter";
 import CartDrawer from "./CartDrawer";
 
 export default function Layout({ children, title, description }) {
@@ -27,9 +27,9 @@ export default function Layout({ children, title, description }) {
 
       <div className="flex flex-col min-h-screen bg-white">
         <AnnouncementBar />
-        <ΛʟcΛɴᴛHeader />
+        <AlcantaraHeader />
         <main className="flex-grow">{children}</main>
-        <ΛʟcΛɴᴛFooter />
+        <AlcantaraFooter />
         <CartDrawer />
       </div>
     </>
