@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useRef, useCallback } from 'react';
 
 const CartContext = createContext();
 
@@ -126,7 +126,7 @@ export const CartProvider = ({ children }) => {
     }
   ];
 
-  const value = useMemo(() => ({
+  const value = {
     cartItems: cartItems || [],
     isCartOpen: isCartOpen || false,
     addToCart,
@@ -138,7 +138,7 @@ export const CartProvider = ({ children }) => {
     openCart,
     closeCart,
     setIsCartOpen
-  }), [cartItems, isCartOpen, addToCart, updateQuantity, removeItem, clearCart, calculateSubtotal, calculateTotalItems, openCart, closeCart, setIsCartOpen]);
+  };
 
   return (
     <CartContext.Provider value={value}>
