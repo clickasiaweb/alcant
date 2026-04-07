@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Search, ShoppingCart, Heart, User, Menu, X, ChevronRight, ChevronDown, Grid3x3, Star, ArrowRight, Smartphone, Headphones, Wallet, Car, ShoppingBag } from 'lucide-react';
@@ -32,6 +32,8 @@ const AlcantaraHeader = () => {
   const { openCart, calculateTotalItems } = useCart();
   const { openSearch } = useSearch();
   const { openWishlist, getWishlistCount, isInWishlist } = useWishlist();
+  
+  // Memoize context values to prevent re-renders
   const cartItemCount = calculateTotalItems();
   const wishlistCount = getWishlistCount();
   const [categories, setCategories] = useState([]);
@@ -53,6 +55,7 @@ const AlcantaraHeader = () => {
   const dropdownTimeoutRef = useRef(null);
   const categoryButtonRefs = useRef({});
   const isMounted = useRef(true);
+  const hasFetchedData = useRef(false);
 
   // Fetch products for a category
   const fetchCategoryProducts = async (categorySlug) => {
@@ -105,8 +108,11 @@ const AlcantaraHeader = () => {
   // Fetch categories and subcategories
   useEffect(() => {
     const fetchData = async () => {
+      // Prevent multiple fetches
+      if (hasFetchedData.current || !isMounted.current) return;
+      hasFetchedData.current = true;
+      
       try {
-        if (!isMounted.current) return;
         setLoading(true);
         console.log('AlcantaraHeader: Fetching categories with hierarchy...');
         
@@ -878,4 +884,4 @@ const AlcantaraHeader = () => {
   );
 };
 
-export default AlcantaraHeader;
+export default memo(AlcantaraHeader);
