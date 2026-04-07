@@ -114,11 +114,9 @@ const AlcantaraHeader = () => {
       
       try {
         setLoading(true);
-        console.log('AlcantaraHeader: Fetching categories with hierarchy...');
         
         // Use hierarchy endpoint to get all data at once
         const categoriesData = await categoryService.getCategoriesWithHierarchy();
-        console.log('AlcantaraHeader: Categories data received:', categoriesData);
         
         if (!isMounted.current) return;
         
@@ -145,22 +143,14 @@ const AlcantaraHeader = () => {
           setSubSubcategories(subSubcategoriesData);
         }
         
-        console.log(' Subcategories:', subcategoriesData);
-        console.log(' Sub-subcategories:', subSubcategoriesData);
-        
         // Debug iPhone Cases specifically
         const phoneCases = categoriesList.find(cat => cat.name === 'Phone Cases');
         if (phoneCases) {
           const iPhoneSub = phoneCases.subcategories?.find(sub => sub.name === 'iPhone Cases');
-          console.log(' Phone Cases category:', phoneCases);
-          console.log(' iPhone Cases subcategory:', iPhoneSub);
           if (iPhoneSub) {
-            console.log(' iPhone Cases sub-subcategories:', iPhoneSub.sub_subcategories);
-            console.log(' iPhone Cases sub-subcategories:', iPhoneSub.sub_subcategories);
           }
         }
         
-        console.log('AlcantaraHeader: Data loaded successfully');
       } catch (err) {
         console.error('AlcantaraHeader: Failed to fetch data:', err);
       } finally {
@@ -179,7 +169,7 @@ const AlcantaraHeader = () => {
   }, []);
 
   // Handle dropdown hover with delay
-  const handleDropdownEnter = async (categoryName) => {
+  const handleDropdownEnter = useCallback(async (categoryName) => {
     if (dropdownTimeoutRef.current) {
       clearTimeout(dropdownTimeoutRef.current);
     }
@@ -193,7 +183,7 @@ const AlcantaraHeader = () => {
     if (category && !categoryProducts[category.slug]) {
       await fetchCategoryProducts(category.slug);
     }
-  };
+  }, [categories, categoryProducts]);
 
   const handleDropdownLeave = () => {
     dropdownTimeoutRef.current = setTimeout(() => {
@@ -438,13 +428,6 @@ const AlcantaraHeader = () => {
       `}</style>
       <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
         <div className="container px-3 sm:px-4">
-          {/* Debug Info */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="bg-yellow-100 text-yellow-800 p-2 text-xs mb-2">
-              DEBUG: Categories loaded: {categories.length}, Loading: {loading.toString()}, Active Dropdown: {activeDropdown}
-            </div>
-          )}
-          
           <div className="flex items-center justify-between py-3 sm:py-4">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2">
@@ -462,7 +445,6 @@ const AlcantaraHeader = () => {
                   aria-expanded={activeDropdown === category.name}
                   aria-haspopup="true"
                   onMouseEnter={async () => {
-                    console.log('Hovering on:', category.name);
                     await handleDropdownEnter(category.name);
                   }}
                 >
@@ -487,13 +469,11 @@ const AlcantaraHeader = () => {
                     pointerEvents: activeDropdown ? 'auto' : 'none'
                   }}
                   onMouseEnter={() => {
-                    console.log('Hovering on dropdown content');
                     if (dropdownTimeoutRef.current) {
                       clearTimeout(dropdownTimeoutRef.current);
                     }
                   }}
                   onMouseLeave={() => {
-                    console.log('Leaving dropdown content');
                     dropdownTimeoutRef.current = setTimeout(() => {
                       setActiveDropdown(null);
                       setActiveCategory(null);
@@ -562,8 +542,6 @@ const AlcantaraHeader = () => {
                                           animationDelay: `${index * 50}ms`
                                         }}
                                         onMouseEnter={() => {
-                                          console.log('Hovering on subcategory:', subcategory.name);
-                                          console.log('Available sub-subcategories for this subcategory:', subSubcategories[subcategory.slug]);
                                           setHoveredSubcategory(subcategory);
                                         }}
                                         role="menuitem"
@@ -624,7 +602,6 @@ const AlcantaraHeader = () => {
                               
                               // Show only the hovered subcategory's sub-subcategories
                               if (hoveredSubcategory && subSubcategories[hoveredSubcategory.slug] && subSubcategories[hoveredSubcategory.slug].length > 0) {
-                                console.log('Displaying sub-subcategories for:', hoveredSubcategory.name, subSubcategories[hoveredSubcategory.slug]);
                                 return (
                                   <div className="animate-in fade-in slide-in-from-right-2 duration-300">
                                     <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 whitespace-nowrap">
