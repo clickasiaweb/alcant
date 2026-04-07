@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useRef } from 'react';
+import React, { createContext, useContext, useState, useRef, useCallback, useMemo } from 'react';
 
 const CartContext = createContext();
 
@@ -24,7 +24,7 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   // Add item to cart
-  const addToCart = (product, quantity = 1) => {
+  const addToCart = useCallback((product, quantity = 1) => {
     try {
       const newItem = {
         id: product.id,
@@ -61,52 +61,52 @@ export const CartProvider = ({ children }) => {
     } catch (error) {
       console.error('CartContext - Error in addToCart:', error);
     }
-  };
+  }, []);
 
   // Update item quantity
-  const updateQuantity = (itemId, newQuantity) => {
+  const updateQuantity = useCallback((itemId, newQuantity) => {
     if (newQuantity < 1) return;
     setCartItems(prev =>
       prev.map(item =>
         item.id === itemId ? { ...item, quantity: newQuantity } : item
       )
     );
-  };
+  }, []);
 
   // Remove item from cart
-  const removeItem = (itemId) => {
+  const removeItem = useCallback((itemId) => {
     setCartItems(prev => prev.filter(item => item.id !== itemId));
-  };
+  }, []);
 
   // Clear entire cart
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
     if (isMounted.current) {
       setCartItems([]);
     }
-  };
+  }, []);
 
   // Calculate cart totals
-  const calculateSubtotal = () => {
+  const calculateSubtotal = useCallback(() => {
     if (!cartItems || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => {
       const itemPrice = item.originalPrice || item.price;
       return total + (itemPrice * item.quantity);
     }, 0);
-  };
+  }, [cartItems]);
 
-  const calculateTotalItems = () => {
+  const calculateTotalItems = useCallback(() => {
     if (!cartItems || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
+  }, [cartItems]);
 
   // Open/close cart drawer
-  const openCart = () => {
+  const openCart = useCallback(() => {
     setIsCartOpen(true);
-  };
+  }, []);
   
-  const closeCart = () => {
+  const closeCart = useCallback(() => {
     setIsCartOpen(false);
-  };
+  }, []);
 
   // Mock cross-sell products
   const crossSellProducts = [
@@ -126,7 +126,7 @@ export const CartProvider = ({ children }) => {
     }
   ];
 
-  const value = {
+  const value = useMemo(() => ({
     cartItems: cartItems || [],
     isCartOpen: isCartOpen || false,
     addToCart,
@@ -138,7 +138,7 @@ export const CartProvider = ({ children }) => {
     openCart,
     closeCart,
     setIsCartOpen
-  };
+  }), [cartItems, isCartOpen, addToCart, updateQuantity, removeItem, clearCart, calculateSubtotal, calculateTotalItems, openCart, closeCart, setIsCartOpen]);
 
   return (
     <CartContext.Provider value={value}>

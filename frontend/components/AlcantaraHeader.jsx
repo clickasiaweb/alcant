@@ -27,11 +27,12 @@ const Logo = ({ size = "default", className = "" }) => {
 const AlcantaraHeader = () => {
   console.log("AlcantaraHeader Component Rendered");
   const router = useRouter();
-  const { openCart, calculateTotalItems } = useCart();
-  const { openSearch } = useSearch();
-  const { openWishlist, getWishlistCount, isInWishlist } = useWishlist();
-  
   // Memoize context values to prevent re-renders
+  const { cartItems, openCart, calculateTotalItems } = useCart();
+  const { wishlistItems, openWishlist, getWishlistCount, isInWishlist } = useWishlist();
+  const { openSearch } = useSearch();
+  
+  // Calculate counts directly (functions are already memoized in contexts)
   const cartItemCount = calculateTotalItems();
   const wishlistCount = getWishlistCount();
   const [categories, setCategories] = useState([]);
@@ -181,7 +182,7 @@ const AlcantaraHeader = () => {
     if (category && !categoryProducts[category.slug]) {
       await fetchCategoryProducts(category.slug);
     }
-  }, [fetchCategoryProducts]); // Only depend on the memoized function
+  }, [fetchCategoryProducts, categories]); // Add categories dependency
 
   const handleDropdownLeave = () => {
     dropdownTimeoutRef.current = setTimeout(() => {

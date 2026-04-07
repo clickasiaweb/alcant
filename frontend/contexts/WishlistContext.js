@@ -126,7 +126,7 @@ export const WishlistProvider = ({ children }) => {
     };
   }, [isWishlistOpen, closeWishlist]);
 
-  const value = {
+  const value = useMemo(() => ({
     wishlistItems,
     isWishlistOpen,
     isClient,
@@ -140,7 +140,7 @@ export const WishlistProvider = ({ children }) => {
     moveToCart,
     getWishlistCount,
     getWishlistTotal
-  };
+  }), [wishlistItems, isWishlistOpen, isClient, openWishlist, closeWishlist, addToWishlist, removeFromWishlist, toggleWishlist, isInWishlist, clearWishlist, moveToCart, getWishlistCount, getWishlistTotal]);
 
   return (
     <WishlistContext.Provider value={value}>
