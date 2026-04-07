@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useRef } from 'react';
 
 const CartContext = createContext();
 
@@ -14,6 +14,14 @@ export const useCart = () => {
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const isMounted = useRef(true);
+
+  // Cleanup effect
+  React.useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // Add item to cart
   const addToCart = (product, quantity = 1) => {
@@ -72,7 +80,9 @@ export const CartProvider = ({ children }) => {
 
   // Clear entire cart
   const clearCart = () => {
-    setCartItems([]);
+    if (isMounted.current) {
+      setCartItems([]);
+    }
   };
 
   // Calculate cart totals
@@ -104,14 +114,14 @@ export const CartProvider = ({ children }) => {
       id: 101,
       name: 'Industrial Sensor Kit',
       price: 2500,
-      image: 'https://via.placeholder.com/60x60/1a365d/ffffff?text=Sensor',
+      image: '/images/products/sensor-kit.jpg',
       category: 'Sensors'
     },
     {
       id: 102,
       name: 'Control Panel Pro',
       price: 3200,
-      image: 'https://via.placeholder.com/60x60/2b6cb0/ffffff?text=Panel',
+      image: '/images/products/control-panel.jpg',
       category: 'Control Systems'
     }
   ];
@@ -129,8 +139,6 @@ export const CartProvider = ({ children }) => {
     closeCart,
     setIsCartOpen
   };
-
-  console.log('CartProvider - Rendering with cartItems:', cartItems.length);
 
   return (
     <CartContext.Provider value={value}>

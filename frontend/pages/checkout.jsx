@@ -26,6 +26,7 @@ const CheckoutPage = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
+  const [isMounted, setIsMounted] = useState(true);
   
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
@@ -47,6 +48,13 @@ const CheckoutPage = () => {
       console.log('Checkout - shippingInfo updated:', shippingInfo);
     }
   }, [shippingInfo]);
+
+  // Cleanup effect to prevent state updates after unmount
+  useEffect(() => {
+    return () => {
+      setIsMounted(false);
+    };
+  }, []);
 
   const [billingInfo, setBillingInfo] = useState({
     sameAsShipping: true,
@@ -142,6 +150,8 @@ const CheckoutPage = () => {
   };
 
   const handlePlaceOrder = async () => {
+    if (!isMounted) return;
+    
     setLoading(true);
     
     try {
@@ -159,26 +169,26 @@ const CheckoutPage = () => {
       // Check if cart has items
       if (cartItems.length === 0) {
         alert('Your cart is empty');
-        setLoading(false);
+        if (isMounted) setLoading(false);
         return;
       }
 
       // Validate all information before placing order
       if (!validateShippingInfo()) {
         alert('Please fill in all required shipping information');
-        setLoading(false);
+        if (isMounted) setLoading(false);
         return;
       }
 
       if (!validateBillingInfo()) {
         alert('Please fill in all required billing information');
-        setLoading(false);
+        if (isMounted) setLoading(false);
         return;
       }
 
       if (!validatePaymentInfo()) {
         alert('Please fill in all required payment information');
-        setLoading(false);
+        if (isMounted) setLoading(false);
         return;
       }
 
@@ -254,16 +264,25 @@ const CheckoutPage = () => {
         clearCart();
         // Store order info for confirmation page
         localStorage.setItem('lastOrder', JSON.stringify(result.data));
-        // Redirect to order confirmation
-        router.push('/order-confirmation');
+        // Redirect to order confirmation only if component is still mounted
+        if (isMounted) {
+          router.push('/order-confirmation');
+        }
       } else {
-        alert('Failed to place order: ' + (result.message || 'Unknown error'));
+        if (isMounted) {
+          alert('Failed to place order: ' + (result.message || 'Unknown error'));
+        }
       }
     } catch (error) {
       console.error('Error placing order:', error);
-      alert('Failed to place order. Please try again.');
+      if (isMounted) {
+        alert('Failed to place order. Please try again.');
+      }
     } finally {
-      setLoading(false);
+      // Only update loading state if component is still mounted
+      if (isMounted) {
+        setLoading(false);
+      }
     }
   };
 
