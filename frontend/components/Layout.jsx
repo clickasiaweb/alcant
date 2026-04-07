@@ -4,6 +4,8 @@ import AnnouncementBar from "./AnnouncementBar";
 import AlcantaraHeader from "./AlcantaraHeader";
 import AlcantaraFooter from "./AlcantaraFooter";
 import CartDrawer from "./CartDrawer";
+import SearchDropdown from "./SearchDropdown";
+import WishlistDropdown from "./WishlistDropdown";
 
 export default function Layout({ children, title, description }) {
   return (
@@ -31,6 +33,8 @@ export default function Layout({ children, title, description }) {
         <main className="flex-grow">{children}</main>
         <AlcantaraFooter />
         <CartDrawer />
+        <SearchDropdown />
+        <WishlistDropdown />
       </div>
     </>
   );

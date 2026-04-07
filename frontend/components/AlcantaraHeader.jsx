@@ -4,9 +4,6 @@ import { useRouter } from 'next/router';
 import { Search, ShoppingCart, Heart, User, Menu, X, ChevronRight, ChevronDown, Grid3x3, Star, ArrowRight, Smartphone, Headphones, Wallet, Car, ShoppingBag } from 'lucide-react';
 import { categoryService } from '../services/categoryService';
 import { productService } from '../lib/productService';
-import CartDrawer from './CartDrawer';
-import SearchDropdown from './SearchDropdown';
-import WishlistDropdown from './WishlistDropdown';
 import GenericSubcategoryGrid from './GenericSubcategoryGrid';
 import { useCart } from '../contexts/CartContext';
 import { useSearch } from '../contexts/SearchContext';
@@ -852,11 +849,6 @@ const AlcantaraHeader = () => {
           </div>
         )}
       </header>
-      
-      {/* Dropdown Components */}
-      <SearchDropdown />
-      <WishlistDropdown />
-      <CartDrawer />
     </>
   );
 };

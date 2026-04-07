@@ -20,6 +20,7 @@ const CartDrawer = () => {
   const drawerRef = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const isMounted = useRef(true);
   
   const { 
     cartItems, 
@@ -35,7 +36,15 @@ const CartDrawer = () => {
 
   // Prevent hydration mismatch
   useEffect(() => {
+    if (!isMounted.current) return;
     setIsClient(true);
+  }, []);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
   }, []);
 
   // Detect mobile screen size
@@ -73,9 +82,10 @@ const CartDrawer = () => {
 
   // Timer countdown
   useEffect(() => {
-    if (!isCartOpen || reservationTime <= 0) return;
+    if (!isCartOpen || reservationTime <= 0 || !isMounted.current) return;
 
     const timer = setInterval(() => {
+      if (!isMounted.current) return;
       setReservationTime(prev => {
         if (prev <= 1) {
           // Timer expired - refresh cart or show warning

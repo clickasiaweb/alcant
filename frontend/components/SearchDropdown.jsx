@@ -22,9 +22,18 @@ const SearchDropdown = () => {
   const [inputValue, setInputValue] = useState('');
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  const isMounted = useRef(true);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // Focus input when search opens
   useEffect(() => {
+    if (!isMounted.current) return;
     if (isSearchOpen && searchInputRef.current) {
       searchInputRef.current.focus();
     }
