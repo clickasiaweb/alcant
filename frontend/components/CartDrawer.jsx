@@ -80,23 +80,23 @@ const CartDrawer = () => {
     return remaining > 0 ? remaining : 0;
   };
 
-  // Timer countdown
-  useEffect(() => {
-    if (!isCartOpen || reservationTime <= 0 || !isMounted.current) return;
+  // Timer countdown - DISABLED TEMPORARILY TO FIX REACT ERROR #310
+  // useEffect(() => {
+  //   if (!isCartOpen || reservationTime <= 0 || !isMounted.current) return;
 
-    const timer = setInterval(() => {
-      if (!isMounted.current) return;
-      setReservationTime(prev => {
-        if (prev <= 1) {
-          // Timer expired - refresh cart or show warning
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+  //   const timer = setInterval(() => {
+  //     if (!isMounted.current) return;
+  //     setReservationTime(prev => {
+  //       if (prev <= 1) {
+  //         // Timer expired - refresh cart or show warning
+  //         return 0;
+  //       }
+  //       return prev - 1;
+  //     });
+  //   }, 1000);
 
-    return () => clearInterval(timer);
-  }, [isCartOpen, reservationTime]);
+  //   return () => clearInterval(timer);
+  // }, [isCartOpen]);
 
   // Close on escape key
   useEffect(() => {
@@ -188,15 +188,6 @@ const CartDrawer = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {/* Reservation Timer Banner */}
-            {reservationTime > 0 && (
-              <div className="bg-green-50 border-b border-green-100 px-6 py-3">
-                <p className="text-sm text-green-800 font-medium">
-                  Your products are reserved for <span className="font-bold">{formatTime(reservationTime)} minutes</span>
-                </p>
-              </div>
-            )}
-
             {/* Free Shipping Progress */}
             <div className="px-6 py-4 border-b border-gray-100">
               {freeShippingRemaining > 0 ? (

@@ -159,11 +159,29 @@ const createCategoryService = () => {
 // Singleton pattern
 let categoryServiceInstance = null;
 
-export const categoryService = new Proxy({}, {
-  get(target, prop) {
+export const categoryService = {
+  getCategoriesWithHierarchy() {
     if (!categoryServiceInstance) {
       categoryServiceInstance = createCategoryService();
     }
-    return categoryServiceInstance[prop];
+    return categoryServiceInstance.getCategoriesWithHierarchy();
+  },
+  getProductsByCategory(categorySlug, filters = {}) {
+    if (!categoryServiceInstance) {
+      categoryServiceInstance = createCategoryService();
+    }
+    return categoryServiceInstance.getProductsByCategory(categorySlug, filters);
+  },
+  getAllProducts(filters = {}) {
+    if (!categoryServiceInstance) {
+      categoryServiceInstance = createCategoryService();
+    }
+    return categoryServiceInstance.getAllProducts(filters);
+  },
+  getFeaturedProducts() {
+    if (!categoryServiceInstance) {
+      categoryServiceInstance = createCategoryService();
+    }
+    return categoryServiceInstance.getFeaturedProducts();
   }
-});
+};
