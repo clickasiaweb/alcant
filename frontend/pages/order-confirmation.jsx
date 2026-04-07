@@ -7,12 +7,30 @@ const OrderConfirmationPage = () => {
   const router = useRouter();
   const [orderData, setOrderData] = useState(null);
 
+  // Move all function definitions BEFORE any conditional logic
+  const calculateSubtotal = () => {
+    if (!orderData?.products || !Array.isArray(orderData.products)) return 0;
+    return orderData.products.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  const calculateTax = () => {
+    return calculateSubtotal() * 0.08; // 8% tax
+  };
+
+  const calculateShipping = () => {
+    return calculateSubtotal() > 10000 ? 0 : 500;
+  };
+
+  const calculateTotal = () => {
+    return calculateSubtotal() + calculateTax() + calculateShipping();
+  };
+
   useEffect(() => {
     // Get order data from localStorage
     const savedOrder = localStorage.getItem('lastOrder');
     if (savedOrder) {
       setOrderData(JSON.parse(savedOrder));
-      // Clear the order data after displaying
+      // Clear order data after displaying
       localStorage.removeItem('lastOrder');
     } else {
       // Fallback to mock data for testing
@@ -45,6 +63,12 @@ const OrderConfirmationPage = () => {
     }
   }, []);
 
+  useEffect(() => {
+    // Scroll to top on mount
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Early return AFTER all hooks and functions are defined
   if (!orderData) {
     return (
       <Layout title="Order Confirmation">
@@ -60,28 +84,6 @@ const OrderConfirmationPage = () => {
       </Layout>
     );
   }
-
-  const calculateSubtotal = () => {
-    if (!orderData.products || !Array.isArray(orderData.products)) return 0;
-    return orderData.products.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const calculateTax = () => {
-    return calculateSubtotal() * 0.08; // 8% tax
-  };
-
-  const calculateShipping = () => {
-    return calculateSubtotal() > 10000 ? 0 : 500;
-  };
-
-  const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax() + calculateShipping();
-  };
-
-  useEffect(() => {
-    // Scroll to top on mount
-    window.scrollTo(0, 0);
-  }, []);
 
   return (
     <Layout title="Order Confirmation">
