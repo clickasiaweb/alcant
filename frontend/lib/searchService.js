@@ -4,10 +4,17 @@ const API_BASE_URL = 'https://alcant-backend.vercel.app/api';
 // Category cache to avoid repeated API calls
 let categoryCache = null;
 let categoryCachePromise = null;
+let categoryCacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Fetch and cache categories
 const getCategories = async () => {
-  if (categoryCache) return categoryCache;
+  const now = Date.now();
+  
+  // Check if cache is expired
+  if (categoryCache && (now - categoryCacheTimestamp) < CACHE_DURATION) {
+    return categoryCache;
+  }
   
   if (categoryCachePromise) return categoryCachePromise;
   
@@ -26,6 +33,7 @@ const getCategories = async () => {
       });
       
       categoryCache = categoryMap;
+      categoryCacheTimestamp = now;
       return categoryMap;
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -34,6 +42,13 @@ const getCategories = async () => {
   })();
   
   return categoryCachePromise;
+};
+
+// Force refresh categories cache
+const refreshCategories = () => {
+  categoryCache = null;
+  categoryCachePromise = null;
+  categoryCacheTimestamp = 0;
 };
 
 const searchService = {
@@ -134,6 +149,11 @@ const searchService = {
     } catch {
       // Silently fail
     }
+  },
+
+  // Clear cache and refresh data
+  clearCache: () => {
+    refreshCategories();
   }
 };
 

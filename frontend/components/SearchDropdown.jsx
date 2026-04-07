@@ -16,7 +16,8 @@ const SearchDropdown = () => {
     handleSearchSubmit,
     handleRecentSearchClick,
     handleSuggestionClick,
-    clearRecentSearches
+    clearRecentSearches,
+    clearCache
   } = useSearch();
 
   const [inputValue, setInputValue] = useState('');
@@ -211,12 +212,21 @@ const SearchDropdown = () => {
                       <Clock className="w-3 h-3 mr-1" />
                       Recent
                     </p>
-                    <button
-                      onClick={clearRecentSearches}
-                      className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      Clear
-                    </button>
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={clearCache}
+                        className="text-xs text-blue-400 hover:text-blue-600 transition-colors"
+                        title="Clear search cache"
+                      >
+                        Refresh
+                      </button>
+                      <button
+                        onClick={clearRecentSearches}
+                        className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                      >
+                        Clear
+                      </button>
+                    </div>
                   </div>
                   {recentSearches.map((search, index) => (
                     <button

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import ProductCard from '../components/ProductCard';
 import { Search, Filter, X, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import searchService from '../lib/searchService';
 
 const SearchResults = () => {
   const router = useRouter();
@@ -31,19 +32,12 @@ const SearchResults = () => {
     }
   }, [q, category, price_min, price_max]);
 
-  // Fetch categories from API
+  // Fetch categories from API using searchService
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const API_BASE_URL = 'https://alcant-backend.vercel.app/api';
-        
-        const response = await fetch(`${API_BASE_URL}/categories`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        const categoryList = (data.categories || []).map(cat => cat.name);
+        const categoryMap = await searchService.getCategories();
+        const categoryList = Object.values(categoryMap);
         setCategories(['All Categories', ...categoryList]);
         
       } catch (error) {
@@ -140,23 +134,14 @@ const SearchResults = () => {
       setLoading(true);
       
       try {
-        const API_BASE_URL = 'https://alcant-backend.vercel.app/api';
-        
-        // Fetch categories for mapping
-        const categoriesResponse = await fetch(`${API_BASE_URL}/categories`);
-        const categoriesData = await categoriesResponse.json();
-        const categoryMap = {};
-        (categoriesData.categories || []).forEach(cat => {
-          categoryMap[cat.id] = cat.name;
-        });
-        
-        // Build search URL with parameters
-        const params = new URLSearchParams();
+        let results = [];
         
         if (searchQuery) {
-          params.set('q', searchQuery);
+          // Use searchService for search queries (same as dropdown)
+          results = await searchService.searchProducts(searchQuery);
         } else {
           // If no search query, use general products endpoint
+          const API_BASE_URL = 'https://alcant-backend.vercel.app/api';
           const generalParams = new URLSearchParams();
           if (filters.category && filters.category !== 'All Categories') generalParams.set('category', filters.category);
           if (filters.priceMin) generalParams.set('min_price', filters.priceMin);
@@ -178,7 +163,7 @@ const SearchResults = () => {
           }
           
           const url = `${API_BASE_URL}/products?${generalParams.toString()}`;
-          console.log(' General products URL:', url);
+          console.log('General products URL:', url);
           
           const response = await fetch(url);
           if (!response.ok) {
@@ -186,10 +171,11 @@ const SearchResults = () => {
           }
           
           const data = await response.json();
-          console.log(' Products response:', data);
+          console.log('Products response:', data);
           
-          // Transform products to match expected format
-          const transformedProducts = (data.products || []).map(product => ({
+          // Transform products to match expected format (same as searchService)
+          const categoryMap = await searchService.getCategories();
+          results = (data.products || []).map(product => ({
             id: product.id || product._id,
             name: product.name,
             slug: product.slug,
@@ -203,62 +189,10 @@ const SearchResults = () => {
             discount: product.old_price ? Math.round((1 - product.price / product.old_price) * 100) : 0,
             description: product.description
           }));
-          
-          console.log(' Transformed products:', transformedProducts);
-          setProducts(transformedProducts);
-          setLoading(false);
-          return;
         }
         
-        // If we have a search query, use search endpoint
-        if (filters.category && filters.category !== 'All Categories') params.set('category', filters.category);
-        if (filters.priceMin) params.set('min_price', filters.priceMin);
-        if (filters.priceMax) params.set('max_price', filters.priceMax);
-        params.set('page', '1');
-        params.set('limit', '24');
-        
-        // Map sort options to backend sort parameters
-        const sortMap = {
-          'relevance': '',
-          'price-low': 'price_asc',
-          'price-high': 'price_desc',
-          'rating': 'rating',
-          'newest': 'newest'
-        };
-        
-        if (filters.sort !== 'relevance' && sortMap[filters.sort]) {
-          params.set('sort', sortMap[filters.sort]);
-        }
-        
-        const url = `${API_BASE_URL}/products/search?${params.toString()}`;
-        console.log(' Search URL:', url);
-        
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log(' Search response:', data);
-        
-        // Transform products to match expected format
-        const transformedProducts = (data.products || []).map(product => ({
-          id: product.id || product._id,
-          name: product.name,
-          slug: product.slug,
-          price: product.price || product.final_price || 0,
-          originalPrice: product.old_price || product.original_price,
-          rating: product.rating || 0,
-          reviews: product.reviews || 0,
-          image: product.image || product.images?.[0] || 'https://picsum.photos/seed/product/300x300.jpg',
-          category: categoryMap[product.category] || product.category || 'Unknown',
-          isNew: product.is_new || false,
-          discount: product.old_price ? Math.round((1 - product.price / product.old_price) * 100) : 0,
-          description: product.description
-        }));
-        
-        console.log(' Transformed products:', transformedProducts);
-        setProducts(transformedProducts);
+        console.log('Final products:', results);
+        setProducts(results);
         
       } catch (error) {
         console.error('Search error:', error);

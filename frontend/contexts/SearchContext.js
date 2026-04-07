@@ -100,6 +100,11 @@ export const SearchProvider = ({ children }) => {
     setRecentSearches([]);
   }, []);
 
+  // Clear cache
+  const clearCache = useCallback(() => {
+    searchService.clearCache();
+  }, []);
+
   // Get popular suggestions
   const popularSuggestions = useMemo(() => {
     return searchService.getPopularSuggestions();
@@ -118,7 +123,8 @@ export const SearchProvider = ({ children }) => {
     handleSearchSubmit,
     handleRecentSearchClick,
     handleSuggestionClick,
-    clearRecentSearches
+    clearRecentSearches,
+    clearCache
   }), [
     isSearchOpen,
     searchQuery,
