@@ -82,8 +82,8 @@ export default function OrderDetailsPage() {
       
       if (data.success) {
         setOrder(data.data);
-        setNewStatus(data.data.orderStatus);
-        setNewTrackingId(data.data.trackingId || '');
+        setNewStatus(data.data.order_status);
+        setNewTrackingId(data.data.tracking_id || '');
       } else {
         throw new Error(data.message || 'Failed to fetch order');
       }
@@ -183,7 +183,7 @@ export default function OrderDetailsPage() {
     }).format(amount);
   };
 
-  const StatusIcon = order?.orderStatus ? statusIcons[order.orderStatus] : FiClock;
+  const StatusIcon = order?.order_status ? statusIcons[order.order_status] : FiClock;
 
   if (loading) {
     return (
@@ -238,12 +238,12 @@ export default function OrderDetailsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Order Details</h1>
-              <p className="text-gray-600">Order ID: {order.orderId}</p>
+              <p className="text-gray-600">Order ID: {order.order_id}</p>
             </div>
             <div className="flex items-center gap-4">
-              <span className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border ${statusColors[order.orderStatus]}`}>
+              <span className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border ${statusColors[order.order_status]}`}>
                 <StatusIcon className="h-4 w-4" />
-                {order.orderStatus}
+                {order.order_status}
               </span>
             </div>
           </div>
@@ -325,8 +325,8 @@ export default function OrderDetailsPage() {
                     <button
                       onClick={() => {
                         setEditingStatus(false);
-                        setNewStatus(order.orderStatus);
-                        setNewTrackingId(order.trackingId || '');
+                        setNewStatus(order.order_status);
+                        setNewTrackingId(order.tracking_id || '');
                         setStatusNote('');
                       }}
                       className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
@@ -339,23 +339,23 @@ export default function OrderDetailsPage() {
               ) : (
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <span className={`inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-full border ${statusColors[order.orderStatus]}`}>
+                    <span className={`inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-full border ${statusColors[order.order_status]}`}>
                       <StatusIcon className="h-4 w-4" />
-                      {order.orderStatus}
+                      {order.order_status}
                     </span>
-                    {order.trackingId && (
+                    {order.tracking_id && (
                       <div className="text-sm text-gray-600">
-                        <span className="font-medium">Tracking ID:</span> {order.trackingId}
+                        <span className="font-medium">Tracking ID:</span> {order.tracking_id}
                       </div>
                     )}
                   </div>
 
                   {/* Status History */}
-                  {order.statusHistory && order.statusHistory.length > 0 && (
+                  {order.status_history && order.status_history.length > 0 && (
                     <div className="border-t pt-4">
                       <h3 className="text-sm font-medium text-gray-700 mb-3">Status History</h3>
                       <div className="space-y-2">
-                        {order.statusHistory.map((history, index) => {
+                        {order.status_history.map((history, index) => {
                           const HistoryIcon = statusIcons[history.status] || FiClock;
                           return (
                             <div key={index} className="flex items-center gap-3 text-sm">
@@ -417,38 +417,38 @@ export default function OrderDetailsPage() {
                   <FiCalendar className="h-5 w-5 text-gray-400" />
                   <div>
                     <div className="font-medium text-gray-900">Order Placed</div>
-                    <div className="text-sm text-gray-500">{formatDate(order.createdAt)}</div>
+                    <div className="text-sm text-gray-500">{formatDate(order.created_at)}</div>
                   </div>
                 </div>
                 
-                {order.estimatedDelivery && (
+                {order.estimated_delivery && (
                   <div className="flex items-center gap-4">
                     <FiTruck className="h-5 w-5 text-gray-400" />
                     <div>
                       <div className="font-medium text-gray-900">Estimated Delivery</div>
-                      <div className="text-sm text-gray-500">{formatDate(order.estimatedDelivery)}</div>
+                      <div className="text-sm text-gray-500">{formatDate(order.estimated_delivery)}</div>
                     </div>
                   </div>
                 )}
 
-                {order.actualDelivery && (
+                {order.actual_delivery && (
                   <div className="flex items-center gap-4">
                     <FiCheckCircle className="h-5 w-5 text-green-500" />
                     <div>
                       <div className="font-medium text-gray-900">Delivered</div>
-                      <div className="text-sm text-gray-500">{formatDate(order.actualDelivery)}</div>
+                      <div className="text-sm text-gray-500">{formatDate(order.actual_delivery)}</div>
                     </div>
                   </div>
                 )}
 
-                {order.cancelledAt && (
+                {order.cancelled_at && (
                   <div className="flex items-center gap-4">
                     <FiXCircle className="h-5 w-5 text-red-500" />
                     <div>
                       <div className="font-medium text-gray-900">Cancelled</div>
-                      <div className="text-sm text-gray-500">{formatDate(order.cancelledAt)}</div>
-                      {order.cancellationReason && (
-                        <div className="text-sm text-red-600 mt-1">Reason: {order.cancellationReason}</div>
+                      <div className="text-sm text-gray-500">{formatDate(order.cancelled_at)}</div>
+                      {order.cancellation_reason && (
+                        <div className="text-sm text-red-600 mt-1">Reason: {order.cancellation_reason}</div>
                       )}
                     </div>
                   </div>
@@ -469,16 +469,16 @@ export default function OrderDetailsPage() {
                 <div>
                   <div className="text-sm text-gray-500">Name</div>
                   <div className="font-medium text-gray-900">
-                    {order.shippingAddress?.firstName} {order.shippingAddress?.lastName}
+                    {order.shipping_address?.firstName} {order.shipping_address?.lastName}
                   </div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Email</div>
-                  <div className="font-medium text-gray-900">{order.shippingAddress?.email}</div>
+                  <div className="font-medium text-gray-900">{order.shipping_address?.email}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Phone</div>
-                  <div className="font-medium text-gray-900">{order.shippingAddress?.phone}</div>
+                  <div className="font-medium text-gray-900">{order.shipping_address?.phone}</div>
                 </div>
               </div>
             </div>
@@ -491,20 +491,20 @@ export default function OrderDetailsPage() {
               </div>
               <div className="space-y-1 text-sm">
                 <div className="font-medium text-gray-900">
-                  {order.shippingAddress?.firstName} {order.shippingAddress?.lastName}
+                  {order.shipping_address?.firstName} {order.shipping_address?.lastName}
                 </div>
-                {order.shippingAddress?.company && (
-                  <div className="text-gray-600">{order.shippingAddress.company}</div>
+                {order.shipping_address?.company && (
+                  <div className="text-gray-600">{order.shipping_address.company}</div>
                 )}
-                <div className="text-gray-600">{order.shippingAddress?.address}</div>
-                {order.shippingAddress?.apartment && (
-                  <div className="text-gray-600">{order.shippingAddress.apartment}</div>
+                <div className="text-gray-600">{order.shipping_address?.address}</div>
+                {order.shipping_address?.apartment && (
+                  <div className="text-gray-600">{order.shipping_address.apartment}</div>
                 )}
                 <div className="text-gray-600">
-                  {order.shippingAddress?.city}, {order.shippingAddress?.state} {order.shippingAddress?.postalCode}
+                  {order.shipping_address?.city}, {order.shipping_address?.state} {order.shipping_address?.postalCode}
                 </div>
-                <div className="text-gray-600">{order.shippingAddress?.country}</div>
-                <div className="text-gray-600">{order.shippingAddress?.phone}</div>
+                <div className="text-gray-600">{order.shipping_address?.country}</div>
+                <div className="text-gray-600">{order.shipping_address?.phone}</div>
               </div>
             </div>
 
@@ -517,14 +517,14 @@ export default function OrderDetailsPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Method</span>
-                  <span className="font-medium text-gray-900">{order.paymentMethod}</span>
+                  <span className="font-medium text-gray-900">{order.payment_method}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Status</span>
                   <select
-                    value={order.paymentStatus}
+                    value={order.payment_status}
                     onChange={(e) => handlePaymentStatusUpdate(e.target.value)}
-                    className={`text-xs font-medium rounded-full border px-2 py-1 cursor-pointer ${paymentStatusColors[order.paymentStatus]}`}
+                    className={`text-xs font-medium rounded-full border px-2 py-1 cursor-pointer ${paymentStatusColors[order.payment_status]}`}
                   >
                     <option value="Paid">Paid</option>
                     <option value="Pending">Pending</option>
@@ -574,7 +574,7 @@ export default function OrderDetailsPage() {
                 )}
                 <div className="border-t pt-2 flex justify-between">
                   <span className="font-medium text-gray-900">Total</span>
-                  <span className="font-bold text-lg text-gray-900">{formatCurrency(order.totalAmount)}</span>
+                  <span className="font-bold text-lg text-gray-900">{formatCurrency(order.total_amount)}</span>
                 </div>
               </div>
             </div>

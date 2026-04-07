@@ -342,26 +342,26 @@ export default function OrdersPage() {
                   </tr>
                 ) : (
                   orders.map((order) => (
-                    <tr key={order._id} className="hover:bg-gray-50">
+                    <tr key={order.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {order.orderId}
+                          {order.order_id}
                         </div>
-                        {order.trackingId && (
+                        {order.tracking_id && (
                           <div className="text-xs text-gray-500">
-                            Tracking: {order.trackingId}
+                            Tracking: {order.tracking_id}
                           </div>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {order.shippingAddress?.firstName} {order.shippingAddress?.lastName}
+                          {order.shipping_address?.firstName} {order.shipping_address?.lastName}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {order.shippingAddress?.email}
+                          {order.shipping_address?.email}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {order.shippingAddress?.phone}
+                          {order.shipping_address?.phone}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -379,19 +379,19 @@ export default function OrdersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          {formatCurrency(order.totalAmount)}
+                          {formatCurrency(order.total_amount)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${paymentStatusColors[order.paymentStatus]}`}>
-                          {order.paymentStatus}
+                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${paymentStatusColors[order.payment_status]}`}>
+                          {order.payment_status}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <select
-                          value={order.orderStatus}
-                          onChange={(e) => handleStatusUpdate(order._id, e.target.value)}
-                          className={`text-xs font-medium rounded-full border px-2 py-1 cursor-pointer ${statusColors[order.orderStatus]}`}
+                          value={order.order_status}
+                          onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                          className={`text-xs font-medium rounded-full border px-2 py-1 cursor-pointer ${statusColors[order.order_status]}`}
                         >
                           <option value="Pending">Pending</option>
                           <option value="Confirmed">Confirmed</option>
@@ -404,12 +404,12 @@ export default function OrdersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">
-                          {formatDate(order.createdAt)}
+                          {formatDate(order.created_at)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button
-                          onClick={() => navigate(`/orders/${order._id}`)}
+                          onClick={() => navigate(`/orders/${order.id}`)}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           <FiEye className="h-4 w-4" />
