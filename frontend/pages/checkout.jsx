@@ -78,6 +78,7 @@ const CheckoutPage = () => {
 
   // Calculate order totals from cart items
   const calculateSubtotal = () => {
+    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
@@ -655,22 +656,28 @@ const CheckoutPage = () => {
                     <div className="mb-6">
                       <h3 className="font-medium text-gray-900 mb-4">Order Items</h3>
                       <div className="space-y-3">
-                        {cartItems.map((item) => (
-                          <div key={item.id} className="flex items-center space-x-4">
-                            <img
-                              src={item.image || '/images/products/default.jpg'}
-                              alt={item.name}
-                              className="w-12 h-12 object-cover rounded"
-                            />
-                            <div className="flex-1">
-                              <p className="font-medium text-gray-900">{item.name}</p>
-                              <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                        {cartItems && cartItems.length > 0 ? (
+                          cartItems.map((item) => (
+                            <div key={item.id} className="flex items-center space-x-4">
+                              <img
+                                src={item.image || '/images/products/default.jpg'}
+                                alt={item.name}
+                                className="w-12 h-12 object-cover rounded"
+                              />
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900">{item.name || 'Product'}</p>
+                                <p className="text-sm text-gray-600">Qty: {item.quantity || 1}</p>
+                              </div>
+                              <p className="font-medium text-gray-900">
+                                ₹{((item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                              </p>
                             </div>
-                            <p className="font-medium text-gray-900">
-                              ₹{(item.price * item.quantity).toLocaleString()}
-                            </p>
+                          ))
+                        ) : (
+                          <div className="text-center py-4 text-gray-500">
+                            <p>No items in cart</p>
                           </div>
-                        ))}
+                        )}
                       </div>
                     </div>
 
@@ -690,8 +697,8 @@ const CheckoutPage = () => {
                     <div className="mb-6">
                       <h3 className="font-medium text-gray-900 mb-4">Payment Method</h3>
                       <div className="text-sm text-gray-600">
-                        <p>Credit Card ending in {paymentInfo.cardNumber.slice(-4)}</p>
-                        <p>{paymentInfo.cardName}</p>
+                        <p>Credit Card ending in {paymentInfo.cardNumber ? paymentInfo.cardNumber.slice(-4) : '****'}</p>
+                        <p>{paymentInfo.cardName || 'Cardholder'}</p>
                       </div>
                     </div>
                   </div>
