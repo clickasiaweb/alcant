@@ -100,6 +100,8 @@ const CartDrawer = () => {
 
   // Close on escape key
   useEffect(() => {
+    if (!isMounted.current) return;
+    
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
         closeCart();
@@ -115,7 +117,7 @@ const CartDrawer = () => {
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };
-  }, [isCartOpen, closeCart]);
+  }, [isCartOpen]);
 
   // Format time display
   const formatTime = (seconds) => {

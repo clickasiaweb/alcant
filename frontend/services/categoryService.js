@@ -1,8 +1,6 @@
 // API service for fetching categories and products
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
-console.log('🔧 CategoryService initialized with API URL:', API_BASE_URL);
-
 // Mock data for fallback when API is not available
 const mockCategories = [
   {
@@ -73,93 +71,99 @@ const mockCategories = [
   }
 ];
 
-export const categoryService = {
-  // Get all categories with subcategories and sub-subcategories
-  async getCategoriesWithHierarchy() {
-    try {
-      const url = `${API_BASE_URL}/categories/all/with-subcategories`;
-      console.log('📡 CategoryService: Fetching categories from:', url);
-      
-      const response = await fetch(url);
-      console.log('📊 CategoryService: Response status:', response.status);
-      console.log('� CategoryService: Response headers:', Object.fromEntries(response.headers.entries()));
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ CategoryService: Error response:', errorText);
-        throw new Error(`Failed to fetch categories: ${response.status} - ${errorText}`);
+// Create the service object
+const createCategoryService = () => {
+  console.log('CategoryService initialized with API URL:', API_BASE_URL);
+  
+  return {
+    // Get all categories with subcategories and sub-subcategories
+    async getCategoriesWithHierarchy() {
+      try {
+        const url = `${API_BASE_URL}/categories/all/with-subcategories`;
+        console.log('CategoryService: Fetching categories from:', url);
+        
+        const response = await fetch(url);
+        console.log('CategoryService: Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('CategoryService: Error response:', errorText);
+          throw new Error(`Failed to fetch categories: ${response.status} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('CategoryService: Success! Data:', data);
+        return data;
+      } catch (error) {
+        console.error('CategoryService: Fetch error:', error);
+        console.log('CategoryService: Using mock data as fallback');
+        // Return mock data when API fails
+        return { data: mockCategories };
       }
-      
-      const data = await response.json();
-      console.log('📁 CategoryService: Success! Data:', data);
-      return data;
-    } catch (error) {
-      console.error('❌ CategoryService: Fetch error:', error);
-      console.error('❌ CategoryService: Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
-      console.log('🔄 CategoryService: Using mock data as fallback');
-      // Return mock data when API fails
-      return { data: mockCategories };
-    }
-  },
+    },
 
-  // Get products by category
-  async getProductsByCategory(categorySlug, filters = {}) {
-    try {
-      const queryParams = new URLSearchParams(filters);
-      const response = await fetch(`${API_BASE_URL}/products/category/${categorySlug}?${queryParams}`);
-      if (!response.ok) throw new Error('Failed to fetch products');
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      return { data: [] };
-    }
-  },
-
-  // Get all products
-  async getAllProducts(filters = {}) {
-    try {
-      const queryParams = new URLSearchParams(filters);
-      const response = await fetch(`${API_BASE_URL}/products?${queryParams}`);
-      if (!response.ok) throw new Error('Failed to fetch products');
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      return { data: [] };
-    }
-  },
-
-  // Get featured products
-  async getFeaturedProducts() {
-    try {
-      const url = `${API_BASE_URL}/products/featured`;
-      console.log('📡 CategoryService: Fetching featured products from:', url);
-      
-      const response = await fetch(url);
-      console.log('📊 CategoryService: Featured products response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ CategoryService: Featured products error response:', errorText);
-        throw new Error(`Failed to fetch featured products: ${response.status} - ${errorText}`);
+    // Get products by category
+    async getProductsByCategory(categorySlug, filters = {}) {
+      try {
+        const queryParams = new URLSearchParams(filters);
+        const response = await fetch(`${API_BASE_URL}/products/category/${categorySlug}?${queryParams}`);
+        if (!response.ok) throw new Error('Failed to fetch products');
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        return { data: [] };
       }
-      
-      const data = await response.json();
-      console.log('⭐ CategoryService: Featured products success! Data:', data);
-      return data;
-    } catch (error) {
-      console.error('❌ CategoryService: Featured products fetch error:', error);
-      console.error('❌ CategoryService: Featured products error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
-      return { data: [] };
+    },
+
+    // Get all products
+    async getAllProducts(filters = {}) {
+      try {
+        const queryParams = new URLSearchParams(filters);
+        const response = await fetch(`${API_BASE_URL}/products?${queryParams}`);
+        if (!response.ok) throw new Error('Failed to fetch products');
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        return { data: [] };
+      }
+    },
+
+    // Get featured products
+    async getFeaturedProducts() {
+      try {
+        const url = `${API_BASE_URL}/products/featured`;
+        console.log('CategoryService: Fetching featured products from:', url);
+        
+        const response = await fetch(url);
+        console.log('CategoryService: Featured products response status:', response.status);
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('CategoryService: Featured products error response:', errorText);
+          throw new Error(`Failed to fetch featured products: ${response.status} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        console.log('CategoryService: Featured products success! Data:', data);
+        return data;
+      } catch (error) {
+        console.error('CategoryService: Featured products fetch error:', error);
+        return { data: [] };
+      }
     }
-  }
+  };
 };
+
+// Singleton pattern
+let categoryServiceInstance = null;
+
+export const categoryService = new Proxy({}, {
+  get(target, prop) {
+    if (!categoryServiceInstance) {
+      categoryServiceInstance = createCategoryService();
+    }
+    return categoryServiceInstance[prop];
+  }
+});
