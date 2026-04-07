@@ -182,7 +182,7 @@ const AlcantaraHeader = () => {
     if (category && !categoryProducts[category.slug]) {
       await fetchCategoryProducts(category.slug);
     }
-  }, [fetchCategoryProducts, categories]); // Add categories dependency
+  }, [fetchCategoryProducts, categories.length]); // Use categories.length instead of categories array
 
   const handleDropdownLeave = () => {
     dropdownTimeoutRef.current = setTimeout(() => {
