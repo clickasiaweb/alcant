@@ -32,13 +32,16 @@ export const WishlistProvider = ({ children }) => {
 
   // Cleanup effect
   useEffect(() => {
+    console.log('WishlistContext - Cleanup useEffect mounted');
     return () => {
+      console.log('WishlistContext - Cleanup useEffect cleanup');
       isMounted.current = false;
     };
   }, []);
 
   // Initialize wishlist on client side
   useEffect(() => {
+    console.log('WishlistContext - Initialize useEffect mounted');
     setIsClient(true);
     updateWishlistState();
   }, []);
@@ -50,7 +53,7 @@ export const WishlistProvider = ({ children }) => {
       // Refresh wishlist items safely
       updateWishlistState();
     }
-  }, [updateWishlistState]);
+  }, []); // Remove updateWishlistState dependency to prevent circular dependency
 
   // Close wishlist dropdown
   const closeWishlist = useCallback(() => {
@@ -66,7 +69,7 @@ export const WishlistProvider = ({ children }) => {
       updateWishlistState();
     }
     return success;
-  }, [updateWishlistState]);
+  }, []); // Remove updateWishlistState dependency
 
   // Remove item from wishlist
   const removeFromWishlist = useCallback((productId) => {
@@ -75,7 +78,7 @@ export const WishlistProvider = ({ children }) => {
       updateWishlistState();
     }
     return success;
-  }, [updateWishlistState]);
+  }, []); // Remove updateWishlistState dependency
 
   // Toggle item in wishlist
   const toggleWishlist = useCallback((product) => {
@@ -84,7 +87,7 @@ export const WishlistProvider = ({ children }) => {
       updateWishlistState();
     }
     return isAdded;
-  }, [updateWishlistState]);
+  }, []); // Remove updateWishlistState dependency
 
   // Check if item is in wishlist
   const isInWishlist = useCallback((productId) => {
@@ -107,7 +110,7 @@ export const WishlistProvider = ({ children }) => {
       updateWishlistState();
     }
     return success;
-  }, [updateWishlistState]);
+  }, []); // Remove updateWishlistState dependency
 
   // Get wishlist count
   const getWishlistCount = useCallback(() => {
@@ -123,6 +126,7 @@ export const WishlistProvider = ({ children }) => {
 
   // Handle escape key
   useEffect(() => {
+    console.log('WishlistContext - Escape key useEffect mounted, isWishlistOpen:', isWishlistOpen);
     const handleEscape = (e) => {
       if (e.key === 'Escape' && isWishlistOpen) {
         closeWishlist();
@@ -135,6 +139,7 @@ export const WishlistProvider = ({ children }) => {
     }
 
     return () => {
+      console.log('WishlistContext - Escape key useEffect cleanup');
       document.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = 'unset';
     };

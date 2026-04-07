@@ -36,7 +36,7 @@ export const SearchProvider = ({ children }) => {
     setIsSearchOpen(true);
     // Load recent searches when opening safely
     updateRecentSearches();
-  }, [updateRecentSearches]);
+  }, []); // Remove updateRecentSearches dependency to prevent circular dependency
 
   // Close search dropdown
   const closeSearch = useCallback(() => {
@@ -82,7 +82,7 @@ export const SearchProvider = ({ children }) => {
     
     // Close search dropdown
     closeSearch();
-  }, [closeSearch, updateRecentSearches]);
+  }, []); // Remove dependencies to prevent circular dependency
 
   // Handle recent search click
   const handleRecentSearchClick = useCallback((query) => {

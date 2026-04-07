@@ -18,7 +18,9 @@ export const CartProvider = ({ children }) => {
 
   // Cleanup effect
   useEffect(() => {
+    console.log('CartContext - Cleanup useEffect mounted');
     return () => {
+      console.log('CartContext - Cleanup useEffect cleanup');
       isMounted.current = false;
     };
   }, []);

@@ -51,7 +51,9 @@ const CheckoutPage = () => {
 
   // Cleanup effect to prevent state updates after unmount
   useEffect(() => {
+    console.log('Checkout - Cleanup useEffect mounted');
     return () => {
+      console.log('Checkout - Cleanup useEffect cleanup');
       isMounted.current = false;
     };
   }, []);
