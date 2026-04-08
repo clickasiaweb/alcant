@@ -59,7 +59,20 @@ const LoginPage = () => {
                 </div>
               )}
 
-              {/* Signup Link */}
+              {/* Signup Form */}
+              {showSignup && (
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Create Account</h3>
+                  <SignupModal
+                    isOpen={showSignup}
+                    onClose={handleCloseSignup}
+                    onSwitchToLogin={handleSwitchToLogin}
+                    redirectTo="/account"
+                  />
+                </div>
+              )}
+
+              {/* Login/Signup Toggle */}
               {!showSignup && (
                 <div className="text-center">
                   <p className="text-gray-600">
@@ -69,6 +82,20 @@ const LoginPage = () => {
                       className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
                     >
                       Sign Up
+                    </button>
+                  </p>
+                </div>
+              )}
+              
+              {showSignup && (
+                <div className="text-center">
+                  <p className="text-gray-600">
+                    Already have an account?{' '}
+                    <button
+                      onClick={handleSwitchToLogin}
+                      className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                    >
+                      Sign In
                     </button>
                   </p>
                 </div>
