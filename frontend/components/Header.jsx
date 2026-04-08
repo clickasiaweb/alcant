@@ -22,10 +22,13 @@ import {
   Package,
   Settings,
   Truck,
-  Shield
+  Shield,
+  LogOut
 } from "lucide-react";
 import { categoryService } from "../services/categoryService";
 import Logo from "./Logo";
+import { useSupabaseAuth } from "../contexts/SupabaseAuthContext";
+import { useSupabaseCart } from "../contexts/SupabaseCartContext";
 
 export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -38,9 +41,16 @@ export default function Header() {
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [mobileNavStack, setMobileNavStack] = useState([]);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  
   const router = useRouter();
   const megaMenuRef = useRef(null);
   const searchRef = useRef(null);
+  const userMenuRef = useRef(null);
+  
+  // Authentication contexts
+  const { isAuthenticated, user, logout } = useSupabaseAuth();
+  const { calculateTotalItems } = useSupabaseCart();
 
   // Fetch categories on component mount
   useEffect(() => {

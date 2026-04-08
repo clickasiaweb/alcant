@@ -27,7 +27,7 @@ import {
 const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated }) => {
   const router = useRouter();
   const { isAuthenticated, user, getFullName } = useSupabaseAuth();
-  const { cartItems, calculateSubtotal, calculateTotalItems } = useSupabaseCart();
+  const { cartItems, calculateSubtotal, calculateTotalItems, clearCart } = useSupabaseCart();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
@@ -68,16 +68,7 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
     };
   }, []);
 
-  // Server-side authentication check
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      if (!serverIsAuthenticated) {
-        router.push('/login');
-        return;
-      }
-    }
-  }, [serverIsAuthenticated, router]);
-
+  
   // Client-side authentication check
   useEffect(() => {
     if (typeof window !== 'undefined') {

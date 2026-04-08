@@ -11,26 +11,15 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function getServerSideAuth(context) {
-  try {
-    // Get user from Supabase auth
-    const { data: { user } } = await supabase.auth.getUser(context.req);
-    
-    // Check if user is authenticated
-    const isAuthenticated = !!user;
-    
-    return {
-      user: user || null,
-      isAuthenticated,
-      profile: user ? await getUserProfile(user.id) : null
-    };
-  } catch (error) {
-    console.error('Server-side auth error:', error);
-    return {
+  // For now, skip server-side auth and handle it client-side
+  // This avoids cookie parsing issues in production
+  return {
+    props: {
       user: null,
       isAuthenticated: false,
       profile: null
-    };
-  }
+    }
+  };
 }
 
 export async function getUserProfile(userId) {
