@@ -17,7 +17,7 @@ import {
   Clock
 } from 'lucide-react';
 
-const AccountPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated }) => {
+const AccountPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated, profile: serverProfile }) => {
   const router = useRouter();
   const { user, profile, isAuthenticated, signOut, updateProfile, getFullName } = useSupabaseAuth();
   const { calculateTotalItems } = useSupabaseCart();
@@ -51,14 +51,15 @@ const AccountPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated 
 
   // Initialize form data when profile loads
   React.useEffect(() => {
-    if (profile) {
+    if (profile || serverProfile) {
+      const currentProfile = profile || serverProfile;
       setFormData({
-        name: profile.name || '',
-        phone: profile.phone || '',
-        address: JSON.stringify(profile.address || {}) || ''
+        name: currentProfile.name || '',
+        phone: currentProfile.phone || '',
+        address: JSON.stringify(currentProfile.address || {}) || ''
       });
     }
-  }, [profile]);
+  }, [profile, serverProfile]);
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
@@ -417,27 +418,8 @@ const AccountPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated 
 export default AccountPage;
 
 // Server-side authentication check
+import { getServerSideAuth, requireAuth } from '../lib/serverAuth';
+
 export async function getServerSideProps(context) {
-  const { supabase } = require('../lib/supabase');
-  
-  // Check if user is authenticated on server side
-  const { data: { user } } = await supabase.auth.getUser(context.req);
-  const isAuthenticated = !!user;
-
-  // If not authenticated, redirect to login
-  if (!isAuthenticated) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
-
-  return {
-    props: {
-      user: user || null,
-      isAuthenticated,
-    },
-  };
+  return await requireAuth(context);
 }
