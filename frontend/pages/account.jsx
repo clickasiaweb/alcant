@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
@@ -17,7 +17,7 @@ import {
   Clock
 } from 'lucide-react';
 
-const AccountPage = () => {
+const AccountPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated }) => {
   const router = useRouter();
   const { user, profile, isAuthenticated, signOut, updateProfile, getFullName } = useSupabaseAuth();
   const { calculateTotalItems } = useSupabaseCart();
@@ -30,10 +30,22 @@ const AccountPage = () => {
     address: ''
   });
 
-  // Redirect if not authenticated
-  React.useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
+  // Server-side redirect if not authenticated
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      if (!serverIsAuthenticated) {
+        router.push('/login');
+        return;
+      }
+    }
+  }, [serverIsAuthenticated, router]);
+
+  // Client-side redirect check
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (!isAuthenticated()) {
+        router.push('/login');
+      }
     }
   }, [isAuthenticated, router]);
 
@@ -403,3 +415,29 @@ const AccountPage = () => {
 };
 
 export default AccountPage;
+
+// Server-side authentication check
+export async function getServerSideProps(context) {
+  const { supabase } = require('../lib/supabase');
+  
+  // Check if user is authenticated on server side
+  const { data: { user } } = await supabase.auth.getUser(context.req);
+  const isAuthenticated = !!user;
+
+  // If not authenticated, redirect to login
+  if (!isAuthenticated) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {
+      user: user || null,
+      isAuthenticated,
+    },
+  };
+}
