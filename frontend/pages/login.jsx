@@ -1,11 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Layout from '../components/Layout';
-import { AlertCircle } from 'lucide-react';
+import LoginModal from '../components/auth/LoginModal';
+import SignupModal from '../components/auth/SignupModal';
 
 const LoginPage = () => {
   const router = useRouter();
+  const [showLogin, setShowLogin] = useState(true);
+  const [showSignup, setShowSignup] = useState(false);
+
+  const handleSwitchToSignup = () => {
+    setShowLogin(false);
+    setShowSignup(true);
+  };
+
+  const handleSwitchToLogin = () => {
+    setShowSignup(false);
+    setShowLogin(true);
+  };
+
+  const handleCloseLogin = () => {
+    router.push('/');
+  };
+
+  const handleCloseSignup = () => {
+    setShowSignup(false);
+    setShowLogin(true);
+  };
 
   return (
     <Layout>
@@ -13,48 +35,54 @@ const LoginPage = () => {
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
             <h2 className="text-3xl font-extrabold text-gray-900">
-              Login Disabled
+              Welcome to ΛʟcΛɴᴛ
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              For testing purposes, login functionality has been disabled.
+              Sign in to your account or create a new one
             </p>
           </div>
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <AlertCircle className="h-5 w-5 text-blue-400" />
+            <div className="space-y-6">
+              {/* Login Form */}
+              {showLogin && (
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Sign In</h3>
+                  <LoginModal
+                    isOpen={showLogin}
+                    onClose={handleCloseLogin}
+                    onSwitchToSignup={handleSwitchToSignup}
+                    redirectTo="/account"
+                  />
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">
-                    Login Functionality Disabled
-                  </h3>
-                  <div className="mt-2 text-sm text-blue-700">
-                    <p>
-                      The login system has been temporarily disabled for testing. 
-                      You can still use all shopping features without logging in:
-                    </p>
-                    <ul className="list-disc list-inside mt-2 space-y-1">
-                      <li>Browse products</li>
-                      <li>Add items to cart</li>
-                      <li>Proceed to checkout</li>
-                      <li>Place orders</li>
-                    </ul>
-                  </div>
+              )}
+
+              {/* Signup Link */}
+              {!showSignup && (
+                <div className="text-center">
+                  <p className="text-gray-600">
+                    Don't have an account?{' '}
+                    <button
+                      onClick={handleSwitchToSignup}
+                      className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+                    >
+                      Sign Up
+                    </button>
+                  </p>
                 </div>
-              </div>
+              )}
             </div>
 
+            {/* Alternative Actions */}
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Alternative Actions</span>
+                  <span className="px-2 bg-white text-gray-500">Or</span>
                 </div>
               </div>
 
@@ -76,6 +104,13 @@ const LoginPage = () => {
             </div>
           </div>
         </div>
+
+        {/* Signup Modal */}
+        <SignupModal
+          isOpen={showSignup}
+          onClose={handleCloseSignup}
+          onSwitchToLogin={handleSwitchToLogin}
+        />
       </div>
     </Layout>
   );

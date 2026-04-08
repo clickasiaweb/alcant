@@ -5,6 +5,7 @@ import { CartProvider } from '../contexts/CartContext';
 import { SearchProvider } from '../contexts/SearchContext';
 import { WishlistProvider } from '../contexts/WishlistContext';
 import { SupabaseAuthProvider } from '../contexts/SupabaseAuthContext';
+import { SupabaseCartProvider } from '../contexts/SupabaseCartContext';
 import ErrorBoundary from '../components/ErrorBoundary';
 
 function MyApp({ Component, pageProps }) {
@@ -21,9 +22,11 @@ function MyApp({ Component, pageProps }) {
         <SupabaseAuthProvider>
           <SearchProvider>
             <WishlistProvider>
-              <CartProvider>
-                <Component {...pageProps} />
-              </CartProvider>
+              <SupabaseCartProvider>
+                <CartProvider>
+                  <Component {...pageProps} />
+                </CartProvider>
+              </SupabaseCartProvider>
             </WishlistProvider>
           </SearchProvider>
         </SupabaseAuthProvider>

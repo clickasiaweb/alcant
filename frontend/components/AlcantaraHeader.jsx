@@ -32,6 +32,20 @@ const AlcantaraHeader = () => {
   const { cartItems, openCart, calculateTotalItems } = useCart();
   const { wishlistItems, openWishlist, getWishlistCount, isInWishlist } = useWishlist();
   const { openSearch } = useSearch();
+  
+  // Handle SupabaseCart context with fallback for SSR
+  let supabaseCartContext;
+  try {
+    supabaseCartContext = useSupabaseCart();
+  } catch (error) {
+    // Fallback for SSR when context is not available
+    supabaseCartContext = {
+      cartItems: [],
+      calculateSubtotal: () => 0,
+      calculateTotalItems: () => 0,
+      clearCart: async () => {}
+    };
+  }
   let authContext;
   try {
     authContext = useSupabaseAuth();
