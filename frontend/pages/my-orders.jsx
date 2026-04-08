@@ -20,6 +20,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { orderService } from '../lib/supabaseOrderService';
+import { getServerSideAuth } from '../lib/serverAuth';
 
 const statusColors = {
   'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -48,7 +49,7 @@ const paymentStatusColors = {
   'Refunded': 'bg-gray-100 text-gray-800 border-gray-200'
 };
 
-export default function MyOrdersPage() {
+export default function MyOrdersPage({ user: serverUser, isAuthenticated: serverIsAuthenticated }) {
   const router = useRouter();
   const { user, isAuthenticated } = useSupabaseAuth();
   const [orders, setOrders] = useState([]);
@@ -62,10 +63,22 @@ export default function MyOrdersPage() {
     pages: 0
   });
 
-  // Redirect if not authenticated
+  // Server-side authentication check
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
+    if (typeof window === 'undefined') {
+      if (!serverIsAuthenticated) {
+        router.push('/login');
+        return;
+      }
+    }
+  }, [serverIsAuthenticated, router]);
+
+  // Client-side authentication check
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (!isAuthenticated()) {
+        router.push('/login');
+      }
     }
   }, [isAuthenticated, router]);
 
@@ -459,4 +472,9 @@ export default function MyOrdersPage() {
       <Footer />
     </>
   );
+};
+
+// Server-side authentication check
+export async function getServerSideProps(context) {
+  return await getServerSideAuth(context);
 }
