@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-import { useCart } from '../contexts/CartContext';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 import InquiryForm from '../components/InquiryForm';
@@ -27,9 +26,8 @@ import {
 
 const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated }) => {
   const router = useRouter();
-  const { cartItems, clearCart } = useCart();
   const { isAuthenticated, user, getFullName } = useSupabaseAuth();
-  const { cartItems: supabaseCartItems, calculateSubtotal, calculateTotalItems } = useSupabaseCart();
+  const { cartItems, calculateSubtotal, calculateTotalItems } = useSupabaseCart();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
@@ -38,7 +36,7 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
   const isMounted = useRef(true);
 
   // Use Supabase cart if authenticated, otherwise use local cart
-  const currentCartItems = isAuthenticated() ? supabaseCartItems : cartItems;
+  const currentCartItems = isAuthenticated() ? cartItems : cartItems;
   
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
