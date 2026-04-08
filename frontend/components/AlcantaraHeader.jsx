@@ -32,7 +32,19 @@ const AlcantaraHeader = () => {
   const { cartItems, openCart, calculateTotalItems } = useCart();
   const { wishlistItems, openWishlist, getWishlistCount, isInWishlist } = useWishlist();
   const { openSearch } = useSearch();
-  const { isAuthenticated, user, logout } = useSupabaseAuth();
+  let authContext;
+  try {
+    authContext = useSupabaseAuth();
+  } catch (error) {
+    // Fallback for SSR when context is not available
+    authContext = {
+      isAuthenticated: () => false,
+      user: null,
+      logout: async () => {}
+    };
+  }
+  
+  const { isAuthenticated, user, logout } = authContext;
   
   // Calculate counts directly (functions are already memoized in contexts)
   const cartItemCount = calculateTotalItems();
