@@ -1,53 +1,26 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+// This file is deprecated. Please use supabaseAuth.js instead.
+import { authService } from './supabaseAuth';
 
-class AuthAPI {
-  constructor() {
-    this.baseURL = API_BASE_URL;
-  }
-
-  async request(endpoint, options = {}) {
-    const token = localStorage.getItem('token');
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      ...options,
-    };
-
-    const response = await fetch(`${this.baseURL}${endpoint}`, config);
-    
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Request failed');
-    }
-
-    return response.json();
-  }
-
+// Legacy wrapper for backward compatibility
+const AuthAPI = {
   async signup(userData) {
-    return this.request('/api/auth/signup', {
-      method: 'POST',
-      body: JSON.stringify(userData),
+    return authService.signUp(userData.email, userData.password, {
+      name: userData.name,
+      phone: userData.phone
     });
-  }
+  },
 
   async login(credentials) {
-    return this.request('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(credentials),
-    });
-  }
+    return authService.signIn(credentials.email, credentials.password);
+  },
 
   async logout() {
-    return this.request('/api/auth/logout', {
-      method: 'POST',
-    });
-  }
+    return authService.signOut();
+  },
 
   async getCurrentUser() {
-    return this.request('/api/auth/me');
+    return authService.getCurrentUser();
   }
-}
+};
 
-export default new AuthAPI();
+export default AuthAPI;

@@ -2,7 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import { useCart } from '../contexts/CartContext';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
+import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 import InquiryForm from '../components/InquiryForm';
+import LoginModal from '../components/auth/LoginModal';
+import SignupModal from '../components/auth/SignupModal';
 import { 
   CreditCard, 
   Truck, 
@@ -23,10 +27,17 @@ import {
 const CheckoutPage = () => {
   const router = useRouter();
   const { cartItems, clearCart } = useCart();
+  const { isAuthenticated, user, getFullName } = useSupabaseAuth();
+  const { cartItems: supabaseCartItems, calculateSubtotal, calculateTotalItems } = useSupabaseCart();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
   const isMounted = useRef(true);
+
+  // Use Supabase cart if authenticated, otherwise use local cart
+  const currentCartItems = isAuthenticated() ? supabaseCartItems : cartItems;
   
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
@@ -58,6 +69,40 @@ const CheckoutPage = () => {
     };
   }, []);
 
+  // Show login modal if user is not authenticated and has items in cart
+  useEffect(() => {
+    const totalItems = isAuthenticated() ? calculateTotalItems() : (cartItems?.length || 0);
+    if (!isAuthenticated() && totalItems > 0) {
+      setShowLoginModal(true);
+    }
+  }, [isAuthenticated, calculateTotalItems, cartItems]);
+
+  // Pre-fill shipping info from user profile when authenticated
+  useEffect(() => {
+    if (isAuthenticated() && user) {
+      setShippingInfo(prev => ({
+        ...prev,
+        firstName: user?.user_metadata?.name?.split(' ')[0] || '',
+        lastName: user?.user_metadata?.name?.split(' ')[1] || '',
+        email: user?.email || ''
+      }));
+    }
+  }, [isAuthenticated, user]);
+
+  const handleLoginSuccess = () => {
+    setShowLoginModal(false);
+  };
+
+  const switchToSignup = () => {
+    setShowLoginModal(false);
+    setShowSignupModal(true);
+  };
+
+  const switchToLogin = () => {
+    setShowSignupModal(false);
+    setShowLoginModal(true);
+  };
+
   const [billingInfo, setBillingInfo] = useState({
     sameAsShipping: true,
     firstName: '',
@@ -79,22 +124,25 @@ const CheckoutPage = () => {
   });
 
   // Calculate order totals from cart items
-  const calculateSubtotal = useCallback(() => {
+  const calculateLocalSubtotal = useCallback(() => {
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   }, [cartItems]);
 
   const calculateTax = useCallback(() => {
-    return calculateSubtotal() * 0.18; // 18% GST
-  }, [calculateSubtotal]);
+    const subtotal = isAuthenticated() ? calculateSubtotal() : calculateLocalSubtotal();
+    return subtotal * 0.18; // 18% GST
+  }, [isAuthenticated, calculateSubtotal, calculateLocalSubtotal]);
 
   const calculateShipping = useCallback(() => {
-    return calculateSubtotal() > 1000 ? 0 : 50; // Free shipping above 1000
-  }, [calculateSubtotal]);
+    const subtotal = isAuthenticated() ? calculateSubtotal() : calculateLocalSubtotal();
+    return subtotal > 1000 ? 0 : 50; // Free shipping above 1000
+  }, [isAuthenticated, calculateSubtotal, calculateLocalSubtotal]);
 
   const calculateTotal = useCallback(() => {
-    return calculateSubtotal() + calculateTax() + calculateShipping();
-  }, [calculateSubtotal, calculateTax, calculateShipping]);
+    const subtotal = isAuthenticated() ? calculateSubtotal() : calculateLocalSubtotal();
+    return subtotal + calculateTax() + calculateShipping();
+  }, [isAuthenticated, calculateSubtotal, calculateLocalSubtotal, calculateTax, calculateShipping]);
 
   const validateShippingInfo = useCallback(() => {
     const required = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'zipCode'];
@@ -170,7 +218,7 @@ const CheckoutPage = () => {
       }
       
       // Check if cart has items
-      if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+      if (!currentCartItems || !Array.isArray(currentCartItems) || currentCartItems.length === 0) {
         alert('Your cart is empty');
         if (isMounted.current) setLoading(false);
         return;
@@ -195,17 +243,17 @@ const CheckoutPage = () => {
         return;
       }
 
-      // Prepare order data using cartItems from CartContext
+      // Prepare order data using current cart items
       const orderData = {
-        products: (cartItems || []).map(item => ({
+        products: (currentCartItems || []).map(item => ({
           productId: item.id,
-          name: item.name || `Product ${item.id}`,
-          price: item.price || item.final_price || 1000,
+          name: item.products?.name || item.name || `Product ${item.id}`,
+          price: item.products?.price || item.price || item.final_price || 1000,
           quantity: item.quantity,
-          image: item.image || '/images/products/default.jpg',
+          image: item.products?.images?.[0] || item.image || '/images/products/default.jpg',
           variant: {
-            color: item.variant?.color || 'Standard',
-            size: item.variant?.size || 'Standard'
+            color: item.selected_color || item.variant?.color || 'Standard',
+            size: item.selected_size || item.variant?.size || 'Standard'
           }
         })),
         shippingAddress: {
@@ -287,7 +335,7 @@ const CheckoutPage = () => {
         setLoading(false);
       }
     }
-  }, [cartItems, shippingInfo, billingInfo, paymentInfo, step, validateShippingInfo, validateBillingInfo, validatePaymentInfo, clearCart, router]);
+  }, [currentCartItems, shippingInfo, billingInfo, paymentInfo, step, validateShippingInfo, validateBillingInfo, validatePaymentInfo, clearCart, router]);
 
   const steps = [
     { id: 1, name: 'Shipping', icon: MapPin },
@@ -297,7 +345,8 @@ const CheckoutPage = () => {
   ];
 
   // Early return for empty cart - AFTER all hooks are defined
-  if (!cartItems || cartItems.length === 0) {
+  const totalItems = isAuthenticated() ? calculateTotalItems() : (cartItems?.length || 0);
+  if (totalItems === 0) {
     return (
       <Layout title="Checkout">
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -310,6 +359,36 @@ const CheckoutPage = () => {
             >
               Continue Shopping
             </button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Authentication gate
+  if (!isAuthenticated()) {
+    return (
+      <Layout title="Checkout">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
+            <p className="text-gray-600 mb-8">
+              Please sign in to proceed with checkout
+            </p>
+            
+            <LoginModal
+              isOpen={showLoginModal}
+              onClose={() => router.push('/cart')}
+              onSwitchToSignup={switchToSignup}
+              redirectTo="/checkout"
+            />
+            
+            <SignupModal
+              isOpen={showSignupModal}
+              onClose={() => router.push('/cart')}
+              onSwitchToLogin={switchToLogin}
+              redirectTo="/checkout"
+            />
           </div>
         </div>
       </Layout>
@@ -678,20 +757,23 @@ const CheckoutPage = () => {
                     <div className="mb-6">
                       <h3 className="font-medium text-gray-900 mb-4">Order Items</h3>
                       <div className="space-y-3">
-                        {cartItems && cartItems.length > 0 ? (
-                          cartItems.map((item) => (
+                        {currentCartItems && currentCartItems.length > 0 ? (
+                          currentCartItems.map((item) => (
                             <div key={item.id} className="flex items-center space-x-4">
                               <img
-                                src={item.image || '/images/products/default.jpg'}
-                                alt={item.name}
+                                src={item.products?.images?.[0] || item.image || '/images/products/default.jpg'}
+                                alt={item.products?.name || item.name}
                                 className="w-12 h-12 object-cover rounded"
                               />
                               <div className="flex-1">
-                                <p className="font-medium text-gray-900">{item.name || 'Product'}</p>
+                                <p className="font-medium text-gray-900">{item.products?.name || item.name || 'Product'}</p>
                                 <p className="text-sm text-gray-600">Qty: {item.quantity || 1}</p>
+                                {(item.selected_color || item.variant?.color) && (
+                                  <p className="text-xs text-gray-500">Color: {item.selected_color || item.variant?.color}</p>
+                                )}
                               </div>
                               <p className="font-medium text-gray-900">
-                                ₹{((item.price || 0) * (item.quantity || 1)).toLocaleString()}
+                                ${((item.products?.price || item.price || 0) * (item.quantity || 1)).toFixed(2)}
                               </p>
                             </div>
                           ))
@@ -772,23 +854,31 @@ const CheckoutPage = () => {
                 <div className="hidden lg:block bg-white rounded-lg p-6 shadow-sm sticky top-4">
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
                   
-                  <div className="space-y-3 mb-6">
-                    <div className="flex justify-between text-gray-600">
-                      <span>Subtotal</span>
-                      <span>${calculateSubtotal().toLocaleString()}</span>
+                  {/* Price Breakdown */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Subtotal</span>
+                      <span className="font-medium">
+                        ${(isAuthenticated() ? calculateSubtotal() : calculateLocalSubtotal()).toFixed(2)}
+                      </span>
                     </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Tax</span>
-                      <span>${calculateTax().toLocaleString()}</span>
+                    
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Shipping</span>
+                      <span className="font-medium">
+                        {calculateShipping() === 0 ? 'FREE' : `$${calculateShipping().toFixed(2)}`}
+                      </span>
                     </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Shipping</span>
-                      <span>{calculateShipping() === 0 ? 'FREE' : `$${calculateShipping().toLocaleString()}`}</span>
+                    
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Tax</span>
+                      <span className="font-medium">${calculateTax().toFixed(2)}</span>
                     </div>
-                    <div className="border-t pt-3">
-                      <div className="flex justify-between text-lg font-semibold text-gray-900">
-                        <span>Total</span>
-                        <span>${calculateTotal().toLocaleString()}</span>
+                    
+                    <div className="border-t border-gray-200 pt-2 mt-2">
+                      <div className="flex justify-between">
+                        <span className="text-lg font-semibold text-gray-900">Total</span>
+                        <span className="text-lg font-semibold text-primary-600">${calculateTotal().toFixed(2)}</span>
                       </div>
                     </div>
                   </div>

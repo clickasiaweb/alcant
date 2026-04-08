@@ -18,8 +18,8 @@ import {
 } from 'react-icons/fi';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
+import { orderService } from '../lib/supabaseOrderService';
 
 const statusColors = {
   'Pending': 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -50,6 +50,7 @@ const paymentStatusColors = {
 
 export default function MyOrdersPage() {
   const router = useRouter();
+  const { user, isAuthenticated } = useSupabaseAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -61,53 +62,45 @@ export default function MyOrdersPage() {
     pages: 0
   });
 
-  const getAuthToken = () => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('token');
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/login');
     }
-    return null;
-  };
+  }, [isAuthenticated, router]);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const token = getAuthToken();
       
-      if (!token) {
+      if (!isAuthenticated() || !user) {
         router.push('/login');
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/my-orders?page=${pagination.page}&limit=${pagination.limit}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+      const userOrders = await orderService.getUserOrders(user.id, {
+        limit: pagination.limit,
+        offset: (pagination.page - 1) * pagination.limit
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
       
-      if (data.success) {
-        setOrders(data.data);
-        setPagination(data.pagination);
-      } else {
-        throw new Error(data.message || 'Failed to fetch orders');
-      }
+      setOrders(userOrders);
+      setPagination(prev => ({
+        ...prev,
+        total: userOrders.length,
+        pages: Math.ceil(userOrders.length / pagination.limit)
+      }));
     } catch (error) {
       console.error('Error fetching orders:', error);
-      // You might want to add a toast notification here
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrders();
-  }, [pagination.page, router]);
+    if (isAuthenticated() && user) {
+      fetchOrders();
+    }
+  }, [isAuthenticated, user, pagination.page]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
@@ -126,9 +119,14 @@ export default function MyOrdersPage() {
     }).format(amount);
   };
 
-  const handleOrderDetails = (order) => {
-    setSelectedOrder(order);
-    setShowDetails(true);
+  const handleOrderDetails = async (order) => {
+    try {
+      const orderDetails = await orderService.getOrderById(order.id, user.id);
+      setSelectedOrder(orderDetails);
+      setShowDetails(true);
+    } catch (error) {
+      console.error('Error loading order details:', error);
+    }
   };
 
   const OrderStatusTracker = ({ status }) => {
@@ -249,21 +247,21 @@ export default function MyOrdersPage() {
               </div>
             ) : (
               orders.map((order) => (
-                <div key={order._id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div key={order.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                   <div className="p-6">
                     {/* Order Header */}
                     <div className="flex items-center justify-between mb-4">
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900">Order {order.orderId}</h3>
-                        <p className="text-sm text-gray-500">Placed on {formatDate(order.createdAt)}</p>
+                        <h3 className="text-lg font-medium text-gray-900">Order {order.order_number}</h3>
+                        <p className="text-sm text-gray-500">Placed on {formatDate(order.created_at)}</p>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className={`inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-full border ${statusColors[order.orderStatus]}`}>
-                          {React.createElement(statusIcons[order.orderStatus] || FiClock, { className: "h-4 w-4" })}
-                          {order.orderStatus}
+                        <span className={`inline-flex items-center gap-2 px-3 py-1 text-sm font-medium rounded-full border ${statusColors[order.status]}`}>
+                          {React.createElement(statusIcons[order.status] || FiClock, { className: "h-4 w-4" })}
+                          {order.status}
                         </span>
-                        <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full border ${paymentStatusColors[order.paymentStatus]}`}>
-                          {order.paymentStatus}
+                        <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full border ${paymentStatusColors[order.payment_status]}`}>
+                          {order.payment_status}
                         </span>
                       </div>
                     </div>
@@ -271,25 +269,22 @@ export default function MyOrdersPage() {
                     {/* Products Preview */}
                     <div className="mb-4">
                       <div className="flex items-center gap-4">
-                        {order.products.slice(0, 3).map((product, index) => (
-                          <img
-                            key={index}
-                            src={product.image || '/placeholder-product.jpg'}
-                            alt={product.name}
-                            className="w-16 h-16 object-cover rounded-lg"
-                          />
+                        {order.order_items?.slice(0, 3).map((item, index) => (
+                          <div key={index} className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+                            {item.product_name?.charAt(0) || 'P'}
+                          </div>
                         ))}
-                        {order.products.length > 3 && (
+                        {order.order_items?.length > 3 && (
                           <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                            <span className="text-sm text-gray-600">+{order.products.length - 3}</span>
+                            <span className="text-sm text-gray-600">+{order.order_items.length - 3}</span>
                           </div>
                         )}
                         <div className="flex-1">
                           <p className="text-sm text-gray-600">
-                            {order.products.length} item{order.products.length > 1 ? 's' : ''}
+                            {order.order_items?.length || 0} item{(order.order_items?.length || 0) > 1 ? 's' : ''}
                           </p>
                           <p className="text-sm font-medium text-gray-900">
-                            Total: {formatCurrency(order.totalAmount)}
+                            Total: {formatCurrency(order.total_amount)}
                           </p>
                         </div>
                       </div>
@@ -298,15 +293,13 @@ export default function MyOrdersPage() {
                     {/* Order Status Tracker */}
                     <div className="border-t pt-4 mb-4">
                       <h4 className="text-sm font-medium text-gray-700 mb-3">Order Status</h4>
-                      <OrderStatusTracker status={order.orderStatus} />
+                      <OrderStatusTracker status={order.status} />
                     </div>
 
                     {/* Actions */}
                     <div className="flex items-center justify-between border-t pt-4">
                       <div className="text-sm text-gray-500">
-                        {order.trackingId && (
-                          <span>Tracking ID: <span className="font-medium text-gray-900">{order.trackingId}</span></span>
-                        )}
+                        Order ID: <span className="font-medium text-gray-900">{order.order_number}</span>
                       </div>
                       <button
                         onClick={() => handleOrderDetails(order)}
@@ -371,30 +364,24 @@ export default function MyOrdersPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-gray-500">Order ID:</span>
-                      <span className="font-medium">{selectedOrder.orderId}</span>
+                      <span className="font-medium">{selectedOrder.order_number}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Order Date:</span>
-                      <span className="font-medium">{formatDate(selectedOrder.createdAt)}</span>
+                      <span className="font-medium">{formatDate(selectedOrder.created_at)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Status:</span>
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${statusColors[selectedOrder.orderStatus]}`}>
-                        {selectedOrder.orderStatus}
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${statusColors[selectedOrder.status]}`}>
+                        {selectedOrder.status}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-500">Payment Status:</span>
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${paymentStatusColors[selectedOrder.paymentStatus]}`}>
-                        {selectedOrder.paymentStatus}
+                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${paymentStatusColors[selectedOrder.payment_status]}`}>
+                        {selectedOrder.payment_status}
                       </span>
                     </div>
-                    {selectedOrder.trackingId && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Tracking ID:</span>
-                        <span className="font-medium">{selectedOrder.trackingId}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
@@ -402,18 +389,18 @@ export default function MyOrdersPage() {
                   <h3 className="text-lg font-medium text-gray-900 mb-4">Shipping Address</h3>
                   <div className="space-y-1 text-sm">
                     <div className="font-medium">
-                      {selectedOrder.shippingAddress?.firstName} {selectedOrder.shippingAddress?.lastName}
+                      {selectedOrder.shipping_address?.firstName} {selectedOrder.shipping_address?.lastName}
                     </div>
-                    <div>{selectedOrder.shippingAddress?.address}</div>
-                    {selectedOrder.shippingAddress?.apartment && (
-                      <div>{selectedOrder.shippingAddress.apartment}</div>
+                    <div>{selectedOrder.shipping_address?.address}</div>
+                    {selectedOrder.shipping_address?.apartment && (
+                      <div>{selectedOrder.shipping_address.apartment}</div>
                     )}
                     <div>
-                      {selectedOrder.shippingAddress?.city}, {selectedOrder.shippingAddress?.state} {selectedOrder.shippingAddress?.postalCode}
+                      {selectedOrder.shipping_address?.city}, {selectedOrder.shipping_address?.state} {selectedOrder.shipping_address?.zipCode}
                     </div>
-                    <div>{selectedOrder.shippingAddress?.country}</div>
-                    <div>{selectedOrder.shippingAddress?.phone}</div>
-                    <div>{selectedOrder.shippingAddress?.email}</div>
+                    <div>{selectedOrder.shipping_address?.country}</div>
+                    <div>{selectedOrder.shipping_address?.phone}</div>
+                    <div>{selectedOrder.shipping_address?.email}</div>
                   </div>
                 </div>
               </div>
@@ -422,27 +409,25 @@ export default function MyOrdersPage() {
               <div className="mb-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Products</h3>
                 <div className="space-y-4">
-                  {selectedOrder.products.map((product, index) => (
+                  {selectedOrder.order_items?.map((item, index) => (
                     <div key={index} className="flex items-center gap-4 pb-4 border-b last:border-b-0">
-                      <img
-                        src={product.image || '/placeholder-product.jpg'}
-                        alt={product.name}
-                        className="w-20 h-20 object-cover rounded-lg"
-                      />
+                      <div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">
+                        {item.product_name?.charAt(0) || 'P'}
+                      </div>
                       <div className="flex-1">
-                        <h4 className="font-medium text-gray-900">{product.name}</h4>
+                        <h4 className="font-medium text-gray-900">{item.product_name}</h4>
                         <div className="text-sm text-gray-500">
-                          {product.variant?.color && <span>Color: {product.variant.color}</span>}
-                          {product.variant?.size && <span className="ml-2">Size: {product.variant.size}</span>}
+                          {item.selected_color && <span>Color: {item.selected_color}</span>}
+                          {item.selected_size && <span className="ml-2">Size: {item.selected_size}</span>}
                         </div>
-                        <div className="text-sm text-gray-500">Quantity: {product.quantity}</div>
+                        <div className="text-sm text-gray-500">Quantity: {item.quantity}</div>
                       </div>
                       <div className="text-right">
                         <div className="font-medium text-gray-900">
-                          {formatCurrency(product.price)}
+                          {formatCurrency(item.price)}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {formatCurrency(product.price * product.quantity)}
+                          {formatCurrency(item.price * item.quantity)}
                         </div>
                       </div>
                     </div>
@@ -455,26 +440,8 @@ export default function MyOrdersPage() {
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Order Summary</h3>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Subtotal</span>
-                    <span className="font-medium">{formatCurrency(selectedOrder.subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Tax</span>
-                    <span className="font-medium">{formatCurrency(selectedOrder.tax)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Shipping</span>
-                    <span className="font-medium">{formatCurrency(selectedOrder.shipping)}</span>
-                  </div>
-                  {selectedOrder.discount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Discount</span>
-                      <span className="font-medium text-green-600">-{formatCurrency(selectedOrder.discount)}</span>
-                    </div>
-                  )}
-                  <div className="border-t pt-2 flex justify-between">
-                    <span className="font-medium text-gray-900">Total</span>
-                    <span className="font-bold text-lg text-gray-900">{formatCurrency(selectedOrder.totalAmount)}</span>
+                    <span className="text-gray-500">Total Amount</span>
+                    <span className="font-medium">{formatCurrency(selectedOrder.total_amount)}</span>
                   </div>
                 </div>
               </div>
@@ -482,7 +449,7 @@ export default function MyOrdersPage() {
               {/* Status Tracker */}
               <div className="border-t pt-6 mt-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Order Status</h3>
-                <OrderStatusTracker status={selectedOrder.orderStatus} />
+                <OrderStatusTracker status={selectedOrder.status} />
               </div>
             </div>
           </div>

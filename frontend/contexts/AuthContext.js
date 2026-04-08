@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+// This file is deprecated. Please use SupabaseAuthContext.js instead.
+import React, { createContext, useContext } from 'react';
+import { useSupabaseAuth } from './SupabaseAuthContext';
 
 const AuthContext = createContext();
 
@@ -11,56 +13,42 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Check for existing token and user data on mount
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (token && userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        // Clear invalid data
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-      }
-    }
-    
-    setLoading(false);
-  }, []);
-
-  const login = (token, userData) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(userData));
-    setUser(userData);
+  const supabaseAuth = useSupabaseAuth();
+  
+  // Legacy wrapper for backward compatibility
+  const login = async (token, userData) => {
+    console.warn('Using legacy login method. Consider migrating to SupabaseAuthContext.');
+    // For backward compatibility, we'll store the data but it won't be used
+    localStorage.setItem('legacy_token', token);
+    localStorage.setItem('legacy_user', JSON.stringify(userData));
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser(null);
+  const logout = async () => {
+    console.warn('Using legacy logout method. Consider migrating to SupabaseAuthContext.');
+    // Clear legacy data
+    localStorage.removeItem('legacy_token');
+    localStorage.removeItem('legacy_user');
+    // Also call Supabase logout
+    await supabaseAuth.signOut();
   };
 
   const isAuthenticated = () => {
-    return !!user && !!localStorage.getItem('token');
+    return supabaseAuth.isAuthenticated();
   };
 
   const isAdmin = () => {
-    return user?.role === 'admin';
+    return supabaseAuth.isAdmin();
   };
 
   const value = {
-    user,
+    user: supabaseAuth.user,
     login,
     logout,
     isAuthenticated,
     isAdmin,
-    loading,
+    loading: supabaseAuth.loading,
+    // Expose Supabase methods for migration
+    ...supabaseAuth
   };
 
   return (
