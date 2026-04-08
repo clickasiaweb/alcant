@@ -7,6 +7,7 @@ import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 import InquiryForm from '../components/InquiryForm';
 import LoginModal from '../components/auth/LoginModal';
 import SignupModal from '../components/auth/SignupModal';
+import { getServerSideAuth } from '../lib/serverAuth';
 import { 
   CreditCard, 
   Truck, 
@@ -24,7 +25,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 
-const CheckoutPage = () => {
+const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated }) => {
   const router = useRouter();
   const { cartItems, clearCart } = useCart();
   const { isAuthenticated, user, getFullName } = useSupabaseAuth();
@@ -69,11 +70,23 @@ const CheckoutPage = () => {
     };
   }, []);
 
-  // Show login modal if user is not authenticated and has items in cart
+  // Server-side authentication check
   useEffect(() => {
-    const totalItems = isAuthenticated() ? calculateTotalItems() : (cartItems?.length || 0);
-    if (!isAuthenticated() && totalItems > 0) {
-      setShowLoginModal(true);
+    if (typeof window === 'undefined') {
+      if (!serverIsAuthenticated) {
+        router.push('/login');
+        return;
+      }
+    }
+  }, [serverIsAuthenticated, router]);
+
+  // Client-side authentication check
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const totalItems = isAuthenticated() ? calculateTotalItems() : (cartItems?.length || 0);
+      if (!isAuthenticated() && totalItems > 0) {
+        setShowLoginModal(true);
+      }
     }
   }, [isAuthenticated, calculateTotalItems, cartItems]);
 
@@ -963,3 +976,8 @@ const CheckoutPage = () => {
 };
 
 export default CheckoutPage;
+
+// Server-side authentication check
+export async function getServerSideProps(context) {
+  return await getServerSideAuth(context);
+}
