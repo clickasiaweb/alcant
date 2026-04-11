@@ -27,6 +27,14 @@ import {
 const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated }) => {
   const router = useRouter();
   
+  // State variables first
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const isMounted = useRef(true);
+  
   // Handle auth context with fallback
   let authContext;
   try {
@@ -53,21 +61,6 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
     };
   }
   const { cartItems, calculateSubtotal, calculateTotalItems, clearCart } = cartContext;
-
-  // Debug authentication state
-  useEffect(() => {
-    console.log("CheckoutPage - Debug:");
-    console.log("  isAuthenticated:", isAuthenticated());
-    console.log("  user:", user);
-    console.log("  cartItems:", cartItems);
-    console.log("  showLoginModal:", showLoginModal);
-  }, [isAuthenticated, user, cartItems, showLoginModal]);
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
-  const [showInquiryModal, setShowInquiryModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
-  const isMounted = useRef(true);
 
   // Use local cart to avoid API errors
   const currentCartItems = cartItems || [];
@@ -103,17 +96,15 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
   }, []);
 
   
-  // Client-side authentication check - simplified
+  // Client-side authentication check - simple logic
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Only check authentication, don't rely on cart items count to avoid API errors
+      // Simple logic: if not authenticated, redirect to login page
       if (!isAuthenticated()) {
-        setShowLoginModal(true);
-      } else {
-        setShowLoginModal(false);
+        router.push('/login?redirect=/checkout');
       }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, router]);
 
   // Pre-fill shipping info from user when authenticated
   useEffect(() => {
@@ -404,35 +395,8 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
     );
   }
 
-  // Authentication gate
-  if (!isAuthenticated()) {
-    return (
-      <Layout title="Checkout">
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
-            <p className="text-gray-600 mb-8">
-              Please sign in to proceed with checkout
-            </p>
-            
-            <LoginModal
-              isOpen={showLoginModal}
-              onClose={handleLoginSuccess}
-              onSwitchToSignup={switchToSignup}
-              redirectTo="/checkout"
-            />
-            
-            <SignupModal
-              isOpen={showSignupModal}
-              onClose={handleLoginSuccess}
-              onSwitchToLogin={switchToLogin}
-              redirectTo="/checkout"
-            />
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+  // If not authenticated, useEffect will redirect to login page
+  // No need for authentication gate here
 
   return (
     <Layout title="Checkout">
