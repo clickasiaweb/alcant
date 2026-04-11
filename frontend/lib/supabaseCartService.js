@@ -9,22 +9,10 @@ class SupabaseCartService {
   // Get cart items for a user
   async getCartItems(userId) {
     try {
+      // Simplified query without relationships to avoid schema errors
       const { data, error } = await supabase
         .from(this.tableName)
-        .select(`
-          *,
-          products:product_id (
-            id,
-            name,
-            price,
-            old_price,
-            images,
-            slug,
-            category,
-            in_stock,
-            is_active
-          )
-        `)
+        .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 

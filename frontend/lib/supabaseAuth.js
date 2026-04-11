@@ -118,14 +118,14 @@ class SupabaseAuthService {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
-        .single();
+        .eq('id', userId);
 
       if (error) {
         throw new Error(error.message);
       }
 
-      return data;
+      // Return first item or null instead of using .single() to avoid coercion error
+      return data && data.length > 0 ? data[0] : null;
     } catch (error) {
       console.error('Get user profile error:', error);
       return null;

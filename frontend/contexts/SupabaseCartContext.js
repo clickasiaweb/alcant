@@ -44,9 +44,11 @@ export const SupabaseCartProvider = ({ children }) => {
   // Load cart from database when user is authenticated
   useEffect(() => {
     if (isAuthenticated() && user) {
+      // Try to load from database but fallback to local cart
       loadCartFromDatabase();
     } else {
       // Use local cart when not authenticated
+      console.log('Using local cart for unauthenticated user');
       setCartItems(localCart);
     }
   }, [isAuthenticated(), user, localCart]);
@@ -59,9 +61,11 @@ export const SupabaseCartProvider = ({ children }) => {
     try {
       const items = await cartService.getCartItems(user.id);
       setCartItems(items);
+      console.log('Cart loaded from database:', items.length, 'items');
     } catch (error) {
       console.error('Error loading cart from database:', error);
       // Fallback to local cart on error
+      console.log('Falling back to local cart');
       setCartItems(localCart);
     } finally {
       setLoading(false);
