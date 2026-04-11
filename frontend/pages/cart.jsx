@@ -19,7 +19,18 @@ import {
 const CartPage = () => {
   const router = useRouter();
   const { cartItems, updateQuantity, removeItem, clearCart, addToCart } = useCart();
-  const { isAuthenticated, user } = useSupabaseAuth();
+  
+  // Handle auth context with fallback
+  let authContext;
+  try {
+    authContext = useSupabaseAuth();
+  } catch (error) {
+    authContext = {
+      isAuthenticated: () => false,
+      user: null
+    };
+  }
+  const { isAuthenticated, user } = authContext;
   const [loading, setLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);

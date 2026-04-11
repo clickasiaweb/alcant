@@ -16,8 +16,8 @@ import {
   FiRefreshCw,
   FiXCircle
 } from 'react-icons/fi';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import AlcantaraHeader from '../components/AlcantaraHeader';
+import AlcantaraFooter from '../components/AlcantaraFooter';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { orderService } from '../lib/supabaseOrderService';
 import { getServerSideAuth } from '../lib/serverAuth';
@@ -51,7 +51,18 @@ const paymentStatusColors = {
 
 export default function MyOrdersPage({ user: serverUser, isAuthenticated: serverIsAuthenticated }) {
   const router = useRouter();
-  const { user, isAuthenticated } = useSupabaseAuth();
+  
+  // Handle auth context with fallback
+  let authContext;
+  try {
+    authContext = useSupabaseAuth();
+  } catch (error) {
+    authContext = {
+      user: null,
+      isAuthenticated: () => false
+    };
+  }
+  const { user, isAuthenticated } = authContext;
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -216,14 +227,14 @@ export default function MyOrdersPage({ user: serverUser, isAuthenticated: server
         <Head>
           <title>My Orders - Alcantara</title>
         </Head>
-        <Header />
+        <AlcantaraHeader />
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading your orders...</p>
           </div>
         </div>
-        <Footer />
+        <AlcantaraFooter />
       </>
     );
   }
@@ -235,7 +246,7 @@ export default function MyOrdersPage({ user: serverUser, isAuthenticated: server
         <meta name="description" content="Track and manage your Alcantara orders" />
       </Head>
 
-      <Header />
+      <AlcantaraHeader />
 
       <main className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -469,7 +480,7 @@ export default function MyOrdersPage({ user: serverUser, isAuthenticated: server
         </div>
       )}
 
-      <Footer />
+      <AlcantaraFooter />
     </>
   );
 };

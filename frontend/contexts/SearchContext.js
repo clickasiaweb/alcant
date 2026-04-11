@@ -86,13 +86,33 @@ export const SearchProvider = ({ children }) => {
 
   // Handle recent search click
   const handleRecentSearchClick = useCallback((query) => {
-    handleSearchSubmit(query);
-  }, [handleSearchSubmit]);
+    if (!query || query.trim().length < 2) return;
+    
+    // Save to recent searches
+    searchService.saveRecentSearch(query.trim());
+    updateRecentSearches();
+    
+    // Navigate to search results page
+    window.location.href = `/search?q=${encodeURIComponent(query.trim())}`;
+    
+    // Close search dropdown
+    closeSearch();
+  }, []); // Remove dependencies to prevent circular dependency
 
   // Handle suggestion click
   const handleSuggestionClick = useCallback((suggestion) => {
-    handleSearchSubmit(suggestion);
-  }, [handleSearchSubmit]);
+    if (!suggestion || suggestion.trim().length < 2) return;
+    
+    // Save to recent searches
+    searchService.saveRecentSearch(suggestion.trim());
+    updateRecentSearches();
+    
+    // Navigate to search results page
+    window.location.href = `/search?q=${encodeURIComponent(suggestion.trim())}`;
+    
+    // Close search dropdown
+    closeSearch();
+  }, []); // Remove dependencies to prevent circular dependency
 
   // Clear recent searches
   const clearRecentSearches = useCallback(() => {

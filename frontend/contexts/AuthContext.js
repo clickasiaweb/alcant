@@ -13,7 +13,20 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const supabaseAuth = useSupabaseAuth();
+  // Handle SSR fallback for SupabaseAuth
+  let supabaseAuth;
+  try {
+    supabaseAuth = useSupabaseAuth();
+  } catch (error) {
+    // Fallback for SSR when context is not available
+    supabaseAuth = {
+      user: null,
+      loading: false,
+      signOut: async () => {},
+      isAuthenticated: () => false,
+      isAdmin: () => false
+    };
+  }
   
   // Legacy wrapper for backward compatibility
   const login = async (token, userData) => {

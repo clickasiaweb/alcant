@@ -19,8 +19,33 @@ import {
 
 const AccountPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated, profile: serverProfile }) => {
   const router = useRouter();
-  const { user, profile, isAuthenticated, signOut, updateProfile, getFullName } = useSupabaseAuth();
-  const { calculateTotalItems } = useSupabaseCart();
+  
+  // Handle auth context with fallback
+  let authContext;
+  try {
+    authContext = useSupabaseAuth();
+  } catch (error) {
+    authContext = {
+      user: null,
+      profile: null,
+      isAuthenticated: () => false,
+      signOut: async () => {},
+      updateProfile: async () => {},
+      getFullName: () => 'Guest'
+    };
+  }
+  const { user, profile, isAuthenticated, signOut, updateProfile, getFullName } = authContext;
+  
+  // Handle cart context with fallback
+  let cartContext;
+  try {
+    cartContext = useSupabaseCart();
+  } catch (error) {
+    cartContext = {
+      calculateTotalItems: () => 0
+    };
+  }
+  const { calculateTotalItems } = cartContext;
   const [activeTab, setActiveTab] = useState('profile');
   const [editingProfile, setEditingProfile] = useState(false);
   const [loading, setLoading] = useState(false);
