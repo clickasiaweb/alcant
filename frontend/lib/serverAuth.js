@@ -11,8 +11,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function getServerSideAuth(context) {
-  // For now, skip server-side auth and handle it client-side
-  // This avoids cookie parsing issues in production
+  // Always handle authentication client-side to avoid server-side issues
+  // This allows the authentication context to manage the state properly
   return {
     props: {
       user: null,
@@ -43,16 +43,9 @@ export async function getUserProfile(userId) {
 }
 
 export async function requireAuth(context) {
+  // Let client-side handle authentication checks
+  // This prevents server-side redirects that interfere with client-side auth state
   const auth = await getServerSideAuth(context);
-  
-  if (!auth.isAuthenticated) {
-    return {
-      redirect: {
-        destination: '/login',
-        permanent: false,
-      },
-    };
-  }
   
   return {
     props: auth

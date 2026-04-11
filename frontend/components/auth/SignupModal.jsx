@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useRouter } from 'next/router';
 import { X, Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 import { useSupabaseAuth } from '../../contexts/SupabaseAuthContext';
 
 const SignupModal = ({ isOpen, onClose, onSwitchToLogin, redirectTo = null }) => {
+  const router = useRouter();
   const { signUp, loading } = useSupabaseAuth();
   const [formData, setFormData] = useState({
     name: '',
@@ -73,7 +75,7 @@ const SignupModal = ({ isOpen, onClose, onSwitchToLogin, redirectTo = null }) =>
         onClose();
         // Redirect if specified
         if (redirectTo) {
-          window.location.href = redirectTo;
+          router.push(redirectTo);
         }
       }
     } catch (error) {
