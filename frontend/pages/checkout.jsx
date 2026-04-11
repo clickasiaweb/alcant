@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
-import { useSupabaseCart } from '../contexts/SupabaseCartContext';
+import { useCart } from '../contexts/CartContext';
 import InquiryForm from '../components/InquiryForm';
 import LoginModal from '../components/auth/LoginModal';
 import SignupModal from '../components/auth/SignupModal';
@@ -54,12 +54,19 @@ const CheckoutPage = () => {
   // Handle cart context with fallback
   let cartContext;
   try {
-    cartContext = useSupabaseCart();
+    cartContext = useCart();
+    console.log('Checkout - Cart context loaded successfully');
   } catch (error) {
-    console.error('Cart context error:', error);
+    console.error('Checkout - Cart context error:', error);
     setError('Cart context error');
     cartContext = {
       cartItems: [],
+      isCartOpen: false,
+      closeCart: () => {},
+      updateQuantity: () => {},
+      removeItem: () => {},
+      crossSellProducts: [],
+      addToCart: () => {},
       calculateSubtotal: () => 0,
       calculateTotalItems: () => 0,
       clearCart: async () => {}
@@ -407,19 +414,10 @@ const CheckoutPage = () => {
     { id: 4, name: 'Review', icon: Check }
   ];
 
-  // Show loading while checking authentication
+  // Show loading while checking authentication (but don't block the page)
   if (authLoading) {
-    return (
-      <Layout title="Checkout">
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-            <h1 className="text-xl font-semibold text-gray-900 mb-2">Loading Checkout...</h1>
-            <p className="text-gray-600">Please wait while we verify your authentication.</p>
-          </div>
-        </div>
-      </Layout>
-    );
+    // Don't return loading screen, let the page load and handle auth in useEffect
+    console.log('Checkout - Auth loading, but continuing to render page');
   }
 
   // Show error if any

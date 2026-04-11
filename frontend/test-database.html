@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Connection Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #ccc;
+        }
+        .pass {
+            background-color: #d4edda;
+            border-left-color: #28a745;
+        }
+        .fail {
+            background-color: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        .loading {
+            background-color: #fff3cd;
+            border-left-color: #ffc107;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Database Connection Test</h1>
+        <p>This page tests the Supabase database connection and table access.</p>
+        
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div id="results"></div>
+        
+        <div style="margin-top: 20px;">
+            <h3>Configuration Check</h3>
+            <div id="config"></div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const supabaseUrl = 'https://orhcxgmjychxcrqqwcqu.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGN4Z21qeWNoeGNycXF3Y3F1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNjIwODQsImV4cCI6MjA4NDgzODA4NH0.lHKuN5EKkVmCMF-u3PKmDSXkkS2k8k52hQhZ2M5zdNg';
+        
+        const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+        
+        function addTestResult(name, status, message, data = null) {
+            const resultsDiv = document.getElementById('results');
+            const testDiv = document.createElement('div');
+            testDiv.className = `test ${status}`;
+            
+            let content = `<strong>${name}:</strong> ${message}`;
+            if (data) {
+                content += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+            
+            testDiv.innerHTML = content;
+            resultsDiv.appendChild(testDiv);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function testBasicConnection() {
+            addTestResult('Basic Connection', 'loading', 'Testing...');
+            
+            try {
+                // Test with a simple query
+                const { data, error } = await supabase.from('products').select('count').limit(1);
+                
+                if (error && error.code !== 'PGRST116') {
+                    addTestResult('Basic Connection', 'fail', `Connection failed: ${error.message}`, error);
+                    return false;
+                }
+                
+                addTestResult('Basic Connection', 'pass', 'Connection successful');
+                return true;
+            } catch (error) {
+                addTestResult('Basic Connection', 'fail', `Connection error: ${error.message}`, error);
+                return false;
+            }
+        }
+        
+        async function testProductsTable() {
+            addTestResult('Products Table', 'loading', 'Testing...');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('id, name, price')
+                    .limit(5);
+                
+                if (error) {
+                    addTestResult('Products Table', 'fail', `Error: ${error.message}`, error);
+                    return false;
+                }
+                
+                addTestResult('Products Table', 'pass', `Accessible (${data.length} records found)`, data);
+                return true;
+            } catch (error) {
+                addTestResult('Products Table', 'fail', `Error: ${error.message}`, error);
+                return false;
+            }
+        }
+        
+        async function testCategoriesTable() {
+            addTestResult('Categories Table', 'loading', 'Testing...');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('categories')
+                    .select('id, name')
+                    .limit(5);
+                
+                if (error) {
+                    addTestResult('Categories Table', 'fail', `Error: ${error.message}`, error);
+                    return false;
+                }
+                
+                addTestResult('Categories Table', 'pass', `Accessible (${data.length} records found)`, data);
+                return true;
+            } catch (error) {
+                addTestResult('Categories Table', 'fail', `Error: ${error.message}`, error);
+                return false;
+            }
+        }
+        
+        async function testProfilesTable() {
+            addTestResult('Profiles Table', 'loading', 'Testing...');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('id, email')
+                    .limit(5);
+                
+                if (error) {
+                    addTestResult('Profiles Table', 'fail', `Error: ${error.message}`, error);
+                    return false;
+                }
+                
+                addTestResult('Profiles Table', 'pass', `Accessible (${data.length} records found)`, data);
+                return true;
+            } catch (error) {
+                addTestResult('Profiles Table', 'fail', `Error: ${error.message}`, error);
+                return false;
+            }
+        }
+        
+        async function testCartItemsTable() {
+            addTestResult('Cart Items Table', 'loading', 'Testing...');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('cart_items')
+                    .select('id, user_id, product_id')
+                    .limit(5);
+                
+                if (error) {
+                    addTestResult('Cart Items Table', 'fail', `Error: ${error.message}`, error);
+                    return false;
+                }
+                
+                addTestResult('Cart Items Table', 'pass', `Accessible (${data.length} records found)`, data);
+                return true;
+            } catch (error) {
+                addTestResult('Cart Items Table', 'fail', `Error: ${error.message}`, error);
+                return false;
+            }
+        }
+        
+        async function testOrdersTable() {
+            addTestResult('Orders Table', 'loading', 'Testing...');
+            
+            try {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('id, order_number, status')
+                    .limit(5);
+                
+                if (error) {
+                    addTestResult('Orders Table', 'fail', `Error: ${error.message}`, error);
+                    return false;
+                }
+                
+                addTestResult('Orders Table', 'pass', `Accessible (${data.length} records found)`, data);
+                return true;
+            } catch (error) {
+                addTestResult('Orders Table', 'fail', `Error: ${error.message}`, error);
+                return false;
+            }
+        }
+        
+        async function testAuthSession() {
+            addTestResult('Auth Session', 'loading', 'Testing...');
+            
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                
+                if (error) {
+                    addTestResult('Auth Session', 'fail', `Error: ${error.message}`, error);
+                    return false;
+                }
+                
+                if (session) {
+                    addTestResult('Auth Session', 'pass', `Active (User: ${session.user.email})`, session);
+                } else {
+                    addTestResult('Auth Session', 'pass', 'No active session (user not logged in)');
+                }
+                
+                return true;
+            } catch (error) {
+                addTestResult('Auth Session', 'fail', `Error: ${error.message}`, error);
+                return false;
+            }
+        }
+        
+        function checkConfiguration() {
+            const configDiv = document.getElementById('config');
+            
+            const checks = [
+                { name: 'Supabase URL', value: supabaseUrl, status: !!supabaseUrl },
+                { name: 'Supabase Anon Key', value: supabaseAnonKey.substring(0, 20) + '...', status: !!supabaseAnonKey },
+                { name: 'Supabase Client', value: 'Created', status: !!supabase }
+            ];
+            
+            let html = '<table style="width: 100%; border-collapse: collapse;">';
+            checks.forEach(check => {
+                const statusClass = check.status ? 'pass' : 'fail';
+                html += `
+                    <tr>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${check.name}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${check.value}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">
+                            <span class="test ${statusClass}">${check.status ? 'OK' : 'MISSING'}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+            html += '</table>';
+            
+            configDiv.innerHTML = html;
+        }
+        
+        async function runAllTests() {
+            clearResults();
+            checkConfiguration();
+            
+            const results = {
+                basicConnection: await testBasicConnection(),
+                productsTable: await testProductsTable(),
+                categoriesTable: await testCategoriesTable(),
+                profilesTable: await testProfilesTable(),
+                cartItemsTable: await testCartItemsTable(),
+                ordersTable: await testOrdersTable(),
+                authSession: await testAuthSession()
+            };
+            
+            const passedTests = Object.values(results).filter(Boolean).length;
+            const totalTests = Object.keys(results).length;
+            
+            addTestResult(
+                'Overall Result', 
+                passedTests === totalTests ? 'pass' : 'fail',
+                `Passed: ${passedTests}/${totalTests} tests`,
+                results
+            );
+        }
+        
+        // Check configuration on page load
+        window.onload = function() {
+            checkConfiguration();
+        };
+    </script>
+</body>
+</html>
