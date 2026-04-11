@@ -29,6 +29,7 @@ const CheckoutPage = () => {
   // State variables first
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
@@ -100,15 +101,43 @@ const CheckoutPage = () => {
   }, []);
 
   
-  // Client-side authentication check - simple logic
+  // Client-side authentication check - with debugging
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Simple logic: if not authenticated, redirect to login page
-      if (!isAuthenticated()) {
-        router.push('/login?redirect=/checkout');
-      }
+      console.log('Checkout page - Authentication check');
+      console.log('isAuthenticated function available:', typeof isAuthenticated);
+      
+      // Add a small delay to ensure auth context is fully loaded
+      const timer = setTimeout(() => {
+        try {
+          const authenticated = isAuthenticated();
+          console.log('User authenticated:', authenticated);
+          console.log('User email:', user?.email);
+          console.log('User object:', user);
+          
+          // Set auth loading to false after check
+          setAuthLoading(false);
+          
+          // More robust authentication check
+          const isLoggedIn = authenticated && user;
+          console.log('Is user logged in:', isLoggedIn);
+          
+          if (!isLoggedIn) {
+            console.log('User not authenticated, redirecting to login...');
+            router.push('/login?redirect=/checkout');
+          } else {
+            console.log('User is authenticated, showing checkout page');
+          }
+        } catch (error) {
+          console.error('Authentication check error:', error);
+          setError('Authentication check failed: ' + error.message);
+          setAuthLoading(false);
+        }
+      }, 100); // Small delay to ensure context is loaded
+      
+      return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, user, router]);
 
   // Pre-fill shipping info from user when authenticated
   useEffect(() => {
@@ -377,6 +406,21 @@ const CheckoutPage = () => {
     { id: 3, name: 'Payment', icon: CreditCard },
     { id: 4, name: 'Review', icon: Check }
   ];
+
+  // Show loading while checking authentication
+  if (authLoading) {
+    return (
+      <Layout title="Checkout">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <h1 className="text-xl font-semibold text-gray-900 mb-2">Loading Checkout...</h1>
+            <p className="text-gray-600">Please wait while we verify your authentication.</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   // Show error if any
   if (error) {

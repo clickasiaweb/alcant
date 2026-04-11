@@ -21,7 +21,9 @@ const CartDrawer = () => {
   let authContext;
   try {
     authContext = useSupabaseAuth();
+    console.log('CartDrawer - Auth context loaded successfully');
   } catch (error) {
+    console.error('CartDrawer - Auth context error:', error);
     authContext = {
       isAuthenticated: () => false,
       user: null
@@ -36,6 +38,24 @@ const CartDrawer = () => {
   const [isClient, setIsClient] = useState(false);
   const isMounted = useRef(true);
   
+  // Handle cart context with fallback
+  let cartContext;
+  try {
+    cartContext = useCart();
+    console.log('CartDrawer - Cart context loaded successfully');
+  } catch (error) {
+    console.error('CartDrawer - Cart context error:', error);
+    cartContext = {
+      cartItems: [],
+      isCartOpen: false,
+      closeCart: () => {},
+      updateQuantity: () => {},
+      removeItem: () => {},
+      crossSellProducts: [],
+      addToCart: () => {}
+    };
+  }
+  
   const { 
     cartItems, 
     isCartOpen, 
@@ -44,7 +64,7 @@ const CartDrawer = () => {
     removeItem, 
     crossSellProducts,
     addToCart 
-  } = useCart();
+  } = cartContext;
   
   const FREE_SHIPPING_THRESHOLD = 5000; // Rs. 5,000 for free shipping
 
@@ -143,16 +163,46 @@ const CartDrawer = () => {
   const handleCheckout = async () => {
     setIsCheckoutLoading(true);
     
-    // Check if user is authenticated
-    if (isAuthenticated()) {
-      // User is logged in, go directly to checkout
-      await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      console.log('CartDrawer - Checkout button clicked');
+      console.log('isAuthenticated function available:', typeof isAuthenticated);
+      
+      // Check if user is authenticated
+      let authenticated = false;
+      let userObj = null;
+      try {
+        authenticated = isAuthenticated();
+        userObj = authContext.user; // Get user object from context
+        console.log('User authenticated:', authenticated);
+        console.log('User object:', userObj);
+        console.log('User email:', userObj?.email);
+      } catch (error) {
+        console.error('Authentication check error in CartDrawer:', error);
+        // If authentication check fails, assume user is not authenticated
+        authenticated = false;
+      }
+      
+      // More robust authentication check
+      const isLoggedIn = authenticated && userObj;
+      console.log('Is user logged in:', isLoggedIn);
+      
+      if (isLoggedIn) {
+        // User is logged in, go directly to checkout
+        console.log('Redirecting to checkout...');
+        await new Promise(resolve => setTimeout(resolve, 500)); // Reduced timeout
+        setIsCheckoutLoading(false);
+        router.push('/checkout');
+      } else {
+        // User is not logged in, redirect to login first
+        console.log('User not authenticated, redirecting to login...');
+        setIsCheckoutLoading(false);
+        router.push('/login?redirect=/checkout');
+      }
+    } catch (error) {
+      console.error('Checkout button error:', error);
       setIsCheckoutLoading(false);
-      router.push('/checkout');
-    } else {
-      // User is not logged in, redirect to login first
-      setIsCheckoutLoading(false);
-      router.push('/login?redirect=/checkout');
+      // Show error to user or fallback behavior
+      alert('There was an error processing checkout. Please try again.');
     }
   };
 
@@ -165,6 +215,15 @@ const CartDrawer = () => {
   const subtotal = calculateSubtotal();
   const freeShippingProgress = calculateFreeShippingProgress();
   const freeShippingRemaining = getFreeShippingRemaining();
+  
+  // Debug cart state
+  console.log('CartDrawer - Cart state:', {
+    cartItems: cartItems,
+    cartItemsLength: cartItems?.length || 0,
+    itemCount,
+    subtotal,
+    isCheckoutLoading
+  });
 
   if (!isClient || !isCartOpen) return null;
 
@@ -383,6 +442,14 @@ const CartDrawer = () => {
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                   : 'bg-black text-white hover:bg-gray-800 hover:shadow-lg'
               }`}
+              onMouseEnter={() => {
+                console.log('CartDrawer - Button hover, disabled state:', {
+                  cartItemsExist: !!cartItems,
+                  cartItemsLength: cartItems?.length || 0,
+                  isCheckoutLoading,
+                  isDisabled: !cartItems || cartItems.length === 0 || isCheckoutLoading
+                });
+              }}
             >
               {isCheckoutLoading ? (
                 'Processing...'
