@@ -12,9 +12,11 @@ import {
   CreditCard
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 
 const CartDrawer = () => {
   const router = useRouter();
+  const { isAuthenticated } = useSupabaseAuth();
   const [reservationTime, setReservationTime] = useState(587); // 9:47 in seconds
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const drawerRef = useRef(null);
@@ -128,10 +130,18 @@ const CartDrawer = () => {
 
   const handleCheckout = async () => {
     setIsCheckoutLoading(true);
-    // Simulate checkout process
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsCheckoutLoading(false);
-    router.push('/checkout');
+    
+    // Check if user is authenticated
+    if (isAuthenticated()) {
+      // User is logged in, go directly to checkout
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setIsCheckoutLoading(false);
+      router.push('/checkout');
+    } else {
+      // User is not logged in, redirect to login first
+      setIsCheckoutLoading(false);
+      router.push('/login?redirect=/checkout');
+    }
   };
 
   const handleCrossSellAdd = (product) => {

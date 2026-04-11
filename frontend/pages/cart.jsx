@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import { useCart } from '../contexts/CartContext';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { 
   ShoppingBag, 
   Plus, 
@@ -18,6 +19,7 @@ import {
 const CartPage = () => {
   const router = useRouter();
   const { cartItems, updateQuantity, removeItem, clearCart, addToCart } = useCart();
+  const { isAuthenticated } = useSupabaseAuth();
   const [loading, setLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
@@ -81,8 +83,14 @@ const CartPage = () => {
   };
 
   const handleCheckout = () => {
-    // Navigate to checkout page
-    router.push('/checkout');
+    // Check if user is authenticated
+    if (isAuthenticated()) {
+      // User is logged in, go directly to checkout
+      router.push('/checkout');
+    } else {
+      // User is not logged in, redirect to login first
+      router.push('/login?redirect=/checkout');
+    }
   };
 
   if (loading) {

@@ -9,6 +9,9 @@ const LoginPage = () => {
   const router = useRouter();
   const [showLogin, setShowLogin] = useState(true);
   const [showSignup, setShowSignup] = useState(false);
+  
+  // Get redirect parameter from URL
+  const redirectTo = router.query.redirect || '/account';
 
   const handleSwitchToSignup = () => {
     setShowLogin(false);
@@ -67,7 +70,7 @@ const LoginPage = () => {
                     isOpen={showLogin}
                     onClose={handleCloseLogin}
                     onSwitchToSignup={handleSwitchToSignup}
-                    redirectTo="/account"
+                    redirectTo={redirectTo}
                   />
                 </div>
               )}
@@ -80,7 +83,7 @@ const LoginPage = () => {
                     isOpen={showSignup}
                     onClose={handleCloseSignup}
                     onSwitchToLogin={handleSwitchToLogin}
-                    redirectTo="/account"
+                    redirectTo={redirectTo}
                   />
                 </div>
               )}
