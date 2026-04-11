@@ -28,6 +28,15 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
   const router = useRouter();
   const { isAuthenticated, user, getFullName } = useSupabaseAuth();
   const { cartItems, calculateSubtotal, calculateTotalItems, clearCart } = useSupabaseCart();
+
+  // Debug authentication state
+  useEffect(() => {
+    console.log("CheckoutPage - Debug:");
+    console.log("  isAuthenticated:", isAuthenticated());
+    console.log("  user:", user);
+    console.log("  cartItems:", cartItems);
+    console.log("  showLoginModal:", showLoginModal);
+  }, [isAuthenticated, user, cartItems, showLoginModal]);
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
@@ -35,8 +44,8 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
   const [showSignupModal, setShowSignupModal] = useState(false);
   const isMounted = useRef(true);
 
-  // Use Supabase cart if authenticated, otherwise use local cart
-  const currentCartItems = isAuthenticated() ? cartItems : cartItems;
+  // Use local cart to avoid API errors
+  const currentCartItems = cartItems || [];
   
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
@@ -69,17 +78,19 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
   }, []);
 
   
-  // Client-side authentication check
+  // Client-side authentication check - simplified
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const totalItems = isAuthenticated() ? calculateTotalItems() : (cartItems?.length || 0);
-      if (!isAuthenticated() && totalItems > 0) {
+      // Only check authentication, don't rely on cart items count to avoid API errors
+      if (!isAuthenticated()) {
         setShowLoginModal(true);
+      } else {
+        setShowLoginModal(false);
       }
     }
-  }, [isAuthenticated, calculateTotalItems, cartItems]);
+  }, [isAuthenticated]);
 
-  // Pre-fill shipping info from user profile when authenticated
+  // Pre-fill shipping info from user when authenticated
   useEffect(() => {
     if (isAuthenticated() && user) {
       setShippingInfo(prev => ({
@@ -93,6 +104,7 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
 
   const handleLoginSuccess = () => {
     setShowLoginModal(false);
+    // Don't redirect, just close the modal and stay on checkout
   };
 
   const switchToSignup = () => {
@@ -380,14 +392,14 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
             
             <LoginModal
               isOpen={showLoginModal}
-              onClose={() => router.push('/cart')}
+              onClose={handleLoginSuccess}
               onSwitchToSignup={switchToSignup}
               redirectTo="/checkout"
             />
             
             <SignupModal
               isOpen={showSignupModal}
-              onClose={() => router.push('/cart')}
+              onClose={handleLoginSuccess}
               onSwitchToLogin={switchToLogin}
               redirectTo="/checkout"
             />
