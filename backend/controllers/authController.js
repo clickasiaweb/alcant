@@ -50,33 +50,13 @@ exports.signup = [
         throw authError;
       }
 
-      // Create user profile
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .insert([{
-          email,
-          name,
-          role: 'user',
-          is_active: true
-        }])
-        .select()
-        .single();
-
-      if (profileError) {
-        // Clean up auth user if profile creation fails
-        if (authData.user) {
-          await supabaseService.auth.admin.deleteUser(authData.user.id);
-        }
-        throw profileError;
-      }
-
+      // Profile is automatically created by trigger, so just return success
       res.status(201).json({
         message: "Account created successfully",
         user: {
-          id: profile.id,
-          email: profile.email,
-          name: profile.name,
-          role: profile.role
+          id: authData.user.id,
+          email: authData.user.email,
+          name: name
         }
       });
     } catch (error) {
@@ -117,34 +97,19 @@ exports.login = [
         });
       }
 
-      // Get user profile
+      // Try to get user profile, but don't fail if it doesn't exist
       const { data: profile, error: profileError } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
-        .eq('email', email)
+        .eq('id', data.user.id)
         .single();
-
-      if (profileError || !profile) {
-        await supabase.auth.signOut();
-        return res.status(401).json({
-          error: "User profile not found"
-        });
-      }
-
-      if (!profile.is_active) {
-        await supabase.auth.signOut();
-        return res.status(401).json({
-          error: "Account is deactivated"
-        });
-      }
 
       res.json({
         message: "Login successful",
         user: {
-          id: profile.id,
-          email: profile.email,
-          name: profile.name,
-          role: profile.role
+          id: data.user.id,
+          email: data.user.email,
+          name: profile?.name || data.user.user_metadata?.name || data.user.email?.split('@')[0] || 'User'
         },
         session: data.session
       });
@@ -172,23 +137,17 @@ exports.getCurrentUser = async (req, res) => {
       return res.status(401).json({ error: "Invalid token" });
     }
 
-    // Get user profile
+    // Try to get user profile, but don't fail if it doesn't exist
     const { data: profile, error: profileError } = await supabase
-      .from('users')
+      .from('profiles')
       .select('*')
-      .eq('email', user.email)
+      .eq('id', user.id)
       .single();
 
-    if (profileError || !profile) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
     res.json({
-      id: profile.id,
-      email: profile.email,
-      name: profile.name,
-      role: profile.role,
-      is_active: profile.is_active
+      id: user.id,
+      email: user.email,
+      name: profile?.name || user.user_metadata?.name || user.email?.split('@')[0] || 'User'
     });
   } catch (error) {
     console.error("Get current user error:", error);

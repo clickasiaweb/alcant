@@ -10,7 +10,7 @@ export const TABLES = {
   PRODUCTS: 'products',
   CATEGORIES: 'categories',
   SUBCATEGORIES: 'subcategories',
-  USERS: 'users',
+  PROFILES: 'profiles',
   CONTENT: 'content',
   INQUIRIES: 'inquiries'
 }
