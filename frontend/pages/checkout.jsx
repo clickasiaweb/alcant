@@ -6,7 +6,6 @@ import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 import InquiryForm from '../components/InquiryForm';
 import LoginModal from '../components/auth/LoginModal';
 import SignupModal from '../components/auth/SignupModal';
-import { getServerSideAuth } from '../lib/serverAuth';
 import { 
   CreditCard, 
   Truck, 
@@ -24,7 +23,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 
-const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated }) => {
+const CheckoutPage = () => {
   const router = useRouter();
   
   // State variables first
@@ -33,6 +32,7 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
   const [showInquiryModal, setShowInquiryModal] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignupModal, setShowSignupModal] = useState(false);
+  const [error, setError] = useState(null);
   const isMounted = useRef(true);
   
   // Handle auth context with fallback
@@ -40,6 +40,8 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
   try {
     authContext = useSupabaseAuth();
   } catch (error) {
+    console.error('Auth context error:', error);
+    setError('Authentication context error');
     authContext = {
       isAuthenticated: () => false,
       user: null,
@@ -53,6 +55,8 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
   try {
     cartContext = useSupabaseCart();
   } catch (error) {
+    console.error('Cart context error:', error);
+    setError('Cart context error');
     cartContext = {
       cartItems: [],
       calculateSubtotal: () => 0,
@@ -373,6 +377,37 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
     { id: 3, name: 'Payment', icon: CreditCard },
     { id: 4, name: 'Review', icon: Check }
   ];
+
+  // Show error if any
+  if (error) {
+    return (
+      <Layout title="Checkout">
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Checkout Error</h1>
+            <p className="text-gray-600 mb-6">There was an error loading the checkout page.</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+            <div className="space-x-4">
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
+              >
+                Try Again
+              </button>
+              <button
+                onClick={() => router.push('/')}
+                className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Go Home
+              </button>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   // Early return for empty cart - AFTER all hooks are defined
   const totalItems = isAuthenticated() ? calculateTotalItems() : (cartItems?.length || 0);
@@ -966,8 +1001,3 @@ const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated
 };
 
 export default CheckoutPage;
-
-// Server-side authentication check
-export async function getServerSideProps(context) {
-  return await getServerSideAuth(context);
-}
