@@ -16,6 +16,7 @@ class SupabaseAuthService {
           data: {
             name: options.name || '',
             phone: options.phone || '',
+            address: options.address || {},
             ...options.metadata
           },
           emailRedirectTo: undefined // Disable email confirmation
@@ -26,10 +27,56 @@ class SupabaseAuthService {
         throw new Error(error.message);
       }
 
+      // If signup successful but no session (email confirmation required), bypass it
+      if (data.user && !data.session) {
+        console.log('User created but session not available, ensuring profile exists...');
+        
+        // Ensure profile is created in database
+        try {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: data.user.id,
+              email: data.user.email,
+              name: options.name || data.user.user_metadata?.name || data.user.email.split('@')[0],
+              phone: options.phone || data.user.user_metadata?.phone || '',
+              address: options.address || data.user.user_metadata?.address || {},
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'id'
+            });
+
+          if (profileError) {
+            console.error('Profile creation error:', profileError);
+          } else {
+            console.log('Profile ensured in database');
+          }
+        } catch (profileErr) {
+          console.error('Profile creation failed:', profileErr);
+        }
+
+        // Try to sign in immediately (bypassing email confirmation)
+        try {
+          const signInResult = await this.signIn(email, password);
+          return {
+            user: signInResult.user || data.user,
+            session: signInResult.session,
+            message: 'Account created and logged in successfully!'
+          };
+        } catch (signInError) {
+          // If sign in fails, still return successful signup
+          return {
+            user: data.user,
+            session: null,
+            message: 'Account created successfully! Please try logging in.'
+          };
+        }
+      }
+
       return {
         user: data.user,
         session: data.session,
-        message: 'Account created successfully! You can now log in.'
+        message: 'Account created successfully! You are now logged in.'
       };
     } catch (error) {
       console.error('Signup error:', error);
@@ -46,25 +93,10 @@ class SupabaseAuthService {
       });
 
       if (error) {
-        // Handle email confirmation error
+        // Handle email confirmation error - just throw the error since we disabled it in database
         if (error.message.includes('Email not confirmed')) {
-          console.log('Email confirmation bypassed for user:', email);
-          // Try to get user by admin API
-          const { data: userData, error: userError } = await supabase.auth.admin.getUserByEmail(email);
-          
-          if (!userError && userData.users && userData.users.length > 0) {
-            const user = userData.users[0];
-            return {
-              user: user,
-              session: {
-                access_token: 'bypassed_' + user.id,
-                token_type: 'bearer',
-                expires_in: 3600,
-                user: user
-              },
-              message: 'Login successful! (Email confirmation bypassed)'
-            };
-          }
+          console.log('Email confirmation error - user should be auto-confirmed:', email);
+          throw new Error('Your account is not yet confirmed. Please try again in a few moments or contact support.');
         }
         throw new Error(error.message);
       }

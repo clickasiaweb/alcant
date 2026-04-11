@@ -43,7 +43,7 @@ export const SupabaseCartProvider = ({ children }) => {
 
   // Load cart from database when user is authenticated
   useEffect(() => {
-    if (isAuthenticated() && user) {
+    if (user) {
       // Try to load from database but fallback to local cart
       loadCartFromDatabase();
     } else {
@@ -51,7 +51,7 @@ export const SupabaseCartProvider = ({ children }) => {
       console.log('Using local cart for unauthenticated user');
       setCartItems(localCart);
     }
-  }, [isAuthenticated(), user, localCart]);
+  }, [user, localCart]);
 
   // Load cart from database
   const loadCartFromDatabase = async () => {
@@ -160,7 +160,7 @@ export const SupabaseCartProvider = ({ children }) => {
       console.error('Error adding to cart:', error);
       throw error;
     }
-  }, [isAuthenticated, user]);
+  }, [user]);
 
   // Update item quantity
   const updateQuantity = useCallback(async (itemId, newQuantity) => {
@@ -185,7 +185,7 @@ export const SupabaseCartProvider = ({ children }) => {
       console.error('Error updating quantity:', error);
       throw error;
     }
-  }, [isAuthenticated, user]);
+  }, [user]);
 
   // Remove item from cart
   const removeItem = useCallback(async (itemId) => {
@@ -204,7 +204,7 @@ export const SupabaseCartProvider = ({ children }) => {
       console.error('Error removing item:', error);
       throw error;
     }
-  }, [isAuthenticated, user]);
+  }, [user]);
 
   // Clear entire cart
   const clearCart = useCallback(async () => {
@@ -221,7 +221,7 @@ export const SupabaseCartProvider = ({ children }) => {
       console.error('Error clearing cart:', error);
       throw error;
     }
-  }, [isAuthenticated, user]);
+  }, [user]);
 
   // Calculate cart totals
   const calculateSubtotal = useCallback(() => {
@@ -255,7 +255,7 @@ export const SupabaseCartProvider = ({ children }) => {
       subtotal: calculateSubtotal(),
       totalDiscount: 0
     };
-  }, [isAuthenticated, user, calculateTotalItems, calculateSubtotal]);
+  }, [user, calculateTotalItems, calculateSubtotal]);
 
   // Cart drawer controls
   const openCart = useCallback(() => {
@@ -268,10 +268,10 @@ export const SupabaseCartProvider = ({ children }) => {
 
   // Auto-merge cart when user logs in
   useEffect(() => {
-    if (isAuthenticated() && user && localCart.length > 0) {
+    if (user && localCart.length > 0) {
       mergeCartOnLogin();
     }
-  }, [isAuthenticated(), user]);
+  }, [user, localCart.length]);
 
   const value = {
     // State

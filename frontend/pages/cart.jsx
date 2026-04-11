@@ -19,10 +19,19 @@ import {
 const CartPage = () => {
   const router = useRouter();
   const { cartItems, updateQuantity, removeItem, clearCart, addToCart } = useCart();
-  const { isAuthenticated } = useSupabaseAuth();
+  const { isAuthenticated, user } = useSupabaseAuth();
   const [loading, setLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [discount, setDiscount] = useState(0);
+
+  // Debug authentication state
+  useEffect(() => {
+    console.log("CartPage - Auth state debug:");
+    console.log("  isAuthenticated function:", typeof isAuthenticated);
+    console.log("  isAuthenticated result:", isAuthenticated());
+    console.log("  user:", user);
+    console.log("  router exists:", !!router);
+  }, [isAuthenticated, user]);
 
   // Add sample item for testing (you can remove this once you have proper add to cart functionality)
   const addSampleItem = () => {
@@ -83,11 +92,17 @@ const CartPage = () => {
   };
 
   const handleCheckout = () => {
+    console.log("handleCheckout called");
+    console.log("isAuthenticated:", isAuthenticated());
+    console.log("router exists:", !!router);
+    
     // Check if user is authenticated
     if (isAuthenticated()) {
+      console.log("User is authenticated, going to checkout");
       // User is logged in, go directly to checkout
       router.push('/checkout');
     } else {
+      console.log("User is not authenticated, going to login");
       // User is not logged in, redirect to login first
       router.push('/login?redirect=/checkout');
     }
@@ -297,7 +312,10 @@ const CartPage = () => {
 
                     {/* Checkout Button */}
                     <button
-                      onClick={handleCheckout}
+                      onClick={() => {
+                        console.log("Checkout button clicked");
+                        handleCheckout();
+                      }}
                       className="w-full bg-primary-600 text-white py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center space-x-2"
                     >
                       <CreditCard className="w-5 h-5" />
