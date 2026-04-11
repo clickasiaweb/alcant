@@ -21,6 +21,10 @@ const LoginPage = () => {
   };
 
   const handleCloseLogin = () => {
+    setShowLogin(false);
+  };
+
+  const handleGoHome = () => {
     router.push('/');
   };
 
@@ -33,7 +37,16 @@ const LoginPage = () => {
     <Layout>
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="text-center">
+          <div className="text-center relative">
+            <button
+              onClick={handleGoHome}
+              className="absolute -top-8 right-0 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             <h2 className="text-3xl font-extrabold text-gray-900">
               Welcome to ΛʟcΛɴᴛ
             </h2>
