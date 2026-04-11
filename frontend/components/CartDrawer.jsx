@@ -16,7 +16,19 @@ import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 
 const CartDrawer = () => {
   const router = useRouter();
-  const { isAuthenticated } = useSupabaseAuth();
+  
+  // Handle auth context with fallback
+  let authContext;
+  try {
+    authContext = useSupabaseAuth();
+  } catch (error) {
+    authContext = {
+      isAuthenticated: () => false,
+      user: null
+    };
+  }
+  const { isAuthenticated } = authContext;
+  
   const [reservationTime, setReservationTime] = useState(587); // 9:47 in seconds
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const drawerRef = useRef(null);

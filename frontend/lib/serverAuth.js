@@ -1,14 +1,7 @@
 // Server-side authentication utilities
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from './supabase';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase configuration');
-}
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Use the same singleton supabase client to prevent multiple instances
 
 export async function getServerSideAuth(context) {
   // Always handle authentication client-side to avoid server-side issues

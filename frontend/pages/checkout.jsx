@@ -26,8 +26,33 @@ import {
 
 const CheckoutPage = ({ user: serverUser, isAuthenticated: serverIsAuthenticated }) => {
   const router = useRouter();
-  const { isAuthenticated, user, getFullName } = useSupabaseAuth();
-  const { cartItems, calculateSubtotal, calculateTotalItems, clearCart } = useSupabaseCart();
+  
+  // Handle auth context with fallback
+  let authContext;
+  try {
+    authContext = useSupabaseAuth();
+  } catch (error) {
+    authContext = {
+      isAuthenticated: () => false,
+      user: null,
+      getFullName: () => 'Guest'
+    };
+  }
+  const { isAuthenticated, user, getFullName } = authContext;
+  
+  // Handle cart context with fallback
+  let cartContext;
+  try {
+    cartContext = useSupabaseCart();
+  } catch (error) {
+    cartContext = {
+      cartItems: [],
+      calculateSubtotal: () => 0,
+      calculateTotalItems: () => 0,
+      clearCart: async () => {}
+    };
+  }
+  const { cartItems, calculateSubtotal, calculateTotalItems, clearCart } = cartContext;
 
   // Debug authentication state
   useEffect(() => {
