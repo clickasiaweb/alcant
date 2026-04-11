@@ -171,10 +171,13 @@ exports.createOrder = async (req, res) => {
     // Generate order number
     const orderNumber = `ORD-${timestamp}`;
 
-    // Authentication disabled - skip user_id for now
+    // Authentication disabled - use default user ID
+    const defaultUserId = '00000000-0000-0000-0000-000000000000';
+
     console.log('Creating order with data:', {
       order_id: orderId,
       order_number: orderNumber,
+      user_id: defaultUserId,
       products_count: orderProducts.length,
       subtotal,
       tax,
@@ -183,9 +186,10 @@ exports.createOrder = async (req, res) => {
       payment_method: paymentMethod
     });
 
-    // Create order with EXISTING SCHEMA ONLY (skip user_id to avoid foreign key constraint)
+    // Create order with EXISTING SCHEMA ONLY
     const orderData = {
       order_number: orderNumber,
+      user_id: defaultUserId,
       total_amount: totalAmount,
       shipping_address: shippingAddress,
       billing_address: billingAddress || shippingAddress,

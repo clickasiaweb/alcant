@@ -30,6 +30,14 @@ exports.getOrderById = async (req, res) => {
   try {
     const order = await OrderService.getOrderById(req.params.id);
 
+    // Authentication disabled - skip user access check
+    // if (req.user.role !== 'admin' && order.user_id !== req.user.id) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: 'Not authorized to access this order'
+    //   });
+    // }
+
     res.status(200).json({
       success: true,
       data: order
@@ -50,9 +58,9 @@ exports.getOrderById = async (req, res) => {
   }
 };
 
-// @desc    Get order by order_id
+// @desc    Get order by Order ID
 // @route   GET /api/orders/order/:orderId
-// @access  Public
+// @access  Public (authentication disabled)
 exports.getOrderByOrderId = async (req, res) => {
   try {
     const { data: order, error } = await supabaseService
@@ -71,12 +79,20 @@ exports.getOrderByOrderId = async (req, res) => {
       throw error;
     }
 
+    // Authentication disabled - skip user access check
+    // if (req.user.role !== 'admin' && order.user_id !== req.user.id) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: 'Not authorized to access this order'
+    //   });
+    // }
+
     res.status(200).json({
       success: true,
       data: order
     });
   } catch (error) {
-    console.error('Error fetching order by order_id:', error);
+    console.error('Error fetching order:', error);
     res.status(500).json({
       success: false,
       message: 'Error fetching order',
@@ -85,36 +101,31 @@ exports.getOrderByOrderId = async (req, res) => {
   }
 };
 
-// @desc    Get user orders
-// @route   GET /api/orders/my-orders
+// @desc    Get user's orders
+// @route   GET /api/my-orders
 // @access  Public (authentication disabled)
 exports.getUserOrders = async (req, res) => {
   try {
-    // Authentication disabled - return all orders for testing
-    const { data: orders, error } = await supabaseService
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      throw error;
-    }
-
+    // Authentication disabled - use a default user ID or get from query params
+    const userId = req.query.userId || 'default-user-id';
+    const result = await OrderService.getUserOrders(userId, req.query);
+    
     res.status(200).json({
       success: true,
-      data: orders || []
+      data: result.data,
+      pagination: result.pagination
     });
   } catch (error) {
     console.error('Error fetching user orders:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching user orders',
+      message: 'Error fetching orders',
       error: error.message
     });
   }
 };
 
-// @desc    Create new order (FIXED VERSION)
+// @desc    Create new order
 // @route   POST /api/orders
 // @access  Public (authentication disabled)
 exports.createOrder = async (req, res) => {
@@ -168,13 +179,13 @@ exports.createOrder = async (req, res) => {
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
     const orderId = `ORD${timestamp}${random}`;
 
-    // Generate order number
-    const orderNumber = `ORD-${timestamp}`;
+    // Authentication disabled - use default user ID
+    const defaultUserId = '00000000-0000-0000-0000-000000000000';
 
-    // Authentication disabled - skip user_id for now
+    // Create order
     console.log('Creating order with data:', {
       order_id: orderId,
-      order_number: orderNumber,
+      user_id: defaultUserId,
       products_count: orderProducts.length,
       subtotal,
       tax,
@@ -183,21 +194,31 @@ exports.createOrder = async (req, res) => {
       payment_method: paymentMethod
     });
 
-    // Create order with EXISTING SCHEMA ONLY (skip user_id to avoid foreign key constraint)
-    const orderData = {
-      order_number: orderNumber,
-      total_amount: totalAmount,
-      shipping_address: shippingAddress,
-      billing_address: billingAddress || shippingAddress,
-      notes: notes || `Order created with products: ${orderProducts.length} items`,
-      // Store additional data in notes field for now
-      payment_status: paymentDetails?.paidAt ? 'paid' : 'pending',
-      status: 'pending'
-    };
-
     const { data: order, error } = await supabaseService
       .from('orders')
-      .insert(orderData)
+      .insert({
+        order_id: orderId,
+        user_id: defaultUserId, // Use default user ID when authentication is disabled
+        products: orderProducts,
+        subtotal,
+        tax,
+        shipping,
+        discount,
+        total_amount: totalAmount,
+        shipping_address: shippingAddress,
+        billing_address: billingAddress || shippingAddress,
+        payment_method: paymentMethod,
+        payment_details: paymentDetails || {},
+        notes,
+        estimated_delivery: estimatedDelivery,
+        payment_status: paymentDetails?.paidAt ? 'Paid' : 'Pending',
+        status_history: [{
+          status: 'Pending',
+          timestamp: new Date().toISOString(),
+          note: 'Order placed',
+          updatedBy: 'system' // Use system instead of user ID
+        }]
+      })
       .select()
       .single();
 
@@ -212,31 +233,12 @@ exports.createOrder = async (req, res) => {
       throw error;
     }
 
-    // Create a response with the extended order data
-    const responseOrder = {
-      ...order,
-      order_id: orderId, // Add order_id for frontend compatibility
-      products: orderProducts,
-      subtotal,
-      tax,
-      shipping,
-      discount,
-      payment_method: paymentMethod,
-      payment_details: paymentDetails || {},
-      estimated_delivery: estimatedDelivery,
-      status_history: [{
-        status: 'Pending',
-        timestamp: new Date().toISOString(),
-        note: 'Order placed',
-        updatedBy: 'system'
-      }]
-    };
-
-    console.log('Order created successfully:', responseOrder);
+    // Skip stock update for testing (products might not exist in database)
+    // Stock update can be re-enabled later when product validation is fixed
 
     res.status(201).json({
       success: true,
-      data: responseOrder,
+      data: order,
       message: 'Order created successfully'
     });
   } catch (error) {
@@ -251,10 +253,10 @@ exports.createOrder = async (req, res) => {
 
 // @desc    Update order status
 // @route   PUT /api/orders/:id/status
-// @access  Public (authentication disabled)
+// @access  Private/Admin
 exports.updateOrderStatus = async (req, res) => {
   try {
-    const { status, note } = req.body;
+    const { status, note, trackingId } = req.body;
 
     if (!status) {
       return res.status(400).json({
@@ -263,31 +265,90 @@ exports.updateOrderStatus = async (req, res) => {
       });
     }
 
-    const { data: order, error } = await supabaseService
+    // Get current order
+    const { data: currentOrder, error: fetchError } = await supabaseService
       .from('orders')
-      .update({
-        status,
-        notes: note || `Status updated to ${status}`,
-        updated_at: new Date().toISOString()
-      })
+      .select('*')
       .eq('id', req.params.id)
-      .select()
       .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') {
+    if (fetchError) {
+      if (fetchError.code === 'PGRST116') {
         return res.status(404).json({
           success: false,
           message: 'Order not found'
         });
       }
+      throw fetchError;
+    }
+
+    // Check if status can be updated
+    if (currentOrder.order_status === 'Cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cancelled orders cannot be updated'
+      });
+    }
+
+    if (currentOrder.order_status === 'Delivered' && status !== 'Delivered' && status !== 'Cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Delivered orders can only be cancelled'
+      });
+    }
+
+    if (currentOrder.payment_status !== 'Paid' && status !== 'Cancelled' && status !== 'Pending') {
+      return res.status(400).json({
+        success: false,
+        message: 'Order must be paid to update status'
+      });
+    }
+
+    // Prepare update data
+    const updateData = {
+      order_status: status,
+      updated_at: new Date().toISOString()
+    };
+
+    if (trackingId) {
+      updateData.tracking_id = trackingId;
+    }
+
+    // Add status to history
+    const statusHistory = currentOrder.status_history || [];
+    statusHistory.push({
+      status,
+      timestamp: new Date().toISOString(),
+      note: note || `Status updated to ${status}`,
+      updatedBy: 'admin-user' // Use default when authentication is disabled
+    });
+    updateData.status_history = statusHistory;
+
+    // Set specific timestamps based on status
+    if (status === 'Delivered') {
+      updateData.actual_delivery = new Date().toISOString();
+    } else if (status === 'Cancelled') {
+      updateData.cancelled_at = new Date().toISOString();
+      if (note) {
+        updateData.cancellation_reason = note;
+      }
+    }
+
+    const { data: order, error } = await supabaseService
+      .from('orders')
+      .update(updateData)
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (error) {
       throw error;
     }
 
     res.status(200).json({
       success: true,
       data: order,
-      message: 'Order status updated successfully'
+      message: `Order status updated to ${status}`
     });
   } catch (error) {
     console.error('Error updating order status:', error);
@@ -301,42 +362,49 @@ exports.updateOrderStatus = async (req, res) => {
 
 // @desc    Update payment status
 // @route   PUT /api/orders/:id/payment-status
-// @access  Public (authentication disabled)
+// @access  Private/Admin
 exports.updatePaymentStatus = async (req, res) => {
   try {
-    const { paymentStatus } = req.body;
+    const { status, paymentDetails } = req.body;
 
-    if (!paymentStatus) {
+    if (!status) {
       return res.status(400).json({
         success: false,
         message: 'Payment status is required'
       });
     }
 
+    const updateData = {
+      payment_status: status,
+      updated_at: new Date().toISOString()
+    };
+
+    if (paymentDetails) {
+      updateData.payment_details = paymentDetails;
+    }
+
+    if (status === 'Paid' && !paymentDetails?.paidAt) {
+      updateData.payment_details = {
+        ...updateData.payment_details,
+        paidAt: new Date().toISOString()
+      };
+    }
+
     const { data: order, error } = await supabaseService
       .from('orders')
-      .update({
-        payment_status: paymentStatus,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', req.params.id)
       .select()
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return res.status(404).json({
-          success: false,
-          message: 'Order not found'
-        });
-      }
       throw error;
     }
 
     res.status(200).json({
       success: true,
       data: order,
-      message: 'Payment status updated successfully'
+      message: `Payment status updated to ${status}`
     });
   } catch (error) {
     console.error('Error updating payment status:', error);
@@ -355,11 +423,62 @@ exports.cancelOrder = async (req, res) => {
   try {
     const { reason } = req.body;
 
+    // Get current order
+    const { data: currentOrder, error: fetchError } = await supabaseService
+      .from('orders')
+      .select('*')
+      .eq('id', req.params.id)
+      .single();
+
+    if (fetchError) {
+      if (fetchError.code === 'PGRST116') {
+        return res.status(404).json({
+          success: false,
+          message: 'Order not found'
+        });
+      }
+      throw fetchError;
+    }
+
+    // Authentication disabled - skip user access check
+    // if (req.user.role !== 'admin' && currentOrder.user_id !== req.user.id) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: 'Not authorized to cancel this order'
+    //   });
+    // }
+
+    // Check if order can be cancelled
+    if (currentOrder.order_status === 'Cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Order is already cancelled'
+      });
+    }
+
+    if (currentOrder.order_status === 'Delivered') {
+      return res.status(400).json({
+        success: false,
+        message: 'Delivered orders cannot be cancelled'
+      });
+    }
+
+    // Cancel the order
+    const statusHistory = currentOrder.status_history || [];
+    statusHistory.push({
+      status: 'Cancelled',
+      timestamp: new Date().toISOString(),
+      note: reason || 'Order cancelled',
+      updatedBy: 'admin-user' // Use default when authentication is disabled
+    });
+
     const { data: order, error } = await supabaseService
       .from('orders')
       .update({
-        status: 'cancelled',
-        notes: reason || 'Order cancelled',
+        order_status: 'Cancelled',
+        cancelled_at: new Date().toISOString(),
+        cancellation_reason: reason,
+        status_history: statusHistory,
         updated_at: new Date().toISOString()
       })
       .eq('id', req.params.id)
@@ -367,13 +486,21 @@ exports.cancelOrder = async (req, res) => {
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return res.status(404).json({
-          success: false,
-          message: 'Order not found'
-        });
-      }
       throw error;
+    }
+
+    // Restore product stock
+    for (const item of currentOrder.products) {
+      const { data: currentProduct } = await supabaseService
+        .from('products')
+        .select('stock')
+        .eq('id', item.productId)
+        .single();
+      
+      await supabaseService
+        .from('products')
+        .update({ stock: (currentProduct.stock || 0) + item.quantity })
+        .eq('id', item.productId);
     }
 
     res.status(200).json({
@@ -393,32 +520,12 @@ exports.cancelOrder = async (req, res) => {
 
 // @desc    Get order statistics
 // @route   GET /api/orders/stats
-// @access  Public (authentication disabled)
+// @access  Private/Admin
 exports.getOrderStats = async (req, res) => {
   try {
-    // Get total orders
-    const { data: totalOrders, error: totalError } = await supabaseService
-      .from('orders')
-      .select('id', { count: 'exact' });
-
-    if (totalError) throw totalError;
-
-    // Get orders by status
-    const { data: ordersByStatus, error: statusError } = await supabaseService
-      .from('orders')
-      .select('status');
-
-    if (statusError) throw statusError;
-
-    const stats = {
-      totalOrders: totalOrders.length,
-      ordersByStatus: ordersByStatus.reduce((acc, order) => {
-        acc[order.status] = (acc[order.status] || 0) + 1;
-        return acc;
-      }, {}),
-      totalRevenue: 0 // Calculate if needed
-    };
-
+    const { period = '30d' } = req.query;
+    const stats = await OrderService.getOrderStats(period);
+    
     res.status(200).json({
       success: true,
       data: stats
@@ -427,7 +534,7 @@ exports.getOrderStats = async (req, res) => {
     console.error('Error fetching order stats:', error);
     res.status(500).json({
       success: false,
-      message: 'Error fetching order stats',
+      message: 'Error fetching order statistics',
       error: error.message
     });
   }
