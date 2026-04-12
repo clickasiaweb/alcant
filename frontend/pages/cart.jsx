@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-import { useCart } from '../contexts/CartContext';
+import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { 
   ShoppingBag, 
@@ -18,7 +18,7 @@ import {
 
 const CartPage = () => {
   const router = useRouter();
-  const { cartItems, updateQuantity, removeItem, clearCart, addToCart } = useCart();
+  const { cartItems, updateQuantity, removeItem, clearCart, addToCart } = useSupabaseCart();
   
   // Handle auth context with fallback
   let authContext;

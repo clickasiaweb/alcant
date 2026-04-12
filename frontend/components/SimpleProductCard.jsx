@@ -1,8 +1,8 @@
 import React from 'react';
-import { useCart } from '../contexts/CartContext';
+import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 
 const SimpleProductCard = ({ product }) => {
-  const { addToCart } = useCart();
+  const { addToCart } = useSupabaseCart();
 
   const handleAddToCart = () => {
     console.log('SimpleProductCard - Adding to cart:', product);

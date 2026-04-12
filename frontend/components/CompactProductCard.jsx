@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Star, ShoppingCart, Plus } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
+import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 
 const CompactProductCard = ({ product, index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const { addToCart } = useCart();
+  const { addToCart } = useSupabaseCart();
 
   const handleQuickAdd = (e) => {
     e.preventDefault();

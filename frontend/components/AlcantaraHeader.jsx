@@ -5,7 +5,7 @@ import { Search, ShoppingCart, Heart, User, Menu, X, ChevronRight, ChevronDown, 
 import { categoryService } from '../services/categoryService';
 import { productService } from '../lib/productService';
 import GenericSubcategoryGrid from './GenericSubcategoryGrid';
-import { useCart } from '../contexts/CartContext';
+import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 import { useSearch } from '../contexts/SearchContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
@@ -28,7 +28,7 @@ const Logo = ({ size = "default", className = "" }) => {
 const AlcantaraHeader = () => {
   const router = useRouter();
   // Memoize context values to prevent re-renders
-  const { cartItems, openCart, calculateTotalItems } = useCart();
+  const { cartItems, openCart, calculateTotalItems } = useSupabaseCart();
   const { wishlistItems, openWishlist, getWishlistCount, isInWishlist } = useWishlist();
   const { openSearch } = useSearch();
   
