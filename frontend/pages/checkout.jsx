@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
-import { useCart } from '../contexts/CartContext';
+import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 import InquiryForm from '../components/InquiryForm';
 import LoginModal from '../components/auth/LoginModal';
 import SignupModal from '../components/auth/SignupModal';
@@ -54,8 +54,8 @@ const CheckoutPage = () => {
   // Handle cart context with fallback
   let cartContext;
   try {
-    cartContext = useCart();
-    console.log('Checkout - Cart context loaded successfully');
+    cartContext = useSupabaseCart();
+    console.log('Checkout - SupabaseCart context loaded successfully');
   } catch (error) {
     console.error('Checkout - Cart context error:', error);
     setError('Cart context error');
