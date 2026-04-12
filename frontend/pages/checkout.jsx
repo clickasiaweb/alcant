@@ -91,13 +91,6 @@ const CheckoutPage = () => {
     country: 'United States'
   });
 
-  // Debug: Log shipping info changes - REMOVED to prevent infinite re-renders
-  // useEffect(() => {
-  //   if (process.env.NODE_ENV === 'development') {
-  //     console.log('Checkout - shippingInfo updated:', shippingInfo);
-  //   }
-  // }, [shippingInfo]);
-
   // Cleanup effect to prevent state updates after unmount
   useEffect(() => {
     console.log('Checkout - Cleanup useEffect mounted');
@@ -221,161 +214,36 @@ const CheckoutPage = () => {
 
   const validateBillingInfo = useCallback(() => {
     if (billingInfo.sameAsShipping) return true;
+    const required = ['firstName', 'lastName', 'address', 'city', 'state', 'zipCode'];
+    return required.every(field => billingInfo[field].trim() !== '');
+  }, [billingInfo]);
 
-    return () => clearTimeout(timer);
-  }
-}, [isAuthenticated, user, router]);
-
-// Pre-fill shipping info from user when authenticated
-useEffect(() => {
-  if (isAuthenticated() && user) {
-    setShippingInfo(prev => ({
-      ...prev,
-      firstName: user?.user_metadata?.name?.split(' ')[0] || '',
-      lastName: user?.user_metadata?.name?.split(' ')[1] || '',
-      email: user?.email || ''
-    }));
-  }
-}, [isAuthenticated, user]);
-
-const handleLoginSuccess = () => {
-  setShowLoginModal(false);
-  // Don't redirect, just close the modal and stay on checkout
-};
-
-const switchToSignup = () => {
-  setShowLoginModal(false);
-  setShowSignupModal(true);
-};
-
-const switchToLogin = () => {
-  setShowSignupModal(false);
-  setShowLoginModal(true);
-};
-
-const [billingInfo, setBillingInfo] = useState({
-  sameAsShipping: true,
-  firstName: '',
-  lastName: '',
-  company: '',
-  address: '',
-  city: '',
-  state: '',
-  zipCode: '',
-  country: 'United States'
-});
-
-const [paymentInfo, setPaymentInfo] = useState({
-  cardNumber: '',
-  expiryDate: '',
-  cvv: '',
-  cardName: '',
-  saveCard: false
-});
-
-// Calculate order totals from cart items
-const calculateLocalSubtotal = useCallback(() => {
-  if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) return 0;
-  return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-}, [cartItems]);
-
-const calculateTax = useCallback(() => {
-  const subtotal = isAuthenticated() ? calculateSubtotal() : calculateLocalSubtotal();
-  return subtotal * 0.18; // 18% GST
-}, [isAuthenticated, calculateSubtotal, calculateLocalSubtotal]);
-
-const calculateShipping = useCallback(() => {
-  const subtotal = isAuthenticated() ? calculateSubtotal() : calculateLocalSubtotal();
-  return subtotal > 1000 ? 0 : 50; // Free shipping above 1000
-}, [isAuthenticated, calculateSubtotal, calculateLocalSubtotal]);
-
-const calculateTotal = useCallback(() => {
-  const subtotal = isAuthenticated() ? calculateSubtotal() : calculateLocalSubtotal();
-  return subtotal + calculateTax() + calculateShipping();
-}, [isAuthenticated, calculateSubtotal, calculateLocalSubtotal, calculateTax, calculateShipping]);
-
-const validateShippingInfo = useCallback(() => {
-  const required = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'zipCode'];
-  return required.every(field => shippingInfo[field].trim() !== '');
-}, [shippingInfo]);
-
-const validateBillingInfo = useCallback(() => {
-  if (billingInfo.sameAsShipping) return true;
-  const required = ['firstName', 'lastName', 'address', 'city', 'state', 'zipCode'];
-  return required.every(field => billingInfo[field].trim() !== '');
-}, [billingInfo]);
-
-const validatePaymentInfo = useCallback(() => {
-  // Make payment validation less strict for testing
-  // Allow empty payment info for now since this is a test environment
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Checkout - Payment validation bypassed for development');
-    return true;
-  }
-
-  const required = ['cardNumber', 'expiryDate', 'cvv', 'cardName'];
-  const isValid = required.every(field => paymentInfo[field].trim() !== '');
-
-  // Debug: Log payment validation
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Checkout - Payment validation:', {
-      paymentInfo,
-      isValid,
-      requiredFields: required.map(field => ({
-        field,
-        value: paymentInfo[field],
-        isEmpty: !paymentInfo[field].trim()
-      }))
-    });
-  }
-
-  return isValid;
-}, [paymentInfo]);
-
-const handleNextStep = useCallback(() => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('Next step clicked, current step:', step);
-  }
-
-  if (step === 1 && !validateShippingInfo()) {
-    alert('Please fill in all required shipping information');
-    return;
-  }
-  if (step === 2 && !validateBillingInfo()) {
-    alert('Please fill in all required billing information');
-    return;
-  }
-  if (step === 3 && !validatePaymentInfo()) {
-    alert('Please fill in all required payment information');
-    return;
-  }
-  if (step < 4) {
-    setStep(step + 1);
-  }
-}, [step, validateShippingInfo, validateBillingInfo, validatePaymentInfo]);
-
-const handlePrevStep = useCallback(() => {
-  if (step > 1) {
-    setStep(step - 1);
-  }
-}, [step]);
-
-const handlePlaceOrder = useCallback(async () => {
-  if (!isMounted.current) return;
-
-  setLoading(true);
-
-  try {
-    // Debug: Log the current state
+  const validatePaymentInfo = useCallback(() => {
+    // Make payment validation less strict for testing
+    // Allow empty payment info for now since this is a test environment
     if (process.env.NODE_ENV === 'development') {
-      console.log('Checkout - Placing order with data:', {
-        cartItems,
-        shippingInfo,
-        billingInfo,
+      console.log('Checkout - Payment validation bypassed for development');
+      return true;
+    }
+
+    const required = ['cardNumber', 'expiryDate', 'cvv', 'cardName'];
+    const isValid = required.every(field => paymentInfo[field].trim() !== '');
+    
+    // Debug: Log payment validation
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Checkout - Payment validation:', {
         paymentInfo,
-        currentStep: step
+        isValid,
+        requiredFields: required.map(field => ({
+          field,
+          value: paymentInfo[field],
+          isEmpty: !paymentInfo[field].trim()
+        }))
       });
     }
+    
+    return isValid;
+  }, [paymentInfo]);
 
   const handleNextStep = useCallback(() => {
     if (process.env.NODE_ENV === 'development') {
@@ -667,17 +535,12 @@ const handlePlaceOrder = useCallback(async () => {
                         {stepItem.name}
                       </span>
                     </div>
-                    {index < steps.length - 1 && (
-                      <div className={`hidden sm:flex flex-1 h-0.5 mx-4 ${
-                        step > stepItem.id ? 'bg-primary-600' : 'bg-gray-200'
-                      }`} />
-                    )}
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Main Content */}
               <div className="lg:col-span-2">
                 {/* Step 1: Shipping Information */}
@@ -685,50 +548,50 @@ const handlePlaceOrder = useCallback(async () => {
                   <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Shipping Information</h2>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            First Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={shippingInfo.firstName}
+                            onChange={(e) => setShippingInfo({...shippingInfo, firstName: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                            placeholder="First Name"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Last Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={shippingInfo.lastName}
+                            onChange={(e) => setShippingInfo({...shippingInfo, lastName: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                            placeholder="Last Name"
+                          />
+                        </div>
+                      </div>
+                      
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          First Name *
+                          Company Name
                         </label>
                         <input
                           type="text"
-                          value={shippingInfo.firstName}
-                          onChange={(e) => setShippingInfo({...shippingInfo, firstName: e.target.value})}
+                          value={shippingInfo.company}
+                          onChange={(e) => setShippingInfo({...shippingInfo, company: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
-                          placeholder="First Name"
+                          placeholder="Company (Optional)"
                         />
                       </div>
+                      
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Last Name *
-                        </label>
-                        <input
-                          type="text"
-                          value={shippingInfo.lastName}
-                          onChange={(e) => setShippingInfo({...shippingInfo, lastName: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
-                          placeholder="Last Name"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Company
-                      </label>
-                      <input
-                        type="text"
-                        value={shippingInfo.company}
-                        onChange={(e) => setShippingInfo({...shippingInfo, company: e.target.value})}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
-                        placeholder="Company (Optional)"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Email *
+                          Email Address <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="email"
@@ -739,9 +602,10 @@ const handlePlaceOrder = useCallback(async () => {
                           autoComplete="email"
                         />
                       </div>
+                      
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Phone *
+                          Phone Number <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="tel"
@@ -752,54 +616,68 @@ const handlePlaceOrder = useCallback(async () => {
                           autoComplete="tel"
                         />
                       </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Street Address *
-                      </label>
-                      <input
-                        type="text"
-                        value={shippingInfo.address}
-                        onChange={(e) => setShippingInfo({...shippingInfo, address: e.target.value})}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
-                        placeholder="123 Main Street"
-                        autoComplete="street-address"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
+                      
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          City *
+                          Shipping Address <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          type="text"
-                          value={shippingInfo.city}
-                          onChange={(e) => setShippingInfo({...shippingInfo, city: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        <textarea
+                          value={shippingInfo.address}
+                          onChange={(e) => setShippingInfo({...shippingInfo, address: e.target.value})}
+                          className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                          placeholder="123 Main Street"
+                          rows={3}
+                          autoComplete="street-address"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          State *
-                        </label>
-                        <input
-                          type="text"
-                          value={shippingInfo.state}
-                          onChange={(e) => setShippingInfo({...shippingInfo, state: e.target.value})}
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        />
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            City <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={shippingInfo.city}
+                            onChange={(e) => setShippingInfo({...shippingInfo, city: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            State <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={shippingInfo.state}
+                            onChange={(e) => setShippingInfo({...shippingInfo, state: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            ZIP Code <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={shippingInfo.zipCode}
+                            onChange={(e) => setShippingInfo({...shippingInfo, zipCode: e.target.value})}
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            placeholder="12345"
+                          />
+                        </div>
                       </div>
+                      
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          ZIP Code *
+                          Country <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
-                          value={shippingInfo.zipCode}
-                          onChange={(e) => setShippingInfo({...shippingInfo, zipCode: e.target.value})}
+                          value={shippingInfo.country}
+                          onChange={(e) => setShippingInfo({...shippingInfo, country: e.target.value})}
                           className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          placeholder="Country"
                         />
                       </div>
                     </div>
@@ -811,106 +689,153 @@ const handlePlaceOrder = useCallback(async () => {
                   <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Billing Information</h2>
                     
-                    <div className="mb-6">
-                      <label className="flex items-center">
+                    <div className="space-y-4">
+                      <div className="flex items-center mb-4">
                         <input
                           type="checkbox"
+                          id="sameAsShipping"
                           checked={billingInfo.sameAsShipping}
                           onChange={(e) => setBillingInfo({...billingInfo, sameAsShipping: e.target.checked})}
-                          className="mr-2"
+                          className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
                         />
-                        <span className="text-sm text-gray-700">Same as shipping address</span>
-                      </label>
-                    </div>
-
-                    {!billingInfo.sameAsShipping && (
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              First Name *
-                            </label>
-                            <input
-                              type="text"
-                              value={billingInfo.firstName}
-                              onChange={(e) => setBillingInfo({...billingInfo, firstName: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Last Name *
-                            </label>
-                            <input
-                              type="text"
-                              value={billingInfo.lastName}
-                              onChange={(e) => setBillingInfo({...billingInfo, lastName: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            />
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Company
-                          </label>
-                          <input
-                            type="text"
-                            value={billingInfo.company}
-                            onChange={(e) => setBillingInfo({...billingInfo, company: e.target.value})}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Street Address *
-                          </label>
-                          <input
-                            type="text"
-                            value={billingInfo.address}
-                            onChange={(e) => setBillingInfo({...billingInfo, address: e.target.value})}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              City *
-                            </label>
-                            <input
-                              type="text"
-                              value={billingInfo.city}
-                              onChange={(e) => setBillingInfo({...billingInfo, city: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              State *
-                            </label>
-                            <input
-                              type="text"
-                              value={billingInfo.state}
-                              onChange={(e) => setBillingInfo({...billingInfo, state: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              ZIP Code *
-                            </label>
-                            <input
-                              type="text"
-                              value={billingInfo.zipCode}
-                              onChange={(e) => setBillingInfo({...billingInfo, zipCode: e.target.value})}
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            />
-                          </div>
-                        </div>
+                        <label htmlFor="sameAsShipping" className="ml-2 text-sm text-gray-700">
+                          Same as shipping address
+                        </label>
                       </div>
-                    )}
+                      
+                      {!billingInfo.sameAsShipping && (
+                        <>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                First Name <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={billingInfo.firstName}
+                                onChange={(e) => setBillingInfo({...billingInfo, firstName: e.target.value})}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                                placeholder="First Name"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Last Name <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={billingInfo.lastName}
+                                onChange={(e) => setBillingInfo({...billingInfo, lastName: e.target.value})}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                                placeholder="Last Name"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Company Name
+                            </label>
+                            <input
+                              type="text"
+                              value={billingInfo.company}
+                              onChange={(e) => setBillingInfo({...billingInfo, company: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                              placeholder="Company (Optional)"
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Email Address <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="email"
+                              value={billingInfo.email}
+                              onChange={(e) => setBillingInfo({...billingInfo, email: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                              placeholder="email@example.com"
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Phone Number <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="tel"
+                              value={billingInfo.phone}
+                              onChange={(e) => setBillingInfo({...billingInfo, phone: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-3 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                              placeholder="(555) 123-4567"
+                            />
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Billing Address <span className="text-red-500">*</span>
+                            </label>
+                            <textarea
+                              value={billingInfo.address}
+                              onChange={(e) => setBillingInfo({...billingInfo, address: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-3 focus:outline-none focus:ring-2 focus:ring-primary-500 touch-manipulation"
+                              rows={3}
+                              placeholder="123 Main Street"
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                City <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={billingInfo.city}
+                                onChange={(e) => setBillingInfo({...billingInfo, city: e.target.value})}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                State <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={billingInfo.state}
+                                onChange={(e) => setBillingInfo({...billingInfo, state: e.target.value})}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                ZIP Code <span className="text-red-500">*</span>
+                              </label>
+                              <input
+                                type="text"
+                                value={billingInfo.zipCode}
+                                onChange={(e) => setBillingInfo({...billingInfo, zipCode: e.target.value})}
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="12345"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Country <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={billingInfo.country}
+                              onChange={(e) => setBillingInfo({...billingInfo, country: e.target.value})}
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                              placeholder="Country"
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -919,75 +844,88 @@ const handlePlaceOrder = useCallback(async () => {
                   <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Payment Information</h2>
                     
-                    <div className="mb-6">
-                      <div className="flex items-center space-x-2 mb-4">
-                        <Lock className="w-4 h-4 text-green-600" />
-                        <span className="text-sm text-gray-600">Your payment information is secure and encrypted</span>
+                    <div className="space-y-4">
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="text-sm font-medium text-gray-700 mb-4">Payment Method</h3>
+                        <div className="space-y-3">
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value="credit-card"
+                              defaultChecked
+                              className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">Credit Card</span>
+                          </label>
+                        </div>
                       </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Card Number *
-                      </label>
-                      <input
-                        type="text"
-                        value={paymentInfo.cardNumber}
-                        onChange={(e) => setPaymentInfo({...paymentInfo, cardNumber: e.target.value})}
-                        placeholder="1234 5678 9012 3456"
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Expiry Date *
-                        </label>
-                        <input
-                          type="text"
-                          value={paymentInfo.expiryDate}
-                          onChange={(e) => setPaymentInfo({...paymentInfo, expiryDate: e.target.value})}
-                          placeholder="MM/YY"
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        />
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Card Number <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={paymentInfo.cardNumber}
+                            onChange={(e) => setPaymentInfo({...paymentInfo, cardNumber: e.target.value})}
+                            placeholder="1234 5678 9012 3456"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                          />
+                        </div>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Expiry Date <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={paymentInfo.expiryDate}
+                              onChange={(e) => setPaymentInfo({...paymentInfo, expiryDate: e.target.value})}
+                              placeholder="MM/YY"
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus: ring-2 focus:ring-primary-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              CVV <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={paymentInfo.cvv}
+                              onChange={(e) => setPaymentInfo({...paymentInfo, cvv: e.target.value})}
+                              placeholder="123"
+                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus: ring-2 focus:ring-primary-500"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Cardholder Name <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={paymentInfo.cardName}
+                            onChange={(e) => setPaymentInfo({...paymentInfo, cardName: e.target.value})}
+                            placeholder="John Doe"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus: ring-2 focus:ring-primary-500"
+                          />
+                        </div>
+                        
+                        <div className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id="saveCard"
+                            checked={paymentInfo.saveCard}
+                            onChange={(e) => setPaymentInfo({...paymentInfo, saveCard: e.target.checked})}
+                            className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
+                          />
+                          <label htmlFor="saveCard" className="ml-2 text-sm text-gray-700">Save card information for future purchases</label>
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          CVV *
-                        </label>
-                        <input
-                          type="text"
-                          value={paymentInfo.cvv}
-                          onChange={(e) => setPaymentInfo({...paymentInfo, cvv: e.target.value})}
-                          placeholder="123"
-                          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mb-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Name on Card *
-                      </label>
-                      <input
-                        type="text"
-                        value={paymentInfo.cardName}
-                        onChange={(e) => setPaymentInfo({...paymentInfo, cardName: e.target.value})}
-                        className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      />
-                    </div>
-
-                    <div className="mb-6">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={paymentInfo.saveCard}
-                          onChange={(e) => setPaymentInfo({...paymentInfo, saveCard: e.target.checked})}
-                          className="mr-2"
-                        />
-                        <span className="text-sm text-gray-700">Save card for future purchases</span>
-                      </label>
                     </div>
                   </div>
                 )}
@@ -997,56 +935,102 @@ const handlePlaceOrder = useCallback(async () => {
                   <div className="bg-white rounded-lg p-4 sm:p-6 shadow-sm">
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Review Your Order</h2>
                     
-                    {/* Order Items */}
-                    <div className="mb-6">
-                      <h3 className="font-medium text-gray-900 mb-4">Order Items</h3>
-                      <div className="space-y-3">
-                        {currentCartItems && currentCartItems.length > 0 ? (
-                          currentCartItems.map((item) => (
-                            <div key={item.id} className="flex items-center space-x-4">
+                    <div className="space-y-4">
+                      {/* Order Summary */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="text-sm font-medium text-gray-700 mb-4">Order Summary</h3>
+                        <div className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Subtotal</span>
+                            <span className="text-sm font-medium">Rs. {calculateLocalSubtotal()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Tax (18%)</span>
+                            <span className="text-sm font-medium">Rs. {calculateTax()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Shipping</span>
+                            <span className="text-sm font-medium">Rs. {calculateShipping()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Total</span>
+                            <span className="text-lg font-bold text-primary-600">Rs. {calculateTotal()}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Order Items */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="text-sm font-medium text-gray-700 mb-4">Order Items</h3>
+                        <div className="space-y-3">
+                          {currentCartItems.map((item, index) => (
+                            <div key={item.id} className="flex items-center space-x-4 p-3 bg-white rounded-lg">
                               <img
-                                src={item.products?.images?.[0] || item.image || '/images/products/default.jpg'}
-                                alt={item.products?.name || item.name}
-                                className="w-12 h-12 object-cover rounded"
+                                src={item.image || '/images/products/default.jpg'}
+                                alt={item.name}
+                                className="w-16 h-16 object-cover rounded-lg"
+                                onError={(e) => {
+                                  e.target.src = '/images/products/default.jpg';
+                                }}
                               />
                               <div className="flex-1">
-                                <p className="font-medium text-gray-900">{item.products?.name || item.name || 'Product'}</p>
-                                <p className="text-sm text-gray-600">Qty: {item.quantity || 1}</p>
-                                {(item.selected_color || item.variant?.color) && (
-                                  <p className="text-xs text-gray-500">Color: {item.selected_color || item.variant?.color}</p>
-                                )}
+                                <div>
+                                  <h4 className="text-sm font-medium text-gray-900">{item.name}</h4>
+                                  <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                                  <p className="text-sm font-medium text-primary-600">Rs. {item.price}</p>
+                                </div>
                               </div>
-                              <p className="font-medium text-gray-900">
-                                ${((item.products?.price || item.price || 0) * (item.quantity || 1)).toFixed(2)}
-                              </p>
                             </div>
-                          ))
-                        ) : (
-                          <div className="text-center py-4 text-gray-500">
-                            <p>No items in cart</p>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Shipping Address */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="text-sm font-medium text-gray-700 mb-4">Shipping Address</h3>
+                        <div className="text-sm text-gray-600">
+                          <p>{shippingInfo.firstName} {shippingInfo.lastName}</p>
+                          {shippingInfo.company && <p>{shippingInfo.company}</p>}
+                          <p>{shippingInfo.address}</p>
+                          <p>{shippingInfo.city}, {shippingInfo.state} {shippingInfo.zipCode}</p>
+                          <p>{shippingInfo.country}</p>
+                          <p>{shippingInfo.phone}</p>
+                          <p>{shippingInfo.email}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Billing Address */}
+                      {!billingInfo.sameAsShipping && (
+                        <div className="bg-gray-50 rounded-lg p-4">
+                          <h3 className="text-sm font-medium text-gray-700 mb-4">Billing Address</h3>
+                          <div className="text-sm text-gray-600">
+                            <p>{billingInfo.firstName} {billingInfo.lastName}</p>
+                            {billingInfo.company && <p>{billingInfo.company}</p>}
+                            <p>{billingInfo.address}</p>
+                            <p>{billingInfo.city}, {billingInfo.state} {billingInfo.zipCode}</p>
+                            <p>{billingInfo.country}</p>
+                            <p>{billingInfo.phone}</p>
+                            <p>{billingInfo.email}</p>
                           </div>
-                        )}
+                        </div>
+                      )}
+                      
+                      {/* Payment Method */}
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <h3 className="text-sm font-medium text-gray-700 mb-4">Payment Method</h3>
+                        <div className="text-sm text-gray-600">
+                          <p>Credit Card ending in {paymentInfo.cardNumber ? paymentInfo.cardNumber.slice(-4) : '****'}</p>
+                          <p>{paymentInfo.cardName || 'Cardholder'}</p>
+                        </div>
                       </div>
                     </div>
-
-                    {/* Shipping Address */}
-                    <div className="mb-6">
-                      <h3 className="font-medium text-gray-900 mb-4">Shipping Address</h3>
-                      <div className="text-sm text-gray-600">
-                        <p>{shippingInfo.firstName} {shippingInfo.lastName}</p>
-                        {shippingInfo.company && <p>{shippingInfo.company}</p>}
-                        <p>{shippingInfo.address}</p>
-                        <p>{shippingInfo.city}, {shippingInfo.state} {shippingInfo.zipCode}</p>
-                        <p>{shippingInfo.country}</p>
-                      </div>
-                    </div>
-
-                    {/* Payment Method */}
-                    <div className="mb-6">
-                      <h3 className="font-medium text-gray-900 mb-4">Payment Method</h3>
-                      <div className="text-sm text-gray-600">
-                        <p>Credit Card ending in {paymentInfo.cardNumber ? paymentInfo.cardNumber.slice(-4) : '****'}</p>
-                        <p>{paymentInfo.cardName || 'Cardholder'}</p>
+                    
+                    <div className="mb-6 sm:mb-8">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4 sm:mb-6">Terms & Conditions</h3>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <p className="text-sm text-gray-600">
+                          By placing this order, you agree to our Terms of Service and Privacy Policy. Your order will be processed securely and your personal information will be protected.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -1151,109 +1135,59 @@ const handlePlaceOrder = useCallback(async () => {
                   <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
                   
                   {/* Price Breakdown */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Subtotal</span>
-                      <span className="font-medium">
-                        ${(isAuthenticated() ? calculateSubtotal() : calculateLocalSubtotal()).toFixed(2)}
-                      </span>
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Subtotal</span>
+                      <span className="text-sm font-medium">Rs. {calculateLocalSubtotal()}</span>
                     </div>
-                    
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Shipping</span>
-                      <span className="font-medium">
-                        {calculateShipping() === 0 ? 'FREE' : `$${calculateShipping().toFixed(2)}`}
-                      </span>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Tax (18%)</span>
+                      <span className="text-sm font-medium">Rs. {calculateTax()}</span>
                     </div>
-                    
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Tax</span>
-                      <span className="font-medium">${calculateTax().toFixed(2)}</span>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Shipping</span>
+                      <span className="text-sm font-medium">Rs. {calculateShipping()}</span>
                     </div>
-                    
-                    <div className="border-t border-gray-200 pt-2 mt-2">
-                      <div className="flex justify-between">
-                        <span className="text-lg font-semibold text-gray-900">Total</span>
-                        <span className="text-lg font-semibold text-primary-600">${calculateTotal().toFixed(2)}</span>
-                      </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Total</span>
+                      <span className="text-lg font-bold text-primary-600">Rs. {calculateTotal()}</span>
                     </div>
                   </div>
-
-                  {/* Trust Badges */}
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Truck className="w-4 h-4 text-primary-600" />
-                      <span>Free shipping on orders over $10,000</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Shield className="w-4 h-4 text-primary-600" />
-                      <span>Secure payment processing</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Check className="w-4 h-4 text-primary-600" />
-                      <span>30-day return policy</span>
+                  
+                  {/* Cart Items */}
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-gray-900 mb-4">Cart Items ({currentCartItems.length})</h3>
+                    <div className="space-y-3">
+                      {currentCartItems.map((item, index) => (
+                        <div key={item.id} className="flex items-center space-x-3 p-3 bg-white rounded-lg border">
+                          <img
+                            src={item.image || '/images/products/default.jpg'}
+                            alt={item.name}
+                            className="w-12 h-12 object-cover rounded-lg"
+                            onError={(e) => {
+                              e.target.src = '/images/products/default.jpg';
+                            }}
+                          />
+                          <div className="flex-1">
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-900">{item.name}</h4>
+                              <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                              <p className="text-sm font-medium text-primary-600">Rs. {item.price}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-
-                  {/* Support Inquiry */}
-                  <div className="border-t pt-4 mt-6">
-                    <button
-                      onClick={() => setShowInquiryModal(true)}
-                      className="w-full flex items-center justify-center space-x-2 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors text-gray-700"
-                    >
-                      <HelpCircle className="w-4 h-4" />
-                      <span className="text-sm font-medium">Need Help? Ask a Question</span>
-                    </button>
-                  </div>
+                  
+                  {/* Mobile Spacer to prevent content overlap */}
+                  <div className="lg:hidden h-24"></div>
                 </div>
-
-                {/* Mobile Order Summary - Sticky Bottom */}
-                <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg z-40">
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <div>
-                        <p className="text-sm text-gray-600">Total</p>
-                        <p className="text-xl font-bold text-gray-900">${calculateTotal().toLocaleString()}</p>
-                      </div>
-                      <button
-                        onClick={() => setShowInquiryModal(true)}
-                        className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
-                      >
-                        <HelpCircle className="w-5 h-5" />
-                      </button>
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-gray-600">
-                      <div className="flex items-center space-x-1">
-                        <Truck className="w-3 h-3 text-primary-600" />
-                        <span>{calculateShipping() === 0 ? 'FREE' : `$${calculateShipping()}`} Shipping</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Shield className="w-3 h-3 text-primary-600" />
-                        <span>Secure</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Mobile Spacer to prevent content overlap */}
-                <div className="lg:hidden h-24"></div>
               </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Inquiry Modal */}
-      {showInquiryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
-            <InquiryForm 
-              onClose={() => setShowInquiryModal(false)}
-              showTitle={true}
-            />
-          </div>
-        </div>
-      )}
     </Layout>
   );
 };
