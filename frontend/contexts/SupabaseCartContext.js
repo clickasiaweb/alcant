@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useSupabaseAuth } from './SupabaseAuthContext';
 import { cartService } from '../lib/supabaseCartService';
 
@@ -18,6 +18,7 @@ export const SupabaseCartProvider = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [localCart, setLocalCart] = useState([]);
+  const hasMergedCart = useRef(false);
 
   // Load local cart from localStorage on mount
   useEffect(() => {
@@ -43,15 +44,29 @@ export const SupabaseCartProvider = ({ children }) => {
 
   // Load cart from database when user is authenticated
   useEffect(() => {
-    if (user) {
-      // Try to load from database but fallback to local cart
-      loadCartFromDatabase();
-    } else {
-      // Use local cart when not authenticated
-      console.log('Using local cart for unauthenticated user');
-      setCartItems(localCart);
-    }
-  }, [user, localCart]);
+    const loadAndMergeCart = async () => {
+      if (user) {
+        // Reset merge flag when user changes
+        hasMergedCart.current = false;
+        
+        // Try to load from database
+        await loadCartFromDatabase();
+        
+        // If there are local cart items and haven't merged yet, merge them with database
+        if (localCart.length > 0 && !hasMergedCart.current) {
+          console.log('Merging local cart with database cart');
+          hasMergedCart.current = true;
+          await mergeCartOnLogin();
+        }
+      } else {
+        // Use local cart when not authenticated
+        console.log('Using local cart for unauthenticated user');
+        setCartItems(localCart);
+      }
+    };
+    
+    loadAndMergeCart();
+  }, [user]);
 
   // Load cart from database
   const loadCartFromDatabase = async () => {
