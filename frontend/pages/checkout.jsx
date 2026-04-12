@@ -412,6 +412,17 @@ const CheckoutPage = () => {
         console.log('Checkout - Response status:', response.status);
       }
 
+      // Log error details if failed
+      if (!result.success) {
+        console.error('Checkout - API Error Details:', {
+          status: response.status,
+          statusText: response.statusText,
+          message: result.message,
+          error: result.error,
+          fullResponse: result
+        });
+      }
+
       if (result.success) {
         // Clear cart using CartContext
         clearCart();
@@ -1075,12 +1086,12 @@ const CheckoutPage = () => {
                         )}
                       </button>
                       
-                      {/* Debug test button */}
+                      // Debug test button */
                       <button
                         onClick={async () => {
                           console.log('Checkout - DEBUG: Test API call directly');
                           try {
-                            const testResponse = await fetch('http://localhost:5001/api/orders', {
+                            const testResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/orders`, {
                               method: 'POST',
                               headers: {
                                 'Content-Type': 'application/json',
@@ -1126,6 +1137,8 @@ const CheckoutPage = () => {
                       </button>
                     </>
                   )}
+                  
+                </div>
                 </div>
               </div>
 
@@ -1187,7 +1200,6 @@ const CheckoutPage = () => {
             </div>
           </div>
         </div>
-      </div>
     </Layout>
   );
 };

@@ -189,8 +189,7 @@ exports.createOrder = async (req, res) => {
       total_amount: totalAmount,
       shipping_address: shippingAddress,
       billing_address: billingAddress || shippingAddress,
-      notes: notes || `Order created with products: ${orderProducts.length} items`,
-      // Store additional data in notes field for now
+      notes: notes || `Order created with products: ${orderProducts.length} items. Subtotal: ${subtotal}, Tax: ${tax}, Shipping: ${shipping}`,
       payment_status: paymentDetails?.paidAt ? 'paid' : 'pending',
       status: 'pending'
     };
@@ -220,10 +219,11 @@ exports.createOrder = async (req, res) => {
       subtotal,
       tax,
       shipping,
-      discount,
+      discount: 0, // Add discount in response only, not in database
       payment_method: paymentMethod,
       payment_details: paymentDetails || {},
       estimated_delivery: estimatedDelivery,
+      payment_status: paymentDetails?.paidAt ? 'Paid' : 'Pending',
       status_history: [{
         status: 'Pending',
         timestamp: new Date().toISOString(),
