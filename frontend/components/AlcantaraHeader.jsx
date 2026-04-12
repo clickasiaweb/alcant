@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, memo, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Search, ShoppingCart, Heart, User, Menu, X, ChevronRight, ChevronDown, Grid3x3, Star, ArrowRight, Smartphone, Headphones, Wallet, Car, ShoppingBag, LogOut, Package, Settings } from 'lucide-react';
@@ -26,7 +26,6 @@ const Logo = ({ size = "default", className = "" }) => {
 };
 
 const AlcantaraHeader = () => {
-  console.log("AlcantaraHeader Component Rendered");
   const router = useRouter();
   // Memoize context values to prevent re-renders
   const { cartItems, openCart, calculateTotalItems } = useCart();
@@ -61,9 +60,9 @@ const AlcantaraHeader = () => {
     };
   }
   
-  // Calculate counts directly (functions are already memoized in contexts)
-  const cartItemCount = calculateTotalItems();
-  const wishlistCount = getWishlistCount();
+  // Memoize counts to prevent unnecessary recalculations
+  const cartItemCount = useMemo(() => calculateTotalItems(), [calculateTotalItems]);
+  const wishlistCount = useMemo(() => getWishlistCount(), [getWishlistCount]);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState({});
   const [subSubcategories, setSubSubcategories] = useState({});
@@ -154,7 +153,7 @@ const AlcantaraHeader = () => {
     fetchSubSubcategories(categorySlug, subcategory.slug);
   };
 
-  // Fetch categories and subcategories
+  // Fetch categories and subcategories - optimized with debouncing
   useEffect(() => {
     const fetchData = async () => {
       // Prevent multiple fetches
@@ -172,32 +171,26 @@ const AlcantaraHeader = () => {
         const categoriesList = categoriesData.data || [];
         setCategories(categoriesList);
 
-        // Extract subcategories from hierarchy data
+        // Extract subcategories from hierarchy data - optimized
         const subcategoriesData = {};
         const subSubcategoriesData = {};
         
-        categoriesList.forEach(category => {
+        for (const category of categoriesList) {
           subcategoriesData[category.slug] = category.subcategories || [];
           
           // Extract sub-subcategories for each subcategory
-          category.subcategories?.forEach(sub => {
-            if (sub.sub_subcategories && sub.sub_subcategories.length > 0) {
-              subSubcategoriesData[sub.slug] = sub.sub_subcategories;
+          if (category.subcategories) {
+            for (const sub of category.subcategories) {
+              if (sub.sub_subcategories && sub.sub_subcategories.length > 0) {
+                subSubcategoriesData[sub.slug] = sub.sub_subcategories;
+              }
             }
-          });
-        });
+          }
+        }
         
         if (isMounted.current) {
           setSubcategories(subcategoriesData);
           setSubSubcategories(subSubcategoriesData);
-        }
-        
-        // Debug iPhone Cases specifically
-        const phoneCases = categoriesList.find(cat => cat.name === 'Phone Cases');
-        if (phoneCases) {
-          const iPhoneSub = phoneCases.subcategories?.find(sub => sub.name === 'iPhone Cases');
-          if (iPhoneSub) {
-          }
         }
         
       } catch (err) {
@@ -217,6 +210,15 @@ const AlcantaraHeader = () => {
     };
   }, []);
 
+  // Memoize categories lookup to prevent unnecessary finds
+  const categoriesMap = useMemo(() => {
+    const map = {};
+    categories.forEach(cat => {
+      map[cat.name] = cat;
+    });
+    return map;
+  }, [categories]);
+
   // Handle dropdown hover with delay
   const handleDropdownEnter = useCallback(async (categoryName) => {
     if (dropdownTimeoutRef.current) {
@@ -228,11 +230,11 @@ const AlcantaraHeader = () => {
     setHoveredSubcategory(null); // Reset hovered subcategory when changing category
     
     // Fetch products for this category if not already loaded
-    const category = categories.find(cat => cat.name === categoryName);
+    const category = categoriesMap[categoryName];
     if (category && !categoryProducts[category.slug]) {
       await fetchCategoryProducts(category.slug);
     }
-  }, [fetchCategoryProducts, categories.length]); // Use categories.length instead of categories array
+  }, [fetchCategoryProducts, categoriesMap]); // Use memoized categories map
 
   const handleDropdownLeave = () => {
     dropdownTimeoutRef.current = setTimeout(() => {

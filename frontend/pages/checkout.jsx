@@ -380,6 +380,7 @@ const CheckoutPage = () => {
           paidAt: new Date().toISOString(),
           transactionId: 'TXN' + Date.now()
         },
+        discount: 0.00, // Default discount - can be extended for coupon codes
         notes: 'Order placed from checkout'
       };
 

@@ -126,7 +126,8 @@ exports.createOrder = async (req, res) => {
       paymentMethod,
       paymentDetails,
       notes,
-      estimatedDelivery
+      estimatedDelivery,
+      discount = 0.00
     } = req.body;
 
     // Validate products
@@ -160,8 +161,8 @@ exports.createOrder = async (req, res) => {
     // Calculate totals
     const tax = subtotal * 0.18; // 18% GST
     const shipping = subtotal > 1000 ? 0 : 50; // Free shipping above 1000
-    const discount = 0; // Can be modified based on promotions
-    const totalAmount = subtotal + tax + shipping - discount;
+    const discountAmount = parseFloat(discount) || 0; // Ensure discount is a number
+    const totalAmount = subtotal + tax + shipping - discountAmount;
 
     // Generate unique order ID
     const timestamp = Date.now().toString();
@@ -185,13 +186,27 @@ exports.createOrder = async (req, res) => {
 
     // Create order with EXISTING SCHEMA ONLY (skip user_id to avoid foreign key constraint)
     const orderData = {
-      order_number: orderNumber,
-      total_amount: totalAmount,
+      order_id: orderId, // Use order_id instead of order_number
+      order_number: orderNumber, // Include order_number as well
+      products: orderProducts, // Include products array
+      subtotal: parseFloat(subtotal), // Include subtotal
+      tax: parseFloat(tax), // Include tax
+      shipping: parseFloat(shipping), // Include shipping
+      discount: parseFloat(discountAmount), // Include discount as explicit number
+      total_amount: parseFloat(totalAmount),
       shipping_address: shippingAddress,
       billing_address: billingAddress || shippingAddress,
-      notes: notes || `Order created with products: ${orderProducts.length} items. Subtotal: ${subtotal}, Tax: ${tax}, Shipping: ${shipping}`,
-      payment_status: paymentDetails?.paidAt ? 'paid' : 'pending',
-      status: 'pending'
+      notes: notes || `Order created with products: ${orderProducts.length} items. Subtotal: ${subtotal}, Tax: ${tax}, Shipping: ${shipping}, Discount: ${discountAmount}`,
+      payment_status: paymentDetails?.paidAt ? 'paid' : 'pending', // Use lowercase to match check constraint
+      payment_method: paymentMethod, // Include payment_method
+      payment_details: paymentDetails || {},
+      order_status: 'pending', // Use lowercase to match check constraint
+      status_history: [{ // Include status history
+        status: 'Pending',
+        timestamp: new Date().toISOString(),
+        note: 'Order placed',
+        updatedBy: 'system'
+      }]
     };
 
     const { data: order, error } = await supabaseService
@@ -214,17 +229,19 @@ exports.createOrder = async (req, res) => {
     // Create a response with the extended order data
     const responseOrder = {
       ...order,
-      order_id: orderId, // Add order_id for frontend compatibility
+      order_id: order.order_id || orderId, // Use database order_id or generated one
+      order_number: order.order_id || orderId, // For frontend compatibility
       products: orderProducts,
       subtotal,
       tax,
       shipping,
-      discount: 0, // Add discount in response only, not in database
+      discount: discountAmount, // Use actual discount amount
       payment_method: paymentMethod,
       payment_details: paymentDetails || {},
       estimated_delivery: estimatedDelivery,
-      payment_status: paymentDetails?.paidAt ? 'Paid' : 'Pending',
-      status_history: [{
+      payment_status: order.payment_status || (paymentDetails?.paidAt ? 'Paid' : 'Pending'),
+      status: order.order_status || 'pending', // Map order_status to status for frontend
+      status_history: order.status_history || [{
         status: 'Pending',
         timestamp: new Date().toISOString(),
         note: 'Order placed',
