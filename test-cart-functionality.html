@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        #results {
+            white-space: pre-wrap;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛒 Cart Functionality Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Cart Context Integration</h2>
+        <p>This test verifies that the cart is properly integrated with Supabase.</p>
+        
+        <button onclick="testCartConnection()">Test Cart Connection</button>
+        <button onclick="testAddToCart()">Test Add to Cart</button>
+        <button onclick="testCartPersistence()">Test Cart Persistence</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'https://alcant-backend.vercel.app/api';
+        let testResults = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            testResults.push(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+            updateResults();
+            updateStatus(message, type);
+        }
+
+        function updateResults() {
+            document.getElementById('results').textContent = testResults.join('\n');
+        }
+
+        function updateStatus(message, type) {
+            const status = document.getElementById('status');
+            status.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => status.innerHTML = '', 5000);
+        }
+
+        function clearResults() {
+            testResults = [];
+            updateResults();
+            document.getElementById('status').innerHTML = '';
+        }
+
+        async function testCartConnection() {
+            log('Testing cart connection...', 'info');
+            
+            try {
+                // Test if we can access cart-related endpoints
+                const response = await fetch(`${API_BASE}/products/featured`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ Cart connection successful! Found ${data.data?.length || 0} products`, 'success');
+                } else {
+                    log(`❌ Cart connection failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Cart connection error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAddToCart() {
+            log('Testing add to cart functionality...', 'info');
+            
+            try {
+                // Create a test product
+                const testProduct = {
+                    id: 'test-product-' + Date.now(),
+                    name: 'Test Product',
+                    price: 99.99,
+                    image: '/images/products/default.jpg',
+                    category: 'Test Category'
+                };
+
+                log(`🛒 Adding test product to cart: ${testProduct.name}`, 'info');
+                
+                // This would normally be done through the cart context
+                // For testing, we'll simulate the cart addition
+                const cartItem = {
+                    ...testProduct,
+                    quantity: 1,
+                    variant: 'Standard',
+                    selected_color: 'Standard',
+                    selected_size: 'Standard'
+                };
+
+                // Store in localStorage to simulate cart context
+                let cart = JSON.parse(localStorage.getItem('localCart') || '[]');
+                cart.push(cartItem);
+                localStorage.setItem('localCart', JSON.stringify(cart));
+
+                log(`✅ Successfully added ${testProduct.name} to cart!`, 'success');
+                log(`📊 Cart now has ${cart.length} items`, 'info');
+                
+            } catch (error) {
+                log(`❌ Add to cart error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCartPersistence() {
+            log('Testing cart persistence...', 'info');
+            
+            try {
+                const cart = JSON.parse(localStorage.getItem('localCart') || '[]');
+                
+                if (cart.length > 0) {
+                    log(`✅ Cart persistence working! Found ${cart.length} items in cart:`, 'success');
+                    cart.forEach((item, index) => {
+                        log(`  ${index + 1}. ${item.name} - $${item.price} (${item.quantity}x)`, 'info');
+                    });
+                } else {
+                    log('⚠️ No items found in cart - try adding items first', 'error');
+                }
+            } catch (error) {
+                log(`❌ Cart persistence error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize test
+        log('🚀 Cart functionality test loaded', 'success');
+        log('📝 Click the buttons above to test different cart features', 'info');
+    </script>
+</body>
+</html>

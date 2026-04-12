@@ -9,18 +9,53 @@ class SupabaseCartService {
   // Get cart items for a user
   async getCartItems(userId) {
     try {
-      // Simplified query without relationships to avoid schema errors
+      // Query with product relationship to get complete product details
       const { data, error } = await supabase
         .from(this.tableName)
-        .select('*')
+        .select(`
+          *,
+          products:product_id (
+            id,
+            name,
+            price,
+            old_price,
+            description,
+            images,
+            category,
+            slug,
+            in_stock
+          )
+        `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error('Supabase query error:', error);
         throw new Error(error.message);
       }
 
-      return data || [];
+      // Transform the data to match expected cart item structure
+      const transformedData = (data || []).map(item => ({
+        ...item,
+        // Map product fields to cart item structure
+        name: item.products?.name || `Product ${item.product_id}`,
+        price: item.products?.price || 0,
+        originalPrice: item.products?.old_price || item.products?.price || 0,
+        image: item.products?.images?.[0] || '/images/products/default.jpg',
+        category: item.products?.category || 'Unknown',
+        slug: item.products?.slug || `product-${item.product_id}`,
+        inStock: item.products?.in_stock !== false,
+        // Keep existing cart item fields
+        id: item.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        selected_color: item.selected_color || 'Standard',
+        selected_size: item.selected_size || 'Standard',
+        variant: item.selected_color || 'Standard'
+      }));
+
+      console.log('Transformed cart items:', transformedData);
+      return transformedData;
     } catch (error) {
       console.error('Get cart items error:', error);
       throw error;

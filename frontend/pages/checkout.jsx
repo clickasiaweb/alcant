@@ -341,14 +341,14 @@ const CheckoutPage = () => {
       // Prepare order data using current cart items
       const orderData = {
         products: (currentCartItems || []).map(item => ({
-          productId: item.id,
-          name: item.products?.name || item.name || `Product ${item.id}`,
-          price: item.products?.price || item.price || item.final_price || 1000,
+          productId: item.product_id || item.id,
+          name: item.name || `Product ${item.product_id}`,
+          price: item.price || 1000,
           quantity: item.quantity,
-          image: item.products?.images?.[0] || item.image || '/images/products/default.jpg',
+          image: item.image || '/images/products/default.jpg',
           variant: {
-            color: item.selected_color || item.variant?.color || 'Standard',
-            size: item.selected_size || item.variant?.size || 'Standard'
+            color: item.selected_color || item.variant || 'Standard',
+            size: item.selected_size || 'Standard'
           }
         })),
         shippingAddress: {

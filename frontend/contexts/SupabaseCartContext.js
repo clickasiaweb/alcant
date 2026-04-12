@@ -243,7 +243,7 @@ export const SupabaseCartProvider = ({ children }) => {
     if (!cartItems || cartItems.length === 0) return 0;
     
     return cartItems.reduce((total, item) => {
-      const itemPrice = item.products?.old_price || item.originalPrice || item.price;
+      const itemPrice = item.originalPrice || item.price || 0;
       return total + (itemPrice * item.quantity);
     }, 0);
   }, [cartItems]);
