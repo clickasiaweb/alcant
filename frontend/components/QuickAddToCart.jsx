@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Plus, Check } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
+import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 
 const QuickAddToCart = ({ product, className = '', size = 'md' }) => {
-  const { addToCart } = useCart();
+  const { addToCart } = useSupabaseCart();
   const [isLoading, setIsLoading] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   

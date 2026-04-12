@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
+import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 
 const CartIcon = ({ className = '' }) => {
   const [isClient, setIsClient] = useState(false);
@@ -9,7 +9,7 @@ const CartIcon = ({ className = '' }) => {
     setIsClient(true);
   }, []);
 
-  const { cartItems, openCart, calculateTotalItems } = useCart();
+  const { cartItems, openCart, calculateTotalItems } = useSupabaseCart();
   
   // Safely calculate total items with fallback
   const totalItems = cartItems ? calculateTotalItems() : 0;

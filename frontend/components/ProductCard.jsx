@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Heart, ShoppingBag, Star, Eye } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
+import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 import WishlistButton from './WishlistButton';
 
 const ProductCard = ({ product, index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const router = useRouter();
-  const { addToCart } = useCart();
+  const { addToCart } = useSupabaseCart();
 
   const handleQuickView = (e) => {
     e.preventDefault();

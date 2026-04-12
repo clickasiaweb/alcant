@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShoppingCart, Share2, Plus, Minus, Truck, Shield, RotateCcw, Package, Clock, Award, Heart, MessageSquare } from 'lucide-react';
-import { useCart } from '../../contexts/CartContext';
+import { useSupabaseCart } from '../../contexts/SupabaseCartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
 import InquiryModal from '../InquiryModal';
 
@@ -19,7 +19,7 @@ const ProductInfo = ({
 }) => {
   const [selectedColor, setSelectedColor] = useState(null);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
-  const { addToCart } = useCart();
+  const { addToCart } = useSupabaseCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   
   const discountPercentage = oldPrice && oldPrice > currentPrice ? 

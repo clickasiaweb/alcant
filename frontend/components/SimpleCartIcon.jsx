@@ -1,8 +1,8 @@
 import React from 'react';
-import { useCart } from '../contexts/CartContext';
+import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 
 const SimpleCartIcon = () => {
-  const { cartItems, openCart, calculateTotalItems } = useCart();
+  const { cartItems, openCart, calculateTotalItems } = useSupabaseCart();
   
   // Safely calculate total items with fallback
   const totalItems = cartItems ? calculateTotalItems() : 0;

@@ -11,7 +11,7 @@ import {
   ChevronRight,
   CreditCard
 } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
+import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 
 const CartDrawer = () => {
@@ -41,7 +41,7 @@ const CartDrawer = () => {
   // Handle cart context with fallback
   let cartContext;
   try {
-    cartContext = useCart();
+    cartContext = useSupabaseCart();
     console.log('CartDrawer - Cart context loaded successfully');
   } catch (error) {
     console.error('CartDrawer - Cart context error:', error);
@@ -52,7 +52,9 @@ const CartDrawer = () => {
       updateQuantity: () => {},
       removeItem: () => {},
       crossSellProducts: [],
-      addToCart: () => {}
+      addToCart: () => {},
+      calculateSubtotal: () => 0,
+      calculateTotalItems: () => 0
     };
   }
   
@@ -63,7 +65,9 @@ const CartDrawer = () => {
     updateQuantity, 
     removeItem, 
     crossSellProducts,
-    addToCart 
+    addToCart,
+    calculateSubtotal: contextCalculateSubtotal,
+    calculateTotalItems
   } = cartContext;
   
   const FREE_SHIPPING_THRESHOLD = 5000; // Rs. 5,000 for free shipping
@@ -94,13 +98,9 @@ const CartDrawer = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, [isClient]);
 
-  // Calculate cart totals
+  // Calculate cart totals using context method
   const calculateSubtotal = () => {
-    if (!cartItems || cartItems.length === 0) return 0;
-    return cartItems.reduce((total, item) => {
-      const itemPrice = item.originalPrice || item.price;
-      return total + (itemPrice * item.quantity);
-    }, 0);
+    return contextCalculateSubtotal();
   };
 
   const calculateFreeShippingProgress = () => {
