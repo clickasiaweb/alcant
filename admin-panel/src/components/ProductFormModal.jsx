@@ -19,17 +19,18 @@ const ProductFormModal = ({
   // Load subcategories when category changes
   useEffect(() => {
     if (formData.category && categories) {
-      const selectedCategory = categories.find(cat => cat.id === formData.category);
-      const subs = selectedCategory?.subcategories || [];
+      const selectedCategory = categories.find(cat => cat.name === formData.category);
+      const subs = selectedCategory ? selectedCategory.subcategories || [];
       setAvailableSubcategories(subs);
       
-      // Reset dependent fields
-      if (formData.subcategory && !subs.find(sub => sub.id === formData.subcategory)) {
-        handleInputChange({ target: { name: 'subcategory', value: '' } });
-        handleInputChange({ target: { name: 'subSubcategory', value: '' } });
-        handleInputChange({ target: { name: 'subSubcategoryId', value: '' } });
+      // Load sub-subcategories when subcategory changes
+      if (formData.subcategory && availableSubcategories) {
+        const selectedSubcategory = availableSubcategories.find(sub => sub.name === formData.subcategory);
+        const subSubs = selectedSubcategory ? selectedSubcategory.sub_subcategories || [];
+        setAvailableSubSubcategories(subSubs);
       }
     } else {
+      // Reset dependent fields
       setAvailableSubcategories([]);
       setAvailableSubSubcategories([]);
     }
@@ -39,11 +40,11 @@ const ProductFormModal = ({
   useEffect(() => {
     if (formData.subcategory && availableSubcategories) {
       const selectedSubcategory = availableSubcategories.find(sub => sub.id === formData.subcategory);
-      const subSubs = selectedSubcategory?.sub_subcategories || [];
+      const subSubs = selectedSubcategory ? selectedSubcategory.sub_subcategories || [];
       setAvailableSubSubcategories(subSubs);
       
       // Reset dependent field
-      if (formData.subSubcategory && !subSubs.find(subSub => subSub.id === formData.subSubcategory)) {
+      if (formData.subSubcategory && !subSubs.find(subSub => subSub.id === formData.subSubcategoryId)) {
         handleInputChange({ target: { name: 'subSubcategory', value: '' } });
         handleInputChange({ target: { name: 'subSubcategoryId', value: '' } });
       }
@@ -62,13 +63,11 @@ const ProductFormModal = ({
     handleInputChange({ target: { name: 'subSubcategory', value: selectedSubSub?.name || '' } });
   };
 
+  // Directly call the parent handleSubmit function
   const handleFormSubmit = (e) => {
     console.log('🚨 handleFormSubmit called!');
     e.preventDefault();
     e.stopPropagation();
-    
-    // Directly call the parent handleSubmit function
-    console.log('📤 Calling parent handleSubmit directly');
     handleSubmit(e);
   };
 
@@ -99,7 +98,6 @@ const ProductFormModal = ({
                   style={{ pointerEvents: 'auto' }}
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Slug *
@@ -112,9 +110,9 @@ const ProductFormModal = ({
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., premium-phone-case"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Brand *
@@ -127,40 +125,27 @@ const ProductFormModal = ({
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., Apple, Samsung, etc."
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
-
-              <div className="md:col-span-2">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Short Description
                 </label>
-                <input
-                  type="text"
+                <textarea
                   name="shortDescription"
                   value={formData.shortDescription}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Brief product description"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Detailed Description *
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Detailed product description (required)"
+                  placeholder="Brief product description"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
             </div>
           </div>
-
+          
           {/* Categorization */}
           <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">Categorization</h3>
@@ -178,13 +163,12 @@ const ProductFormModal = ({
                 >
                   <option value="">Select Category *</option>
                   {categories.map(category => (
-                    <option key={category._id || category.id} value={category._id || category.id}>
+                    <option key={category.id} value={category.id}>
                       {category.name}
                     </option>
                   ))}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Sub-Category
@@ -203,14 +187,13 @@ const ProductFormModal = ({
                   ))}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Sub-Sub-Category
                 </label>
                 <select
                   name="subSubcategory"
-                  value={formData.subSubcategoryId || ''}
+                  value={formData.subSubcategory || ''}
                   onChange={handleSubSubcategoryChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
@@ -224,11 +207,11 @@ const ProductFormModal = ({
               </div>
             </div>
           </div>
-
+          
           {/* Pricing */}
           <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">Pricing</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Base Price *
@@ -243,9 +226,9 @@ const ProductFormModal = ({
                   step="0.01"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Old Price
@@ -259,9 +242,9 @@ const ProductFormModal = ({
                   step="0.01"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Tax Percentage
@@ -276,11 +259,12 @@ const ProductFormModal = ({
                   step="0.01"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
             </div>
           </div>
-
+          
           {/* Inventory */}
           <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">Inventory</h3>
@@ -297,9 +281,9 @@ const ProductFormModal = ({
                   min="0"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Stock Status
@@ -317,55 +301,54 @@ const ProductFormModal = ({
               </div>
             </div>
           </div>
-
+          
+          {/* Product Images */}
+          <div className="border-b pb-6">
+            <h3 className="text-lg font-semibold mb-4">Product Images</h3>
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Product Images
+                <label className="block text-sm font-medium text-gray-600 mb-1">
+                  Enter image URLs (one per line)
                 </label>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">
-                      Enter image URLs (one per line)
-                    </label>
-                    <textarea
-                      name="imageUrls"
-                      value={formData.imageUrls || ''}
-                      onChange={handleInputChange}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
-                    />
-                  </div>
-                  
-                  <div className="text-sm text-gray-500">
-                    <p>💡 Enter direct image URLs (from your CDN, external sites, etc.)</p>
-                    <p>📸 Current images: {formData.images?.length || 0} added</p>
-                  </div>
-                  
-                  {formData.images.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
-                      {formData.images.map((image, index) => (
-                        <div key={index} className="relative">
-                          <img
-                            src={image}
-                            alt={`Product ${index + 1}`}
-                            className="w-full h-24 object-cover rounded-md"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                          >
-                            <FiTrash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <textarea
+                  name="imageUrls"
+                  value={formData.imageUrls || ''}
+                  onChange={handleInputChange}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+                  style={{ pointerEvents: 'auto' }}
+                />
               </div>
+              
+              <div className="text-sm text-gray-500">
+                <p>💡 Enter direct image URLs (from your CDN, external sites, etc.)</p>
+                <p>📸 Current images: {formData.images?.length || 0} added</p>
+              </div>
+              
+              {formData.images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="relative">
+                      <img
+                        src={typeof image === 'string' ? image : image.url || image}
+                        alt={`Product ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-md"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                      >
+                        <FiTrash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-
+          
           {/* Status & Visibility */}
           <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">Status & Visibility</h3>
@@ -385,25 +368,26 @@ const ProductFormModal = ({
                   <option value="inactive">Inactive</option>
                 </select>
               </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  name="featured"
-                  id="featured"
-                  checked={formData.featured}
-                  onChange={handleInputChange}
-                  className="mr-2"
-                />
-                <label htmlFor="featured" className="text-sm font-medium text-gray-700">
-                  Featured Product
-                </label>
+              <div>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    name="featured"
+                    id="featured"
+                    checked={formData.featured}
+                    onChange={handleInputChange}
+                    className="mr-2"
+                  />
+                  <label htmlFor="featured" className="text-sm font-medium text-gray-700 mb-1">
+                    Featured Product
+                  </label>
+                </div>
               </div>
             </div>
           </div>
-
+          
           {/* SEO */}
-          <div>
+          <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">SEO (Optional)</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
@@ -417,9 +401,9 @@ const ProductFormModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="SEO meta title"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
-
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Meta Description
@@ -431,9 +415,9 @@ const ProductFormModal = ({
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="SEO meta description"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
-
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Keywords
@@ -445,11 +429,12 @@ const ProductFormModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="keyword1, keyword2, keyword3"
+                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
             </div>
           </div>
-
+          
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
