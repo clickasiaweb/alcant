@@ -40,6 +40,7 @@ export default function ProductsPage() {
     price: "",
     oldPrice: "",
     images: [],
+    imageUrls: "", // ✅ Add imageUrls field for URL input
     stock: "",
     isActive: true,
     isNew: false,
@@ -111,6 +112,7 @@ export default function ProductsPage() {
           price: product.price || product.final_price || "",
           oldPrice: product.old_price || "",
           images: product.images || [],
+          imageUrls: product.images ? product.images.join('\n') : '', // ✅ Add imageUrls field
           stock: product.stock || "",
           isActive: product.is_active !== undefined ? product.is_active : true,
           isNew: product.is_new || false,
@@ -254,7 +256,15 @@ export default function ProductsPage() {
       let processedImages = [];
       let mainImage = '';
 
-      if (formData.images && formData.images.length > 0) {
+      // Process image URLs if provided
+      if (formData.imageUrls && formData.imageUrls.trim()) {
+        const urls = formData.imageUrls.split('\n').filter(url => url.trim());
+        processedImages = urls;
+        mainImage = urls[0] || '';
+        console.log('📸 Processing image URLs:', processedImages);
+      }
+      // Process existing images from formData.images
+      else if (formData.images && formData.images.length > 0) {
         for (const img of formData.images) {
           // If it's already a URL string (from existing product), keep it
           if (typeof img === 'string') {
@@ -289,6 +299,7 @@ export default function ProductsPage() {
             console.log('⚠️ Skipping invalid image:', img);
           }
         }
+        console.log('📸 Processing existing images:', processedImages);
       }
 
       // Fallback to existing product image if no new valid images
@@ -463,6 +474,7 @@ export default function ProductsPage() {
       price: "",
       oldPrice: "",
       images: [],
+      imageUrls: "", // ✅ Add imageUrls field
       stock: "",
       isActive: true,
       isNew: false,

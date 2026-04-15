@@ -318,44 +318,52 @@ const ProductFormModal = ({
             </div>
           </div>
 
-          {/* Images */}
-          <div className="border-b pb-6">
-            <h3 className="text-lg font-semibold mb-4">Product Images</h3>
-            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Images
+                  Product Images
                 </label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              {formData.images.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {formData.images.map((image, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={image.url}
-                        alt={`Product ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-md"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                      >
-                        <FiTrash2 className="w-3 h-3" />
-                      </button>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">
+                      Enter image URLs (one per line)
+                    </label>
+                    <textarea
+                      name="imageUrls"
+                      value={formData.imageUrls || ''}
+                      onChange={handleInputChange}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+                    />
+                  </div>
+                  
+                  <div className="text-sm text-gray-500">
+                    <p>💡 Enter direct image URLs (from your CDN, external sites, etc.)</p>
+                    <p>📸 Current images: {formData.images?.length || 0} added</p>
+                  </div>
+                  
+                  {formData.images.length > 0 && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
+                      {formData.images.map((image, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={image}
+                            alt={`Product ${index + 1}`}
+                            className="w-full h-24 object-cover rounded-md"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                          >
+                            <FiTrash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
           </div>
 
           {/* Status & Visibility */}

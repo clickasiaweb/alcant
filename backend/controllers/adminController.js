@@ -346,10 +346,27 @@ exports.updateContent = async (req, res) => {
 // POST /api/admin/products
 exports.createProduct = async (req, res) => {
   try {
-    const productData = {
+    console.log('🔍 Admin createProduct request body:', JSON.stringify(req.body, null, 2));
+    
+    // ✅ FIX: Process image field properly
+    let productData = {
       ...req.body
-      // Remove createdAt/updatedAt as they're handled by the database
+      // Remove createdAt/updatedAt as they're handled by database
     };
+    
+    // If images array is provided, set main image to first image
+    if (productData.images && Array.isArray(productData.images) && productData.images.length > 0) {
+      const firstImage = productData.images[0];
+      if (firstImage && typeof firstImage === 'string') {
+        productData.image = firstImage;
+        console.log('✅ Setting main image to:', firstImage);
+      }
+    }
+    
+    // If image field is provided and no images array, use it
+    if (!productData.image && (!productData.images || productData.images.length === 0)) {
+      console.log('⚠️ No image field or images array provided');
+    }
 
     const product = await SupabaseProduct.create(productData);
 
@@ -370,10 +387,27 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = {
+    console.log('🔍 Admin updateProduct request body:', JSON.stringify(req.body, null, 2));
+    
+    // ✅ FIX: Process image field properly
+    let updateData = {
       ...req.body
-      // Remove updatedAt as it's handled by the database
+      // Remove createdAt/updatedAt as they're handled by database
     };
+    
+    // If images array is provided, set main image to first image
+    if (updateData.images && Array.isArray(updateData.images) && updateData.images.length > 0) {
+      const firstImage = updateData.images[0];
+      if (firstImage && typeof firstImage === 'string') {
+        updateData.image = firstImage;
+        console.log('✅ Setting main image to:', firstImage);
+      }
+    }
+    
+    // If image field is provided and no images array, use it
+    if (!updateData.image && (!updateData.images || updateData.images.length === 0)) {
+      console.log('⚠️ No image field or images array provided');
+    }
 
     const product = await SupabaseProduct.findByIdAndUpdate(id, updateData);
 
