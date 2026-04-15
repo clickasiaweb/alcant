@@ -167,17 +167,61 @@ export default function ProductsPage() {
     }
   }, []);
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    const newImages = files.map(file => ({
-      url: URL.createObjectURL(file),
-      name: file.name,
-      file: file
-    }));
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, ...newImages]
-    }));
+    
+    try {
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/upload/image`, {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Upload failed: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          return {
+            url: result.url,
+            name: file.name,
+            file: file
+          };
+        } else {
+          throw new Error(result.message || 'Upload failed');
+        }
+      });
+      
+      const uploadedImages = await Promise.all(uploadPromises);
+      
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...uploadedImages]
+      }));
+      
+      toast.success(`${uploadedImages.length} image(s) uploaded successfully!`);
+      
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast.error('Failed to upload images: ' + error.message);
+      
+      // Fallback to blob URLs for preview if upload fails
+      const fallbackImages = files.map(file => ({
+        url: URL.createObjectURL(file),
+        name: file.name,
+        file: file
+      }));
+      
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, ...fallbackImages]
+      }));
+    }
   };
 
   const removeImage = (index) => {

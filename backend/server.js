@@ -57,6 +57,8 @@ const inquiryRoutes = require('./routes/inquiries');
 
 const reviewRoutes = require('./routes/reviews');
 
+const uploadRoutes = require('./routes/upload');
+
 const orderRoutes = require('./routes/orders');
 
 
@@ -148,7 +150,12 @@ app.use('/api/inquiries', inquiryRoutes);
 
 app.use('/api/reviews', reviewRoutes);
 
+app.use('/api/upload', uploadRoutes);
+
 app.use('/api/orders', orderRoutes);
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 

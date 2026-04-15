@@ -564,7 +564,7 @@ const importProducts = async (req, res) => {
         // Ensure category exists in categories table
         const { data: existingCategory } = await supabase
           .from('categories')
-          .select('id')
+          .select('id, name')
           .eq('name', productData.category)
           .single();
 
@@ -578,7 +578,7 @@ const importProducts = async (req, res) => {
               slug: productData.category.toLowerCase().replace(/\s+/g, '-'),
               is_active: true
             })
-            .select()
+            .select('id, name')
             .single();
 
           if (categoryError) {
@@ -604,6 +604,74 @@ const importProducts = async (req, res) => {
           categoryId = existingCategory.id;
         }
 
+        // Handle subcategory if present
+        let subcategoryId = null;
+        if (productData.sub_category && productData.sub_category.trim() !== '') {
+          const { data: existingSubcategory } = await supabase
+            .from('subcategories')
+            .select('id, name')
+            .eq('name', productData.sub_category)
+            .eq('category_id', categoryId)
+            .single();
+
+          if (!existingSubcategory) {
+            // Create new subcategory
+            const { data: newSubcategory, error: subcategoryError } = await supabaseService
+              .from('subcategories')
+              .insert({
+                name: productData.sub_category,
+                slug: productData.sub_category.toLowerCase().replace(/\s+/g, '-'),
+                category_id: categoryId,
+                is_active: true
+              })
+              .select('id, name')
+              .single();
+
+            if (subcategoryError) {
+              console.log(`Cannot create subcategory "${productData.sub_category}", skipping...`);
+            } else {
+              subcategoryId = newSubcategory.id;
+              console.log(`✅ Created new subcategory: ${productData.sub_category}`);
+            }
+          } else {
+            subcategoryId = existingSubcategory.id;
+          }
+        }
+
+        // Handle sub-subcategory if present
+        let subSubcategoryId = null;
+        if (productData.sub_sub_category && productData.sub_sub_category.trim() !== '') {
+          const { data: existingSubSubcategory } = await supabase
+            .from('sub_subcategories')
+            .select('id, name')
+            .eq('name', productData.sub_sub_category)
+            .eq('subcategory_id', subcategoryId)
+            .single();
+
+          if (!existingSubSubcategory) {
+            // Create new sub-subcategory
+            const { data: newSubSubcategory, error: subSubcategoryError } = await supabaseService
+              .from('sub_subcategories')
+              .insert({
+                name: productData.sub_sub_category,
+                slug: productData.sub_sub_category.toLowerCase().replace(/\s+/g, '-'),
+                subcategory_id: subcategoryId,
+                is_active: true
+              })
+              .select('id, name')
+              .single();
+
+            if (subSubcategoryError) {
+              console.log(`Cannot create sub-subcategory "${productData.sub_sub_category}", skipping...`);
+            } else {
+              subSubcategoryId = newSubSubcategory.id;
+              console.log(`✅ Created new sub-subcategory: ${productData.sub_sub_category}`);
+            }
+          } else {
+            subSubcategoryId = existingSubSubcategory.id;
+          }
+        }
+
         // Process images
         const images = [];
         for (let i = 1; i <= 4; i++) {
@@ -621,9 +689,12 @@ const importProducts = async (req, res) => {
           price: productData.price,
           old_price: productData.sale_price || null,
           final_price: productData.sale_price || productData.price,
-          category: categoryId,
-          subcategory: productData.sub_category || null,
-          sub_subcategory: productData.sub_sub_category || null,
+          category: productData.category, // Store category name for display
+          category_id: categoryId, // Store category ID for relationships
+          subcategory: productData.sub_category || null, // Store subcategory name
+          subcategory_id: subcategoryId, // Store subcategory ID
+          sub_subcategory: productData.sub_sub_category || null, // Store sub-subcategory name
+          sub_subcategory_id: subSubcategoryId, // Store sub-subcategory ID
           brand: productData.brand || null,
           short_description: productData.short_description || null,
           sku: productData.sku,

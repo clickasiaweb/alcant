@@ -10,6 +10,50 @@ const ProductCard = ({ product, index = 0 }) => {
   const router = useRouter();
   const { addToCart } = useSupabaseCart();
 
+  const getImageUrl = (image) => {
+    if (!image) {
+      return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
+    }
+    
+    // Handle full URLs
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return image;
+    }
+    
+    // Handle blob URLs (for admin panel preview)
+    if (image.startsWith('blob:')) {
+      return image;
+    }
+    
+    // Handle data URLs
+    if (image.startsWith('data:')) {
+      return image;
+    }
+    
+    // Handle relative paths starting with /
+    if (image.startsWith('/')) {
+      // If it's already a full path to uploads, use as is
+      if (image.startsWith('/uploads/')) {
+        return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}${image}`;
+      }
+      // Otherwise treat as absolute path
+      return image;
+    }
+    
+    // Handle relative paths without leading slash - assume uploads
+    if (image.includes('uploads/') || image.includes('product-')) {
+      return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/uploads/images/${image}`;
+    }
+    
+    // Handle test/placeholder images
+    if (image.includes('test-image') || image.includes('placeholder')) {
+      return `https://picsum.photos/seed/${product.name}/300/300.jpg`;
+    }
+    
+    // Default fallback for any other case
+    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/uploads/images/${image}`;
+  };
+
   const handleQuickView = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -67,9 +111,12 @@ const ProductCard = ({ product, index = 0 }) => {
         <div className="relative bg-gray-50 h-64 overflow-hidden flex items-center justify-center">
             {product.image ? (
               <img
-                src={product.image}
+                src={getImageUrl(product.image)}
                 alt={product.name}
                 className="w-full h-full object-contain p-3"
+                onError={(e) => {
+                  e.target.src = `https://picsum.photos/seed/${product.name}/300/300.jpg`;
+                }}
               />
             ) : (
               <div className="w-32 h-40 bg-gray-200 rounded-lg flex items-center justify-center">

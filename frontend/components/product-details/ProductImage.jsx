@@ -7,23 +7,43 @@ const ProductImage = ({ product, displayName, mainImage, selectedImage, images, 
       return `https://picsum.photos/seed/${product?.name || 'product'}/600/600.jpg`;
     }
     
-    if (image.startsWith('http')) {
+    // Handle full URLs
+    if (image.startsWith('http://') || image.startsWith('https://')) {
       return image;
     }
     
+    // Handle blob URLs (for admin panel preview)
     if (image.startsWith('blob:')) {
       return image;
     }
     
-    if (image.startsWith('/')) {
+    // Handle data URLs
+    if (image.startsWith('data:')) {
       return image;
     }
     
+    // Handle relative paths starting with /
+    if (image.startsWith('/')) {
+      // If it's already a full path to uploads, use as is
+      if (image.startsWith('/uploads/')) {
+        return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}${image}`;
+      }
+      // Otherwise treat as absolute path
+      return image;
+    }
+    
+    // Handle relative paths without leading slash - assume uploads
+    if (image.includes('uploads/') || image.includes('product-')) {
+      return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/uploads/images/${image}`;
+    }
+    
+    // Handle test/placeholder images
     if (image.includes('test-image') || image.includes('placeholder')) {
       return `https://picsum.photos/seed/${product.name}/600/600.jpg`;
     }
     
-    return `https://picsum.photos/seed/${product.name}/600/600.jpg`;
+    // Default fallback for any other case
+    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/uploads/images/${image}`;
   };
 
   const currentPrice = product.price || product.final_price || 0;
