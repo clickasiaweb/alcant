@@ -175,7 +175,7 @@ export default function ProductsPage() {
         const formData = new FormData();
         formData.append('image', file);
         
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/upload/image`, {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/upload/image`, {
           method: 'POST',
           body: formData
         });
@@ -237,18 +237,15 @@ export default function ProductsPage() {
       console.log('🔥 Form submission started!');
       console.log('📝 Form data before submission:', JSON.stringify(formData, null, 2));
       
-      // Get the correct product ID for Supabase (UUID format) - FORCE id only
+      // Get correct product ID for Supabase (UUID format) - only for updates
       const productId = editingProduct?.id;
       
-      if (!productId) {
-        toast.error('Product ID is missing. Cannot update.');
-        return;
-      }
-      
-      // Validate UUID format for Supabase
-      if (productId && typeof productId === 'string' && !productId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
-        toast.error('Invalid product ID format');
-        return;
+      // For updates, validate UUID format
+      if (editingProduct && productId) {
+        if (typeof productId === 'string' && !productId.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+          toast.error('Invalid product ID format');
+          return;
+        }
       }
       
       // ✅ FIX: Process images properly
@@ -258,16 +255,34 @@ export default function ProductsPage() {
       if (formData.images && formData.images.length > 0) {
         for (const img of formData.images) {
           // If it's already a URL string (from existing product), keep it
-          if (typeof img === 'string' && img.startsWith('http')) {
-            processedImages.push(img);
-            if (!mainImage) mainImage = img;
+          if (typeof img === 'string') {
+            // Keep full HTTP URLs
+            if (img.startsWith('http')) {
+              processedImages.push(img);
+              if (!mainImage) mainImage = img;
+            }
+            // Keep uploaded image URLs (start with /uploads/)
+            else if (img.startsWith('/uploads/')) {
+              processedImages.push(img);
+              if (!mainImage) mainImage = img;
+            }
+            // Keep other valid image paths
+            else if (img && !img.startsWith('blob:') && !img.startsWith('data:')) {
+              processedImages.push(img);
+              if (!mainImage) mainImage = img;
+            }
           }
-          // If it's an object with url property and not a blob, keep it
-          else if (typeof img === 'object' && img.url && !img.url.startsWith('blob:')) {
-            processedImages.push(img.url);
-            if (!mainImage) mainImage = img.url;
+          // If it's an object with url property
+          else if (typeof img === 'object' && img.url) {
+            // Skip blob URLs (preview only)
+            if (!img.url.startsWith('blob:')) {
+              processedImages.push(img.url);
+              if (!mainImage) mainImage = img.url;
+            } else {
+              console.log('⚠️ Skipping blob URL image:', img.url);
+            }
           }
-          // Skip blob URLs and invalid objects
+          // Skip invalid objects
           else {
             console.log('⚠️ Skipping invalid image:', img);
           }
