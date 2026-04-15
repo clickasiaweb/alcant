@@ -32,6 +32,7 @@ export default function ProductsPage() {
     slug: "",
     shortDescription: "",
     description: "",
+    brand: "", // ✅ Add missing brand field
     category: "",
     subcategory: "",
     subSubcategory: "",
@@ -103,6 +104,7 @@ export default function ProductsPage() {
           slug: product.slug || "",
           shortDescription: product.short_description || "",
           description: product.description || "",
+          brand: product.brand || "", // ✅ Add brand field
           category: product.category || "",
           subcategory: product.subcategory || "",
           subSubcategory: product.sub_subcategory || "",
@@ -307,6 +309,7 @@ export default function ProductsPage() {
         subcategory: formData.subcategory || 'uncategorized', // ✅ Required field, cannot be null
         sub_subcategory: formData.subSubcategory || null, // ✅ Add sub-subcategory field (text)
         sub_subcategory_id: formData.subSubcategoryId || null, // ✅ Add sub-subcategory ID field (UUID)
+        brand: formData.brand || 'Unknown Brand', // ✅ Add brand field with default
         images: processedImages,
         image: mainImage,
         stock: parseInt(formData.stock) || 0,
@@ -361,6 +364,7 @@ export default function ProductsPage() {
       slug: product.slug || "",
       shortDescription: product.short_description || "",
       description: product.description || "",
+      brand: product.brand || "", // ✅ Add brand field
       category: product.category || "",
       subcategory: product.subcategory || "",
       subSubcategory: product.sub_subcategory || "",
@@ -451,6 +455,7 @@ export default function ProductsPage() {
       slug: "",
       shortDescription: "",
       description: "",
+      brand: "", // ✅ Add brand field
       category: "",
       subcategory: "",
       subSubcategory: "",
