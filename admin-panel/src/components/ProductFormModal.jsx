@@ -19,14 +19,14 @@ const ProductFormModal = ({
   // Load subcategories when category changes
   useEffect(() => {
     if (formData.category && categories) {
-      const selectedCategory = categories.find(cat => cat.name === formData.category);
-      const subs = selectedCategory ? selectedCategory.subcategories || [];
+      const selectedCategory = categories.find(cat => cat.id === formData.category);
+      const subs = selectedCategory?.subcategories || [];
       setAvailableSubcategories(subs);
       
       // Load sub-subcategories when subcategory changes
       if (formData.subcategory && availableSubcategories) {
-        const selectedSubcategory = availableSubcategories.find(sub => sub.name === formData.subcategory);
-        const subSubs = selectedSubcategory ? selectedSubcategory.sub_subcategories || [];
+        const selectedSubcategory = availableSubcategories.find(sub => sub.id === formData.subcategory);
+        const subSubs = selectedSubcategory?.sub_subcategories || [];
         setAvailableSubSubcategories(subSubs);
       }
     } else {
@@ -34,24 +34,23 @@ const ProductFormModal = ({
       setAvailableSubcategories([]);
       setAvailableSubSubcategories([]);
     }
-  }, [formData.category, categories]);
+  }, [formData.category, categories, handleInputChange]);
 
   // Load sub-subcategories when subcategory changes
   useEffect(() => {
     if (formData.subcategory && availableSubcategories) {
       const selectedSubcategory = availableSubcategories.find(sub => sub.id === formData.subcategory);
-      const subSubs = selectedSubcategory ? selectedSubcategory.sub_subcategories || [];
+      const subSubs = selectedSubcategory?.sub_subcategories || [];
       setAvailableSubSubcategories(subSubs);
       
       // Reset dependent field
-      if (formData.subSubcategory && !subSubs.find(subSub => subSub.id === formData.subSubcategoryId)) {
+      if (formData.subSubcategory && !subSubs.find(subSub => subSub.id === formData.subSubcategory)) {
         handleInputChange({ target: { name: 'subSubcategory', value: '' } });
-        handleInputChange({ target: { name: 'subSubcategoryId', value: '' } });
       }
     } else {
       setAvailableSubSubcategories([]);
     }
-  }, [formData.subcategory, availableSubcategories]);
+  }, [formData.subcategory, availableSubcategories, handleInputChange]);
 
   // Handle sub-subcategory change to update both text and ID
   const handleSubSubcategoryChange = (e) => {
@@ -59,7 +58,7 @@ const ProductFormModal = ({
     const selectedSubSub = availableSubSubcategories.find(subSub => subSub.id === value);
     
     // Update both the ID and the text name
-    handleInputChange({ target: { name: 'subSubcategoryId', value: value } });
+    handleInputChange({ target: { name: 'subSubcategory', value: value } });
     handleInputChange({ target: { name: 'subSubcategory', value: selectedSubSub?.name || '' } });
   };
 
@@ -378,10 +377,10 @@ const ProductFormModal = ({
                     onChange={handleInputChange}
                     className="mr-2"
                   />
-                  <label htmlFor="featured" className="text-sm font-medium text-gray-700 mb-1">
+                  <span className="text-sm font-medium text-gray-700 mb-1">
                     Featured Product
-                  </label>
-                </div>
+                  </span>
+                </label>
               </div>
             </div>
           </div>

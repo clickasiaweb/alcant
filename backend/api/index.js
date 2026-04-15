@@ -37,6 +37,7 @@ const updateRoutes = require("../routes/update");
 const filterController = require("../controllers/filterController");
 const inquiryRoutes = require("../routes/inquiries");
 const orderRoutes = require("../routes/orders");
+const uploadRoutes = require("../routes/upload");
 
 const app = express();
 
@@ -106,6 +107,7 @@ app.use("/api/seed", seedRoutes);
 app.use("/api/update", updateRoutes);
 app.use("/api/inquiries", inquiryRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/upload", uploadRoutes);
 app.get("/api/products/filters", filterController.getAvailableFilters);
 
 // Health check with database status
@@ -131,7 +133,8 @@ app.get("/", (req, res) => {
       categories: "/api/categories",
       content: "/api/content",
       auth: "/api/auth",
-      orders: "/api/orders"
+      orders: "/api/orders",
+      upload: "/api/upload"
     },
     timestamp: new Date().toISOString()
   });

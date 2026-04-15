@@ -235,6 +235,48 @@ export default function ProductsPage() {
     }));
   };
 
+  // Function to upload blob URLs before form submission
+  const uploadBlobImages = async (images) => {
+    const uploadedImages = [];
+    
+    for (const img of images) {
+      if (typeof img === 'object' && img.url && img.url.startsWith('blob:') && img.file) {
+        try {
+          console.log('🔄 Uploading blob image:', img.name);
+          const formData = new FormData();
+          formData.append('image', img.file);
+          
+          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/upload/image`, {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Upload failed: ${response.statusText}`);
+          }
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            uploadedImages.push(result.url);
+            console.log('✅ Blob image uploaded successfully:', result.url);
+          } else {
+            throw new Error(result.message || 'Upload failed');
+          }
+        } catch (error) {
+          console.error('❌ Failed to upload blob image:', img.name, error);
+          // Skip this image if upload fails
+        }
+      } else if (typeof img === 'string') {
+        uploadedImages.push(img);
+      } else if (typeof img === 'object' && img.url && !img.url.startsWith('blob:')) {
+        uploadedImages.push(img.url);
+      }
+    }
+    
+    return uploadedImages;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -263,43 +305,12 @@ export default function ProductsPage() {
         mainImage = urls[0] || '';
         console.log('📸 Processing image URLs:', processedImages);
       }
-      // Process existing images from formData.images
+      // Process existing images from formData.images (including blob URLs)
       else if (formData.images && formData.images.length > 0) {
-        for (const img of formData.images) {
-          // If it's already a URL string (from existing product), keep it
-          if (typeof img === 'string') {
-            // Keep full HTTP URLs
-            if (img.startsWith('http')) {
-              processedImages.push(img);
-              if (!mainImage) mainImage = img;
-            }
-            // Keep uploaded image URLs (start with /uploads/)
-            else if (img.startsWith('/uploads/')) {
-              processedImages.push(img);
-              if (!mainImage) mainImage = img;
-            }
-            // Keep other valid image paths
-            else if (img && !img.startsWith('blob:') && !img.startsWith('data:')) {
-              processedImages.push(img);
-              if (!mainImage) mainImage = img;
-            }
-          }
-          // If it's an object with url property
-          else if (typeof img === 'object' && img.url) {
-            // Skip blob URLs (preview only)
-            if (!img.url.startsWith('blob:')) {
-              processedImages.push(img.url);
-              if (!mainImage) mainImage = img.url;
-            } else {
-              console.log('⚠️ Skipping blob URL image:', img.url);
-            }
-          }
-          // Skip invalid objects
-          else {
-            console.log('⚠️ Skipping invalid image:', img);
-          }
-        }
-        console.log('📸 Processing existing images:', processedImages);
+        console.log('🔄 Uploading blob images before form submission...');
+        processedImages = await uploadBlobImages(formData.images);
+        mainImage = processedImages[0] || '';
+        console.log('📸 Final processed images:', processedImages);
       }
 
       // Fallback to existing product image if no new valid images
