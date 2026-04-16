@@ -66,8 +66,9 @@ const ProductDetailPage = ({ slugFromServer }) => {
     setQuantity(prev => Math.max(1, prev + change));
   };
 
-  const handleAddToCart = () => {
-    console.log('Added to cart:', product?.name, 'Quantity:', quantity);
+  const handleAddToCart = (productData, qty) => {
+    console.log('Added to cart:', productData?.name || product?.name, 'Quantity:', qty || quantity);
+    // The actual cart functionality is handled in ProductInfo component using useSupabaseCart
   };
 
   const handleColorChange = (newImages) => {
