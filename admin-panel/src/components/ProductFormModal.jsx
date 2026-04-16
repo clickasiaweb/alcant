@@ -1,84 +1,29 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 
 const ProductFormModal = ({ 
   formData, 
   editingProduct, 
   categories, 
-  subcategories,
-  subSubcategories,
   handleInputChange, 
   handleSubmit, 
   resetForm, 
   handleImageUpload, 
   removeImage 
 }) => {
-  const [availableSubcategories, setAvailableSubcategories] = useState([]);
-  const [availableSubSubcategories, setAvailableSubSubcategories] = useState([]);
-
-  // Load subcategories when category changes
-  useEffect(() => {
-    if (formData.category && categories) {
-      const selectedCategory = categories.find(cat => cat.id === formData.category);
-      const subs = selectedCategory?.subcategories || [];
-      setAvailableSubcategories(subs);
-      
-      // Load sub-subcategories when subcategory changes
-      if (formData.subcategory && availableSubcategories) {
-        const selectedSubcategory = availableSubcategories.find(sub => sub.id === formData.subcategory);
-        const subSubs = selectedSubcategory?.sub_subcategories || [];
-        setAvailableSubSubcategories(subSubs);
-      }
-    } else {
-      // Reset dependent fields
-      setAvailableSubcategories([]);
-      setAvailableSubSubcategories([]);
-    }
-  }, [formData.category, categories, handleInputChange]);
-
-  // Load sub-subcategories when subcategory changes
-  useEffect(() => {
-    if (formData.subcategory && availableSubcategories) {
-      const selectedSubcategory = availableSubcategories.find(sub => sub.id === formData.subcategory);
-      const subSubs = selectedSubcategory?.sub_subcategories || [];
-      setAvailableSubSubcategories(subSubs);
-      
-      // Reset dependent field
-      if (formData.subSubcategory && !subSubs.find(subSub => subSub.id === formData.subSubcategoryId)) {
-        handleInputChange({ target: { name: 'subSubcategory', value: '' } });
-        handleInputChange({ target: { name: 'subSubcategoryId', value: '' } });
-      }
-    } else {
-      setAvailableSubSubcategories([]);
-    }
-  }, [formData.subcategory, availableSubcategories, handleInputChange]);
-
-  // Handle sub-subcategory change to update both text and ID
-  const handleSubSubcategoryChange = (e) => {
-    const value = e.target.value;
-    const selectedSubSub = availableSubSubcategories.find(subSub => subSub.id === value);
-    
-    // Update both the ID and the text name
-    handleInputChange({ target: { name: 'subSubcategoryId', value: value } });
-    handleInputChange({ target: { name: 'subSubcategory', value: selectedSubSub?.name || '' } });
-  };
-
-  // Directly call the parent handleSubmit function
   const handleFormSubmit = (e) => {
-    console.log('🚨 handleFormSubmit called!');
     e.preventDefault();
-    e.stopPropagation();
     handleSubmit(e);
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" style={{ pointerEvents: 'auto' }}>
-      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto relative" style={{ pointerEvents: 'auto' }}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <h2 className="text-xl font-bold mb-4">
           {editingProduct ? "Edit Product" : "Add New Product"}
-        </h2>;
+        </h2>
         
-        <form onSubmit={handleFormSubmit} className="space-y-6" style={{ pointerEvents: 'auto' }}>
+        <form onSubmit={handleFormSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
@@ -95,9 +40,9 @@ const ProductFormModal = ({
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., Premium Phone Case"
-                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Slug *
@@ -110,42 +55,40 @@ const ProductFormModal = ({
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g., premium-phone-case"
-                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Brand *
-                </label>
-                <input
-                  type="text"
-                  name="brand"
-                  value={formData.brand}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="e.g., Apple, Samsung, etc."
-                  style={{ pointerEvents: 'auto' }}
-                />
-              </div>
-              <div>
+
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Short Description
                 </label>
-                <textarea
+                <input
+                  type="text"
                   name="shortDescription"
                   value={formData.shortDescription}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Brief product description"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Detailed Description *
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
                   onChange={handleInputChange}
                   rows={4}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Brief product description"
-                  style={{ pointerEvents: 'auto' }}
+                  placeholder="Detailed product description (required)"
                 />
               </div>
             </div>
           </div>
-          
+
           {/* Categorization */}
           <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">Categorization</h3>
@@ -163,55 +106,33 @@ const ProductFormModal = ({
                 >
                   <option value="">Select Category *</option>
                   {categories.map(category => (
-                    <option key={category.id} value={category.id}>
+                    <option key={category._id || category.id} value={category._id || category.id}>
                       {category.name}
                     </option>
                   ))}
                 </select>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Sub-Category
                 </label>
-                <select
+                <input
+                  type="text"
                   name="subcategory"
-                  value={formData.subcategory || ''}
+                  value={formData.subcategory}
                   onChange={handleInputChange}
+                  placeholder="Enter sub-category"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Sub-Category</option>
-                  {availableSubcategories.map(subcategory => (
-                    <option key={subcategory.id} value={subcategory.id}>
-                      {subcategory.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Sub-Sub-Category
-                </label>
-                <select
-                  name="subSubcategory"
-                  value={formData.subSubcategory || ''}
-                  onChange={handleSubSubcategoryChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select Sub-Sub-Category</option>
-                  {availableSubSubcategories.map(subSubcategory => (
-                    <option key={subSubcategory.id} value={subSubcategory.id}>
-                      {subSubcategory.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
             </div>
           </div>
-          
+
           {/* Pricing */}
           <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">Pricing</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Base Price *
@@ -226,9 +147,9 @@ const ProductFormModal = ({
                   step="0.01"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
-                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Old Price
@@ -242,9 +163,9 @@ const ProductFormModal = ({
                   step="0.01"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
-                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Tax Percentage
@@ -259,12 +180,11 @@ const ProductFormModal = ({
                   step="0.01"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0.00"
-                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
             </div>
           </div>
-          
+
           {/* Inventory */}
           <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">Inventory</h3>
@@ -281,9 +201,9 @@ const ProductFormModal = ({
                   min="0"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="0"
-                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Stock Status
@@ -301,39 +221,32 @@ const ProductFormModal = ({
               </div>
             </div>
           </div>
-          
-          {/* Product Images */}
+
+          {/* Images */}
           <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">Product Images</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-600 mb-1">
-                  Enter image URLs (one per line)
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload Images
                 </label>
-                <textarea
-                  name="imageUrls"
-                  value={formData.imageUrls || ''}
-                  onChange={handleInputChange}
-                  rows={4}
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
-                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
-              
-              <div className="text-sm text-gray-500">
-                <p>💡 Enter direct image URLs (from your CDN, external sites, etc.)</p>
-                <p>📸 Current images: {formData.images?.length || 0} added</p>
-              </div>
-              
+
               {formData.images.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {formData.images.map((image, index) => (
                     <div key={index} className="relative">
                       <img
-                        src={typeof image === 'string' ? image : image.url || image}
+                        src={image.url}
                         alt={`Product ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-md"
+                        className="w-full h-32 object-cover rounded-md"
                       />
                       <button
                         type="button"
@@ -348,7 +261,7 @@ const ProductFormModal = ({
               )}
             </div>
           </div>
-          
+
           {/* Status & Visibility */}
           <div className="border-b pb-6">
             <h3 className="text-lg font-semibold mb-4">Status & Visibility</h3>
@@ -368,27 +281,25 @@ const ProductFormModal = ({
                   <option value="inactive">Inactive</option>
                 </select>
               </div>
-              <div>
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    name="featured"
-                    id="featured"
-                    checked={formData.featured}
-                    onChange={handleInputChange}
-                    className="mr-2"
-                  />
-                  <span className="text-sm font-medium text-gray-700 mb-1">
-                    Featured Product
-                  </span>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="featured"
+                  id="featured"
+                  checked={formData.featured}
+                  onChange={handleInputChange}
+                  className="mr-2"
+                />
+                <label htmlFor="featured" className="text-sm font-medium text-gray-700">
+                  Featured Product
                 </label>
-              </div>
               </div>
             </div>
           </div>
-          
+
           {/* SEO */}
-          <div className="border-b pb-6">
+          <div>
             <h3 className="text-lg font-semibold mb-4">SEO (Optional)</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
@@ -402,9 +313,9 @@ const ProductFormModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="SEO meta title"
-                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
+
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Meta Description
@@ -416,9 +327,9 @@ const ProductFormModal = ({
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="SEO meta description"
-                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
+
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Keywords
@@ -430,28 +341,22 @@ const ProductFormModal = ({
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="keyword1, keyword2, keyword3"
-                  style={{ pointerEvents: 'auto' }}
                 />
               </div>
             </div>
           </div>
-          
+
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors cursor-pointer"
-              style={{ pointerEvents: 'auto', zIndex: 10 }}
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
             >
               {editingProduct ? "Update" : "Create"} Product
             </button>
             <button
               type="button"
-              onClick={() => {
-                console.log('❌ Cancel button clicked');
-                resetForm();
-              }}
-              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors cursor-pointer"
-              style={{ pointerEvents: 'auto', zIndex: 10 }}
+              onClick={resetForm}
+              className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors"
             >
               Cancel
             </button>
