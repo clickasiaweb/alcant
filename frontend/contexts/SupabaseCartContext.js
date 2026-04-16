@@ -20,6 +20,18 @@ export const SupabaseCartProvider = ({ children }) => {
   const [localCart, setLocalCart] = useState([]);
   const hasMergedCart = useRef(false);
 
+  // Helper function to fix cart item prices and names
+  const fixCartItemPrices = useCallback((cartItems) => {
+    return cartItems.map(item => ({
+      ...item,
+      // Ensure name is valid
+      name: item.name || item.displayName || `Product ${item.id || item.product_id || 'Unknown'}`,
+      // Ensure price is a number with fallback
+      price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
+      originalPrice: typeof item.originalPrice === 'number' ? item.originalPrice : parseFloat(item.originalPrice) || parseFloat(item.old_price) || parseFloat(item.price) || 0
+    }));
+  }, []);
+
   // Load local cart from localStorage on mount
   useEffect(() => {
     const savedLocalCart = localStorage.getItem('localCart');
@@ -53,7 +65,7 @@ export const SupabaseCartProvider = ({ children }) => {
         localStorage.removeItem('localCart');
       }
     }
-  }, [fixCartItemPrices]);
+  }, []); // Remove fixCartItemPrices dependency to avoid circular dependency
 
   // Save local cart to localStorage whenever it changes
   useEffect(() => {
@@ -63,18 +75,6 @@ export const SupabaseCartProvider = ({ children }) => {
       localStorage.removeItem('localCart');
     }
   }, [localCart]);
-
-  // Helper function to fix cart item prices and names
-  const fixCartItemPrices = useCallback((cartItems) => {
-    return cartItems.map(item => ({
-      ...item,
-      // Ensure name is valid
-      name: item.name || item.displayName || `Product ${item.id || item.product_id || 'Unknown'}`,
-      // Ensure price is a number with fallback
-      price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
-      originalPrice: typeof item.originalPrice === 'number' ? item.originalPrice : parseFloat(item.originalPrice) || parseFloat(item.old_price) || parseFloat(item.price) || 0
-    }));
-  }, []);
 
   // Sync cartItems with localCart for non-authenticated users
   useEffect(() => {
@@ -90,7 +90,7 @@ export const SupabaseCartProvider = ({ children }) => {
       })));
       setCartItems(fixedCartItems);
     }
-  }, [localCart, isAuthenticated, fixCartItemPrices]);
+  }, [localCart, isAuthenticated]); // Remove fixCartItemPrices dependency
 
   // Load cart from database when user is authenticated
   useEffect(() => {
