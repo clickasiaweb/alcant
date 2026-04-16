@@ -25,13 +25,35 @@ export const SupabaseCartProvider = ({ children }) => {
     const savedLocalCart = localStorage.getItem('localCart');
     if (savedLocalCart) {
       try {
-        setLocalCart(JSON.parse(savedLocalCart));
+        const parsedCart = JSON.parse(savedLocalCart);
+        console.log('Loading local cart from localStorage:', parsedCart);
+        console.log('Local cart items with prices and names before fix:', parsedCart.map(item => ({
+          name: item.name,
+          displayName: item.displayName,
+          id: item.id,
+          product_id: item.product_id,
+          price: item.price,
+          originalPrice: item.originalPrice
+        })));
+        
+        // Apply price fixing to loaded cart
+        const fixedCart = fixCartItemPrices(parsedCart);
+        console.log('Local cart items with prices and names after fix:', fixedCart.map(item => ({
+          name: item.name,
+          displayName: item.displayName,
+          id: item.id,
+          product_id: item.product_id,
+          price: item.price,
+          originalPrice: item.originalPrice
+        })));
+        
+        setLocalCart(fixedCart);
       } catch (error) {
         console.error('Error parsing local cart:', error);
         localStorage.removeItem('localCart');
       }
     }
-  }, []);
+  }, [fixCartItemPrices]);
 
   // Save local cart to localStorage whenever it changes
   useEffect(() => {
@@ -42,12 +64,33 @@ export const SupabaseCartProvider = ({ children }) => {
     }
   }, [localCart]);
 
+  // Helper function to fix cart item prices and names
+  const fixCartItemPrices = useCallback((cartItems) => {
+    return cartItems.map(item => ({
+      ...item,
+      // Ensure name is valid
+      name: item.name || item.displayName || `Product ${item.id || item.product_id || 'Unknown'}`,
+      // Ensure price is a number with fallback
+      price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
+      originalPrice: typeof item.originalPrice === 'number' ? item.originalPrice : parseFloat(item.originalPrice) || parseFloat(item.old_price) || parseFloat(item.price) || 0
+    }));
+  }, []);
+
   // Sync cartItems with localCart for non-authenticated users
   useEffect(() => {
     if (!isAuthenticated()) {
-      setCartItems(localCart);
+      const fixedCartItems = fixCartItemPrices(localCart);
+      console.log('Fixed cart items prices and names:', fixedCartItems.map(item => ({
+        name: item.name,
+        displayName: item.displayName,
+        id: item.id,
+        product_id: item.product_id,
+        price: item.price,
+        originalPrice: item.originalPrice
+      })));
+      setCartItems(fixedCartItems);
     }
-  }, [localCart, isAuthenticated]);
+  }, [localCart, isAuthenticated, fixCartItemPrices]);
 
   // Load cart from database when user is authenticated
   useEffect(() => {
@@ -162,9 +205,10 @@ export const SupabaseCartProvider = ({ children }) => {
         // Add to local cart
         const newItem = {
           id: product.id,
-          name: product.name,
-          price: product.price,
-          originalPrice: product.originalPrice || product.old_price,
+          name: product.name || product.displayName || product.title || `Product ${product.id}`,
+          displayName: product.displayName || product.name || product.title || `Product ${product.id}`,
+          price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
+          originalPrice: typeof product.originalPrice === 'number' ? product.originalPrice : parseFloat(product.originalPrice) || parseFloat(product.old_price) || parseFloat(product.price) || 0,
           quantity: quantity,
           image: product.image || (product.images && product.images[0]),
           category: product.category,
@@ -174,6 +218,17 @@ export const SupabaseCartProvider = ({ children }) => {
           inStock: product.inStock !== false,
           product_id: product.id
         };
+        
+        console.log('New cart item with prices and name:', {
+          name: newItem.name,
+          price: newItem.price,
+          originalPrice: newItem.originalPrice,
+          productData: {
+            originalName: product.name,
+            displayName: product.displayName,
+            id: product.id
+          }
+        });
         
         setLocalCart(prev => {
           // Check if item already exists
@@ -301,9 +356,18 @@ export const SupabaseCartProvider = ({ children }) => {
   const calculateSubtotal = useCallback(() => {
     if (!cartItems || cartItems.length === 0) return 0;
     
+    console.log('Calculating subtotal with cart items:', cartItems.map(item => ({
+      name: item.name,
+      price: item.price,
+      originalPrice: item.originalPrice,
+      quantity: item.quantity
+    })));
+    
     return cartItems.reduce((total, item) => {
-      const itemPrice = item.originalPrice || item.price || 0;
-      return total + (itemPrice * item.quantity);
+      const itemPrice = parseFloat(item.originalPrice) || parseFloat(item.price) || 0;
+      const itemQuantity = parseInt(item.quantity) || 1;
+      console.log(`Item ${item.name}: price=${itemPrice}, quantity=${itemQuantity}, subtotal=${itemPrice * itemQuantity}`);
+      return total + (itemPrice * itemQuantity);
     }, 0);
   }, [cartItems]);
 

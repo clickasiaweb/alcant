@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Cart Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Cart Debug & Clear Tool</h1>
+    
+    <div class="test-section">
+        <h2>Current Cart Status</h2>
+        <button onclick="checkCartStatus()">Check Cart Status</button>
+        <div id="cart-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Cart Actions</h2>
+        <button onclick="clearLocalCart()">Clear Local Cart</button>
+        <button onclick="addTestItem()">Add Test Item</button>
+        <div id="action-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Debug Info</h2>
+        <pre id="debug-info"></pre>
+    </div>
+
+    <script>
+        function log(message) {
+            const debugElement = document.getElementById('debug-info');
+            debugElement.textContent += new Date().toISOString() + ': ' + message + '\n';
+        }
+
+        function checkCartStatus() {
+            const localCart = localStorage.getItem('localCart');
+            const statusElement = document.getElementById('cart-status');
+            
+            if (localCart) {
+                try {
+                    const cart = JSON.parse(localCart);
+                    statusElement.innerHTML = `
+                        <div class="info">Local cart found with ${cart.length} items:</div>
+                        <ul>
+                            ${cart.map(item => `
+                                <li><strong>Name:</strong> ${item.name || 'MISSING'} | <strong>ID:</strong> ${item.id || item.product_id || 'MISSING'} | <strong>Price:</strong> Rs. ${item.price || 0} x ${item.quantity || 1} = Rs. ${(item.price || 0) * (item.quantity || 1)}</li>
+                            `).join('')}
+                        </ul>
+                        <div class="info">Subtotal: Rs. ${cart.reduce((total, item) => total + ((item.price || 0) * (item.quantity || 1)), 0)}</div>
+                        <div class="error">Check console for detailed cart data</div>
+                    `;
+                    log('Cart status checked: ' + JSON.stringify(cart, null, 2));
+                    console.log('Detailed cart data:', cart);
+                } catch (error) {
+                    statusElement.innerHTML = `<div class="error">Error parsing cart: ${error.message}</div>`;
+                    log('Error parsing cart: ' + error.message);
+                }
+            } else {
+                statusElement.innerHTML = '<div class="info">No local cart found</div>';
+                log('No local cart found');
+            }
+        }
+
+        function clearLocalCart() {
+            localStorage.removeItem('localCart');
+            document.getElementById('action-result').innerHTML = '<div class="success">Local cart cleared!</div>';
+            log('Local cart cleared');
+            checkCartStatus(); // Refresh status
+        }
+
+        function addTestItem() {
+            const currentCart = localStorage.getItem('localCart');
+            let cart = [];
+            
+            if (currentCart) {
+                try {
+                    cart = JSON.parse(currentCart);
+                } catch (error) {
+                    log('Error parsing existing cart, starting fresh');
+                    cart = [];
+                }
+            }
+            
+            const testItem = {
+                id: 'test-' + Date.now(),
+                name: 'Test Product',
+                price: 2999.99,
+                originalPrice: 3999.99,
+                quantity: 1,
+                image: '/test-image.jpg',
+                category: 'Test Category',
+                variant: 'Test Variant',
+                selected_color: 'Test Color',
+                selected_size: 'Test Size',
+                inStock: true,
+                product_id: 'test-product-id'
+            };
+            
+            cart.push(testItem);
+            localStorage.setItem('localCart', JSON.stringify(cart));
+            
+            document.getElementById('action-result').innerHTML = `
+                <div class="success">Test item added: ${testItem.name} - Rs. ${testItem.price}</div>
+            `;
+            
+            log('Test item added: ' + JSON.stringify(testItem, null, 2));
+            checkCartStatus(); // Refresh status
+        }
+
+        // Initialize
+        log('Cart debug tool loaded');
+        checkCartStatus();
+    </script>
+</body>
+</html>

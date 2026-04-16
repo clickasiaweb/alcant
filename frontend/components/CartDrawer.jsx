@@ -322,20 +322,43 @@ const CartDrawer = () => {
                         
                         {/* Price */}
                         <div className="flex items-center space-x-2 mb-2">
-                          {item.originalPrice && item.originalPrice > item.price ? (
-                            <>
-                              <span className="text-xs text-gray-400 line-through">
-                                Rs. {(item.originalPrice * item.quantity).toFixed(2)}
-                              </span>
-                              <span className="text-sm font-semibold text-gray-900">
-                                Rs. {(item.price * item.quantity).toFixed(2)}
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-sm font-semibold text-gray-900">
-                              Rs. {(item.price * item.quantity).toFixed(2)}
-                            </span>
-                          )}
+                          {(() => {
+                            const price = parseFloat(item.price) || 0;
+                            const originalPrice = parseFloat(item.originalPrice) || 0;
+                            const quantity = parseInt(item.quantity) || 1;
+                            
+                            // Debug logging
+                            console.log('Cart item price calculation:', {
+                              name: item.name,
+                              displayName: item.displayName,
+                              id: item.id,
+                              product_id: item.product_id,
+                              originalPrice: item.originalPrice,
+                              price: item.price,
+                              parsedPrice: price,
+                              parsedOriginalPrice: originalPrice,
+                              quantity
+                            });
+                            
+                            if (originalPrice > price && price > 0) {
+                              return (
+                                <>
+                                  <span className="text-xs text-gray-400 line-through">
+                                    Rs. {(originalPrice * quantity).toFixed(2)}
+                                  </span>
+                                  <span className="text-sm font-semibold text-gray-900">
+                                    Rs. {(price * quantity).toFixed(2)}
+                                  </span>
+                                </>
+                              );
+                            } else {
+                              return (
+                                <span className="text-sm font-semibold text-gray-900">
+                                  Rs. {(price * quantity).toFixed(2)}
+                                </span>
+                              );
+                            }
+                          })()}
                         </div>
 
                         {/* Quantity Controls */}
