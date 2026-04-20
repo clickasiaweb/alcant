@@ -38,22 +38,22 @@ class SupabaseCartService {
       // Return cart items directly since we store all product data in them
       return cartData.map(item => ({
         ...item,
-        // Handle both snake_case and camelCase column names
-        name: item.name || item.product_name || `Product ${item.product_id}`,
-        displayName: item.name || item.product_name || `Product ${item.product_id}`,
-        price: typeof item.price === 'number' ? item.price : 
-               typeof item.product_price === 'number' ? item.product_price :
-               parseFloat(item.price) || parseFloat(item.product_price) || 0,
-        originalPrice: typeof item.originalPrice === 'number' ? item.originalPrice :
+        // Use only snake_case columns that exist in database
+        name: item.product_name || item.name || `Product ${item.product_id}`,
+        displayName: item.product_name || item.name || `Product ${item.product_id}`,
+        price: typeof item.product_price === 'number' ? item.product_price : 
+               typeof item.price === 'number' ? item.price :
+               parseFloat(item.product_price) || parseFloat(item.price) || 0,
+        originalPrice: typeof item.product_original_price === 'number' ? item.product_original_price :
                      typeof item.original_price === 'number' ? item.original_price :
-                     typeof item.product_original_price === 'number' ? item.product_original_price :
-                     parseFloat(item.originalPrice) || parseFloat(item.original_price) || parseFloat(item.product_original_price) || parseFloat(item.price) || parseFloat(item.product_price) || 0,
-        image: item.image || item.product_image || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
-        category: item.category || item.product_category || 'Unknown',
-        slug: item.slug || item.product_slug,
-        description: item.description || item.product_description,
-        images: item.images || item.product_images,
-        variant: item.variant || item.product_variant || item.selected_color || 'Standard',
+                     typeof item.original_price === 'number' ? item.original_price :
+                     parseFloat(item.product_original_price) || parseFloat(item.original_price) || parseFloat(item.price) || 0,
+        image: item.product_image || item.image || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
+        category: item.product_category || item.category || 'Unknown',
+        slug: item.product_slug || item.slug,
+        description: item.product_description || item.description,
+        images: item.product_images || item.images,
+        variant: item.product_variant || item.variant || item.selected_color || 'Standard',
         quantity: item.quantity || 1
       }));
     } catch (error) {
@@ -157,20 +157,9 @@ class SupabaseCartService {
             selected_size: options.selected_size || null
           };
           
-          // Add product data if provided (both naming conventions for compatibility)
+          // Add product data if provided (use only snake_case columns that exist in database)
           if (productData) {
-            // CamelCase columns
-            insertData.name = productData.name;
-            insertData.price = productData.price;
-            insertData.originalPrice = productData.originalPrice || productData.old_price;
-            insertData.image = productData.image;
-            insertData.category = productData.category;
-            insertData.slug = productData.slug;
-            insertData.description = productData.description;
-            insertData.images = productData.images;
-            insertData.variant = productData.variant;
-            
-            // Snake_case columns (PostgreSQL convention)
+            // Snake_case columns (PostgreSQL convention) - these exist in database
             insertData.product_name = productData.name;
             insertData.product_price = productData.price;
             insertData.product_original_price = productData.originalPrice || productData.old_price;
@@ -179,7 +168,9 @@ class SupabaseCartService {
             insertData.product_slug = productData.slug;
             insertData.product_description = productData.description;
             insertData.product_images = productData.images;
-            insertData.product_variant = productData.variant;
+            insertData.product_variant = productData.variant || productData.selected_color;
+            
+            // Don't use camelCase columns - they don't exist in the database schema cache
           }
           
           const result = await supabase
@@ -207,16 +198,16 @@ class SupabaseCartService {
               quantity,
               selected_color: options.selected_color,
               selected_size: options.selected_size,
-              // Include product data in fallback
-              name: productData?.name || 'Unknown Product',
-              price: productData?.price || 0,
-              originalPrice: productData?.originalPrice || productData?.old_price || 0,
-              image: productData?.image || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
-              category: productData?.category || 'Unknown',
-              slug: productData?.slug,
-              description: productData?.description,
-              images: productData?.images,
-              variant: options.selected_color || productData?.variant || 'Standard',
+              // Include product data in fallback (use snake_case)
+              product_name: productData?.name || 'Unknown Product',
+              product_price: productData?.price || 0,
+              product_original_price: productData?.originalPrice || productData?.old_price || 0,
+              product_image: productData?.image || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
+              product_category: productData?.category || 'Unknown',
+              product_slug: productData?.slug,
+              product_description: productData?.description,
+              product_images: productData?.images,
+              product_variant: options.selected_color || productData?.variant || 'Standard',
               created_at: new Date().toISOString()
             };
           }
