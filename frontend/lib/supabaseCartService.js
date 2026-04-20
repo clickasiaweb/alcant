@@ -66,13 +66,42 @@ class SupabaseCartService {
       // Transform the data to match expected cart item structure
       const transformedData = cartData.map(item => {
         const product = productsData.find(p => p.id === item.product_id);
+        
+        // Handle images - they might be stored as JSON string or array
+        let productImages = [];
+        if (product?.images) {
+          if (typeof product.images === 'string') {
+            try {
+              productImages = JSON.parse(product.images);
+            } catch (e) {
+              // If it's not valid JSON, treat as single image URL
+              productImages = [product.images];
+            }
+          } else if (Array.isArray(product.images)) {
+            productImages = product.images;
+          }
+        }
+        
+        // Get the first valid image URL
+        let firstImage = 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product';
+        if (productImages.length > 0) {
+          const img = productImages[0];
+          if (typeof img === 'string') {
+            firstImage = img;
+          } else if (img && img.url) {
+            firstImage = img.url;
+          }
+        }
+        
         return {
           ...item,
           // Map product fields to cart item structure
           name: product?.name || `Product ${item.product_id}`,
-          price: product?.price || 0,
-          originalPrice: product?.old_price || product?.price || 0,
-          image: product?.images?.[0] || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
+          displayName: product?.name || `Product ${item.product_id}`,
+          price: typeof product?.price === 'number' ? product.price : parseFloat(product?.price) || 0,
+          originalPrice: typeof product?.old_price === 'number' ? product.old_price : parseFloat(product?.old_price) || parseFloat(product?.price) || 0,
+          image: firstImage,
+          images: productImages,
           category: product?.category || 'Unknown',
           slug: product?.slug || `product-${item.product_id}`,
           inStock: product?.in_stock !== false,

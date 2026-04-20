@@ -44,27 +44,7 @@ const CartPage = () => {
     console.log("  router exists:", !!router);
   }, [isAuthenticated, user]);
 
-  // Add sample item for testing (you can remove this once you have proper add to cart functionality)
-  const addSampleItem = () => {
-    const sampleItem = {
-      id: '507f1f77bcf86cd799439011', // Use a real product ID from your database
-      name: 'Premium Industrial Automation System',
-      slug: 'premium-industrial-automation-system',
-      price: 25000,
-      originalPrice: 28000,
-      quantity: 1,
-      image: '/images/products/automation-system.jpg',
-      category: 'Automation',
-      inStock: true,
-      variant: {
-        color: 'Standard',
-        size: 'Medium'
-      }
-    };
-    
-    addToCart(sampleItem);
-  };
-
+  
   const calculateSubtotal = () => {
     if (!cartItems || cartItems.length === 0) return 0;
     return cartItems.reduce((total, item) => {
@@ -168,22 +148,13 @@ const CartPage = () => {
                 <p className="text-gray-600 mb-8">
                   Looks like you haven't added any products to your cart yet.
                 </p>
-                <div className="space-y-4">
-                  <button
-                    onClick={addSampleItem}
-                    className="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors inline-flex items-center"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Sample Product
-                  </button>
-                  <button
-                    onClick={() => router.push('/products')}
-                    className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors inline-flex items-center"
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Continue Shopping
-                  </button>
-                </div>
+                <button
+                  onClick={() => router.push('/products')}
+                  className="bg-primary-600 text-white px-8 py-3 rounded-lg hover:bg-primary-700 transition-colors inline-flex items-center"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Continue Shopping
+                </button>
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -195,9 +166,12 @@ const CartPage = () => {
                         {/* Product Image */}
                         <div className="flex-shrink-0">
                           <img
-                            src={item.image}
+                            src={item.image || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product'}
                             alt={item.name}
                             className="w-20 h-20 object-cover rounded-lg"
+                            onError={(e) => {
+                              e.target.src = 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product';
+                            }}
                           />
                         </div>
 
@@ -264,25 +238,25 @@ const CartPage = () => {
                     <div className="space-y-3 mb-6">
                       <div className="flex justify-between text-gray-600">
                         <span>Subtotal</span>
-                        <span>${calculateSubtotal().toLocaleString()}</span>
+                        <span>Rs. {calculateSubtotal().toLocaleString()}</span>
                       </div>
                       
                       {discount > 0 && (
                         <div className="flex justify-between text-green-600">
                           <span>Discount ({discount}%)</span>
-                          <span>-${calculateDiscount().toLocaleString()}</span>
+                          <span>-Rs. {calculateDiscount().toLocaleString()}</span>
                         </div>
                       )}
                       
                       <div className="flex justify-between text-gray-600">
                         <span>Tax</span>
-                        <span>${calculateTax().toLocaleString()}</span>
+                        <span>Rs. {calculateTax().toLocaleString()}</span>
                       </div>
                       
                       <div className="border-t pt-3">
                         <div className="flex justify-between text-lg font-semibold text-gray-900">
                           <span>Total</span>
-                          <span>${calculateTotal().toLocaleString()}</span>
+                          <span>Rs. {calculateTotal().toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -313,7 +287,7 @@ const CartPage = () => {
                     <div className="space-y-3 mb-6">
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
                         <Truck className="w-4 h-4 text-primary-600" />
-                        <span>Free shipping on orders over $10,000</span>
+                        <span>Free shipping on orders over Rs. 10,000</span>
                       </div>
                       <div className="flex items-center space-x-2 text-sm text-gray-600">
                         <Shield className="w-4 h-4 text-primary-600" />

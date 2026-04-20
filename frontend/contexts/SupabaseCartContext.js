@@ -174,7 +174,6 @@ export const SupabaseCartProvider = ({ children }) => {
           product_id: product.id
         };
         
-        
         setLocalCart(prev => {
           // Check if item already exists
           const existingItemIndex = prev.findIndex(item => 
