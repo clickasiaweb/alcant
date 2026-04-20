@@ -32,7 +32,6 @@ export const SupabaseAuthProvider = ({ children }) => {
           setProfile(profileData);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
       } finally {
         setInitializing(false);
         setLoading(false);
@@ -44,7 +43,6 @@ export const SupabaseAuthProvider = ({ children }) => {
     // Set up auth state listener
     const { data: { subscription } } = authService.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
         
         if (session?.user) {
           setUser(session.user);

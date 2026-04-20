@@ -29,7 +29,6 @@ class SupabaseAuthService {
 
       // If signup successful but no session (email confirmation required), bypass it
       if (data.user && !data.session) {
-        console.log('User created but session not available, ensuring profile exists...');
         
         // Ensure profile is created in database
         try {
@@ -47,12 +46,9 @@ class SupabaseAuthService {
             });
 
           if (profileError) {
-            console.error('Profile creation error:', profileError);
           } else {
-            console.log('Profile ensured in database');
           }
         } catch (profileErr) {
-          console.error('Profile creation failed:', profileErr);
         }
 
         // Try to sign in immediately (bypassing email confirmation)
@@ -79,7 +75,6 @@ class SupabaseAuthService {
         message: 'Account created successfully! You are now logged in.'
       };
     } catch (error) {
-      console.error('Signup error:', error);
       throw error;
     }
   }
@@ -95,7 +90,6 @@ class SupabaseAuthService {
       if (error) {
         // Handle email confirmation error - just throw the error since we disabled it in database
         if (error.message.includes('Email not confirmed')) {
-          console.log('Email confirmation error - user should be auto-confirmed:', email);
           throw new Error('Your account is not yet confirmed. Please try again in a few moments or contact support.');
         }
         throw new Error(error.message);
@@ -107,7 +101,6 @@ class SupabaseAuthService {
         message: 'Login successful!'
       };
     } catch (error) {
-      console.error('Signin error:', error);
       throw error;
     }
   }
@@ -123,7 +116,6 @@ class SupabaseAuthService {
 
       return { message: 'Logged out successfully' };
     } catch (error) {
-      console.error('Signout error:', error);
       throw error;
     }
   }
@@ -139,7 +131,6 @@ class SupabaseAuthService {
 
       return user;
     } catch (error) {
-      console.error('Get current user error:', error);
       return null;
     }
   }
@@ -159,7 +150,6 @@ class SupabaseAuthService {
       // Return first item or null instead of using .single() to avoid coercion error
       return data && data.length > 0 ? data[0] : null;
     } catch (error) {
-      console.error('Get user profile error:', error);
       return null;
     }
   }
@@ -183,7 +173,6 @@ class SupabaseAuthService {
 
       return data;
     } catch (error) {
-      console.error('Update profile error:', error);
       throw error;
     }
   }
@@ -201,7 +190,6 @@ class SupabaseAuthService {
 
       return { message: 'Password reset email sent!' };
     } catch (error) {
-      console.error('Reset password error:', error);
       throw error;
     }
   }
@@ -219,7 +207,6 @@ class SupabaseAuthService {
 
       return { message: 'Password updated successfully!' };
     } catch (error) {
-      console.error('Update password error:', error);
       throw error;
     }
   }
@@ -245,7 +232,6 @@ class SupabaseAuthService {
 
       return session;
     } catch (error) {
-      console.error('Get session error:', error);
       return null;
     }
   }

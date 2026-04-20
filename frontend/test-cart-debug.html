@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart Functionality Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Cart Functionality Debug Test</h1>
+    
+    <div class="test-section">
+        <h2>Supabase Connection Test</h2>
+        <button onclick="testSupabaseConnection()">Test Connection</button>
+        <div id="connection-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Cart Items Table Test</h2>
+        <button onclick="testCartTable()">Test Cart Table</button>
+        <div id="cart-table-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Products Table Test</h2>
+        <button onclick="testProductsTable()">Test Products Table</button>
+        <div id="products-table-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Add Cart Item Test</h2>
+        <button onclick="testAddCartItem()">Test Add Cart Item</button>
+        <div id="add-cart-result"></div>
+    </div>
+
+    <div id="log-output">
+        <h2>Debug Log</h2>
+        <pre id="log-content"></pre>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://orhcxgmjychxcrqqwcqu.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9yaGN4Z21qeWNoeGNycXF3Y3F1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyNjIwODQsImV4cCI6MjA4NDgzODA4NH0.lHKuN5EKkVmCMF-u3PKmDSXkkS2k8k52hQhZ2M5zdNg';
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toISOString();
+            const logElement = document.getElementById('log-content');
+            logElement.textContent += `[${timestamp}] ${type.toUpperCase()}: ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        function displayResult(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+
+        async function testSupabaseConnection() {
+            try {
+                log('Testing Supabase connection...');
+                
+                // Test basic connection
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('count')
+                    .limit(1);
+
+                if (error) {
+                    throw error;
+                }
+
+                displayResult('connection-result', 'Supabase connection successful!', 'success');
+                log('Supabase connection successful');
+            } catch (error) {
+                displayResult('connection-result', `Connection failed: ${error.message}`, 'error');
+                log(`Supabase connection failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testCartTable() {
+            try {
+                log('Testing cart_items table...');
+                
+                // Test cart table structure
+                const { data, error } = await supabase
+                    .from('cart_items')
+                    .select('*')
+                    .limit(1);
+
+                if (error) {
+                    throw error;
+                }
+
+                displayResult('cart-table-result', `Cart table accessible! Found ${data.length} items`, 'success');
+                log(`Cart table test successful: ${JSON.stringify(data)}`);
+            } catch (error) {
+                displayResult('cart-table-result', `Cart table error: ${error.message}`, 'error');
+                log(`Cart table error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testProductsTable() {
+            try {
+                log('Testing products table...');
+                
+                // Test products table
+                const { data, error } = await supabase
+                    .from('products')
+                    .select('id, name, price')
+                    .limit(3);
+
+                if (error) {
+                    throw error;
+                }
+
+                displayResult('products-table-result', `Products table accessible! Found ${data.length} products`, 'success');
+                log(`Products table test successful: ${JSON.stringify(data)}`);
+            } catch (error) {
+                displayResult('products-table-result', `Products table error: ${error.message}`, 'error');
+                log(`Products table error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAddCartItem() {
+            try {
+                log('Testing add cart item...');
+                
+                // First get a product
+                const { data: products, error: productError } = await supabase
+                    .from('products')
+                    .select('id')
+                    .limit(1)
+                    .single();
+
+                if (productError) {
+                    throw productError;
+                }
+
+                if (!products) {
+                    throw new Error('No products found in database');
+                }
+
+                // Test user ID (this would normally come from auth)
+                const testUserId = '4a28640c-184a-4f62-8740-3c1ea5828d68';
+                
+                // Try to add to cart
+                const { data, error } = await supabase
+                    .from('cart_items')
+                    .insert({
+                        user_id: testUserId,
+                        product_id: products.id,
+                        quantity: 1,
+                        selected_color: 'Test Color'
+                    })
+                    .select()
+                    .single();
+
+                if (error) {
+                    throw error;
+                }
+
+                displayResult('add-cart-result', `Cart item added successfully!`, 'success');
+                log(`Cart item added: ${JSON.stringify(data)}`);
+            } catch (error) {
+                displayResult('add-cart-result', `Add cart item error: ${error.message}`, 'error');
+                log(`Add cart item error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        log('Cart functionality test page loaded');
+    </script>
+</body>
+</html>

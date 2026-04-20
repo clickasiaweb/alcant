@@ -9,11 +9,9 @@ class SupabaseCartService {
   // Get cart items for a user
   async getCartItems(userId) {
     try {
-      console.log('Getting cart items for user:', userId);
       
       // Validate input
       if (!userId) {
-        console.error('Invalid user ID provided');
         return [];
       }
       
@@ -30,24 +28,19 @@ class SupabaseCartService {
         cartData = result.data;
         cartError = result.error;
       } catch (queryError) {
-        console.error('Query execution error:', queryError);
         cartError = queryError;
       }
 
       if (cartError) {
-        console.error('Supabase cart query error:', cartError);
-        console.error('Error details:', JSON.stringify(cartError, null, 2));
         
         // If it's a 400 error, the table might not exist or have permission issues
         if (cartError.code === '400' || cartError.message?.includes('400')) {
-          console.log('Cart table may not exist or has permission issues, returning empty cart');
           return [];
         }
         
         throw new Error(`Cart query failed: ${cartError.message}`);
       }
 
-      console.log('Cart data retrieved:', cartData?.length || 0, 'items');
 
       if (!cartData || cartData.length === 0) {
         return [];
@@ -64,11 +57,9 @@ class SupabaseCartService {
           .in('id', productIds);
 
         if (productsError) {
-          console.error('Error fetching products:', productsError);
           // Continue with cart data even if products fail
         } else {
           productsData = products || [];
-          console.log('Products data retrieved:', productsData.length, 'products');
         }
       }
 
@@ -81,7 +72,7 @@ class SupabaseCartService {
           name: product?.name || `Product ${item.product_id}`,
           price: product?.price || 0,
           originalPrice: product?.old_price || product?.price || 0,
-          image: product?.images?.[0] || '/images/products/default.jpg',
+          image: product?.images?.[0] || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
           category: product?.category || 'Unknown',
           slug: product?.slug || `product-${item.product_id}`,
           inStock: product?.in_stock !== false,
@@ -94,10 +85,8 @@ class SupabaseCartService {
         };
       });
 
-      console.log('Transformed cart items:', transformedData);
       return transformedData;
     } catch (error) {
-      console.error('Get cart items error:', error);
       throw error;
     }
   }
@@ -105,7 +94,6 @@ class SupabaseCartService {
   // Add item to cart
   async addToCart(userId, productId, quantity = 1, options = {}) {
     try {
-      console.log('Adding to cart:', { userId, productId, quantity, options });
       
       // Validate inputs
       if (!userId || !productId) {
@@ -128,16 +116,13 @@ class SupabaseCartService {
         existingItem = result.data;
         checkError = result.error;
       } catch (queryError) {
-        console.error('Check existing item query error:', queryError);
         checkError = queryError;
       }
 
       if (checkError && checkError.code !== 'PGRST116') {
-        console.error('Check existing item error:', checkError);
         
         // If table doesn't exist or permission error, return fallback
         if (checkError.code === '400' || checkError.message?.includes('400') || checkError.message?.includes('permission')) {
-          console.log('Cart table not accessible, returning fallback cart item');
           return {
             id: 'fallback-' + Date.now(),
             user_id: userId,
@@ -170,17 +155,14 @@ class SupabaseCartService {
           data = result.data;
           error = result.error;
         } catch (updateError) {
-          console.error('Update query error:', updateError);
           error = updateError;
         }
 
         if (error) {
-          console.error('Update cart item error:', error);
           
           // If table doesn't exist or permission error, return fallback
           if (error.code === '400' || error.message?.includes('400') || error.message?.includes('permission')) {
-            console.log('Cart table not accessible for update, returning fallback cart item');
-            return {
+              return {
               ...existingItem,
               quantity: existingItem.quantity + quantity,
               updated_at: new Date().toISOString()
@@ -211,17 +193,14 @@ class SupabaseCartService {
           data = result.data;
           error = result.error;
         } catch (insertError) {
-          console.error('Insert query error:', insertError);
           error = insertError;
         }
 
         if (error) {
-          console.error('Insert cart item error:', error);
           
           // If table doesn't exist or permission error, return fallback
           if (error.code === '400' || error.message?.includes('400') || error.message?.includes('permission')) {
-            console.log('Cart table not accessible for insert, returning fallback cart item');
-            return {
+              return {
               id: 'fallback-' + Date.now(),
               user_id: userId,
               product_id: productId,
@@ -238,7 +217,6 @@ class SupabaseCartService {
         return data;
       }
     } catch (error) {
-      console.error('Add to cart error:', error);
       throw error;
     }
   }
@@ -266,7 +244,6 @@ class SupabaseCartService {
 
       return data;
     } catch (error) {
-      console.error('Update quantity error:', error);
       throw error;
     }
   }
@@ -285,7 +262,6 @@ class SupabaseCartService {
 
       return { success: true };
     } catch (error) {
-      console.error('Remove from cart error:', error);
       throw error;
     }
   }
@@ -304,7 +280,6 @@ class SupabaseCartService {
 
       return { success: true };
     } catch (error) {
-      console.error('Clear cart error:', error);
       throw error;
     }
   }
@@ -344,7 +319,6 @@ class SupabaseCartService {
 
       return summary;
     } catch (error) {
-      console.error('Get cart summary error:', error);
       throw error;
     }
   }
@@ -371,14 +345,12 @@ class SupabaseCartService {
           );
           results.merged++;
         } catch (error) {
-          console.error('Failed to merge cart item:', error);
           results.failed++;
         }
       }
 
       return results;
     } catch (error) {
-      console.error('Merge carts error:', error);
       throw error;
     }
   }

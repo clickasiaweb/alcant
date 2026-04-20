@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Cart Add</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        #results {
+            white-space: pre-wrap;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .product-demo {
+            background: #e9ecef;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛒 Debug Cart Add Functionality</h1>
+    
+    <div class="test-section">
+        <h2>Test Product Data</h2>
+        <div class="product-demo">
+            <h3>Sample Product:</h3>
+            <p><strong>ID:</strong> test-product-123</p>
+            <p><strong>Name:</strong> Test Product</p>
+            <p><strong>Price:</strong> $99.99</p>
+            <p><strong>Category:</strong> Test Category</p>
+        </div>
+        
+        <button onclick="testDirectAdd()">Test Direct Add to Cart</button>
+        <button onclick="testWithAuth()">Test with Auth Check</button>
+        <button onclick="testCartService()">Test Cart Service Directly</button>
+        <button onclick="checkCartState()">Check Current Cart State</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div id="status"></div>
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'https://alcant-backend.vercel.app/api';
+        let testResults = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            testResults.push(`[${timestamp}] ${type.toUpperCase()}: ${message}`);
+            updateResults();
+            updateStatus(message, type);
+        }
+
+        function updateResults() {
+            document.getElementById('results').textContent = testResults.join('\n');
+        }
+
+        function updateStatus(message, type) {
+            const status = document.getElementById('status');
+            status.innerHTML = `<div class="status ${type}">${message}</div>`;
+            setTimeout(() => status.innerHTML = '', 5000);
+        }
+
+        function clearResults() {
+            testResults = [];
+            updateResults();
+            document.getElementById('status').innerHTML = '';
+        }
+
+        // Simulate cart context functions
+        function getMockUser() {
+            return {
+                id: 'test-user-id',
+                email: 'test@example.com'
+            };
+        }
+
+        function simulateAddToCart(product, quantity = 1, options = {}) {
+            log(`🛒 Simulating add to cart: ${product.name}`, 'info');
+            log(`   Product ID: ${product.id}`, 'info');
+            log(`   Quantity: ${quantity}`, 'info');
+            log(`   Options: ${JSON.stringify(options)}`, 'info');
+
+            // Get current cart
+            let cart = JSON.parse(localStorage.getItem('localCart') || '[]');
+            
+            // Check if item exists
+            const existingIndex = cart.findIndex(item => 
+                item.id === product.id && 
+                item.selected_color === (options.selected_color || 'Standard') &&
+                item.selected_size === (options.selected_size || 'Standard')
+            );
+
+            if (existingIndex >= 0) {
+                // Update existing item
+                cart[existingIndex].quantity += quantity;
+                log(`✅ Updated existing item quantity to ${cart[existingIndex].quantity}`, 'success');
+            } else {
+                // Add new item
+                const cartItem = {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    originalPrice: product.originalPrice || product.price,
+                    quantity: quantity,
+                    image: product.image || '/images/products/default.jpg',
+                    category: product.category || 'Test Category',
+                    variant: options.selected_color || 'Standard',
+                    selected_color: options.selected_color || 'Standard',
+                    selected_size: options.selected_size || 'Standard',
+                    product_id: product.id
+                };
+                cart.push(cartItem);
+                log(`✅ Added new item to cart`, 'success');
+            }
+
+            // Save cart
+            localStorage.setItem('localCart', JSON.stringify(cart));
+            log(`📊 Cart now has ${cart.length} items`, 'info');
+            
+            return true;
+        }
+
+        function testDirectAdd() {
+            log('🧪 Testing direct add to cart...', 'info');
+            
+            const testProduct = {
+                id: 'test-product-' + Date.now(),
+                name: 'Test Product',
+                price: 99.99,
+                originalPrice: 149.99,
+                image: 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Test',
+                category: 'Test Category'
+            };
+
+            const options = {
+                selected_color: 'Red',
+                selected_size: 'Large'
+            };
+
+            try {
+                simulateAddToCart(testProduct, 1, options);
+                log('✅ Direct add test completed successfully', 'success');
+            } catch (error) {
+                log(`❌ Direct add test failed: ${error.message}`, 'error');
+            }
+        }
+
+        function testWithAuth() {
+            log('🧪 Testing with authentication check...', 'info');
+            
+            const user = getMockUser();
+            log(`👤 Mock user: ${user.email} (ID: ${user.id})`, 'info');
+            
+            if (user) {
+                log('✅ User authenticated, proceeding with cart addition', 'success');
+                testDirectAdd();
+            } else {
+                log('❌ User not authenticated', 'error');
+            }
+        }
+
+        async function testCartService() {
+            log('🧪 Testing cart service API...', 'info');
+            
+            try {
+                // Test if cart service endpoint is accessible
+                const response = await fetch(`${API_BASE}/products/featured`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`✅ API connection successful!`, 'success');
+                    log(`📦 Found ${data.data?.length || 0} products available`, 'info');
+                    
+                    if (data.data && data.data.length > 0) {
+                        // Try to add first product to cart
+                        const firstProduct = data.data[0];
+                        log(`🛒 Attempting to add: ${firstProduct.name}`, 'info');
+                        
+                        // Simulate the cart addition
+                        simulateAddToCart({
+                            id: firstProduct.id || firstProduct._id,
+                            name: firstProduct.name,
+                            price: firstProduct.price || 99.99,
+                            image: firstProduct.image || firstProduct.images?.[0]
+                        }, 1);
+                    }
+                } else {
+                    log(`❌ API connection failed: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Cart service test error: ${error.message}`, 'error');
+            }
+        }
+
+        function checkCartState() {
+            log('🔍 Checking current cart state...', 'info');
+            
+            try {
+                const cart = JSON.parse(localStorage.getItem('localCart') || '[]');
+                
+                if (cart.length === 0) {
+                    log('📭 Cart is empty', 'info');
+                } else {
+                    log(`📊 Cart contains ${cart.length} items:`, 'info');
+                    cart.forEach((item, index) => {
+                        log(`  ${index + 1}. ${item.name} - $${item.price} (${item.quantity}x) - ${item.variant}`, 'info');
+                    });
+                    
+                    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                    log(`💰 Total cart value: $${total.toFixed(2)}`, 'success');
+                }
+            } catch (error) {
+                log(`❌ Error checking cart state: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        log('🚀 Cart debug tool loaded', 'success');
+        log('📝 Click buttons above to test different cart operations', 'info');
+        checkCartState();
+    </script>
+</body>
+</html>

@@ -38,26 +38,8 @@ export const SupabaseCartProvider = ({ children }) => {
     if (savedLocalCart) {
       try {
         const parsedCart = JSON.parse(savedLocalCart);
-        console.log('Loading local cart from localStorage:', parsedCart);
-        console.log('Local cart items with prices and names before fix:', parsedCart.map(item => ({
-          name: item.name,
-          displayName: item.displayName,
-          id: item.id,
-          product_id: item.product_id,
-          price: item.price,
-          originalPrice: item.originalPrice
-        })));
-        
         // Apply price fixing to loaded cart
         const fixedCart = fixCartItemPrices(parsedCart);
-        console.log('Local cart items with prices and names after fix:', fixedCart.map(item => ({
-          name: item.name,
-          displayName: item.displayName,
-          id: item.id,
-          product_id: item.product_id,
-          price: item.price,
-          originalPrice: item.originalPrice
-        })));
         
         setLocalCart(fixedCart);
       } catch (error) {
@@ -80,14 +62,6 @@ export const SupabaseCartProvider = ({ children }) => {
   useEffect(() => {
     if (!isAuthenticated()) {
       const fixedCartItems = fixCartItemPrices(localCart);
-      console.log('Fixed cart items prices and names:', fixedCartItems.map(item => ({
-        name: item.name,
-        displayName: item.displayName,
-        id: item.id,
-        product_id: item.product_id,
-        price: item.price,
-        originalPrice: item.originalPrice
-      })));
       setCartItems(fixedCartItems);
     }
   }, [localCart, isAuthenticated]); // Remove fixCartItemPrices dependency
@@ -104,13 +78,11 @@ export const SupabaseCartProvider = ({ children }) => {
         
         // If there are local cart items and haven't merged yet, merge them with database
         if (localCart.length > 0 && !hasMergedCart.current) {
-          console.log('Merging local cart with database cart');
           hasMergedCart.current = true;
           await mergeCartOnLogin();
         }
       } else {
         // Use local cart when not authenticated
-        console.log('Using local cart for unauthenticated user');
         setCartItems(localCart);
       }
     };
@@ -127,15 +99,10 @@ export const SupabaseCartProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      console.log('Loading cart from database for user:', user.id);
       const items = await cartService.getCartItems(user.id);
       setCartItems(items);
-      console.log('Cart loaded from database successfully:', items.length, 'items');
     } catch (error) {
-      console.error('Error loading cart from database:', error);
-      console.error('Error details:', error.message);
       // Fallback to local cart on error
-      console.log('Falling back to local cart with', localCart.length, 'items');
       setCartItems(localCart);
     } finally {
       setLoading(false);
@@ -148,8 +115,7 @@ export const SupabaseCartProvider = ({ children }) => {
 
     setLoading(true);
     try {
-      const mergeResults = await cartService.mergeCarts(user.id, localCart);
-      console.log('Cart merge results:', mergeResults);
+      await cartService.mergeCarts(user.id, localCart);
       
       // Clear local cart after successful merge
       setLocalCart([]);
@@ -169,17 +135,8 @@ export const SupabaseCartProvider = ({ children }) => {
   // Add item to cart
   const addToCart = useCallback(async (product, quantity = 1, options = {}) => {
     try {
-      console.log('🛒 SupabaseCartContext - addToCart called:', {
-        product: product.name,
-        productId: product.id,
-        quantity,
-        options,
-        isAuthenticated: isAuthenticated(),
-        user: user?.email
-      });
 
       if (isAuthenticated() && user) {
-        console.log('👤 User authenticated, adding to database cart...');
         // Add to database cart
         const cartItem = await cartService.addToCart(
           user.id,
@@ -191,7 +148,6 @@ export const SupabaseCartProvider = ({ children }) => {
           }
         );
         
-        console.log('✅ Cart item added to database:', cartItem);
         
         // Reload cart from database
         await loadCartFromDatabase();
@@ -201,7 +157,6 @@ export const SupabaseCartProvider = ({ children }) => {
         
         return cartItem;
       } else {
-        console.log('🔓 User not authenticated, adding to local cart...');
         // Add to local cart
         const newItem = {
           id: product.id,
@@ -219,16 +174,6 @@ export const SupabaseCartProvider = ({ children }) => {
           product_id: product.id
         };
         
-        console.log('New cart item with prices and name:', {
-          name: newItem.name,
-          price: newItem.price,
-          originalPrice: newItem.originalPrice,
-          productData: {
-            originalName: product.name,
-            displayName: product.displayName,
-            id: product.id
-          }
-        });
         
         setLocalCart(prev => {
           // Check if item already exists
@@ -356,17 +301,9 @@ export const SupabaseCartProvider = ({ children }) => {
   const calculateSubtotal = useCallback(() => {
     if (!cartItems || cartItems.length === 0) return 0;
     
-    console.log('Calculating subtotal with cart items:', cartItems.map(item => ({
-      name: item.name,
-      price: item.price,
-      originalPrice: item.originalPrice,
-      quantity: item.quantity
-    })));
-    
     return cartItems.reduce((total, item) => {
       const itemPrice = parseFloat(item.originalPrice) || parseFloat(item.price) || 0;
       const itemQuantity = parseInt(item.quantity) || 1;
-      console.log(`Item ${item.name}: price=${itemPrice}, quantity=${itemQuantity}, subtotal=${itemPrice * itemQuantity}`);
       return total + (itemPrice * itemQuantity);
     }, 0);
   }, [cartItems]);
