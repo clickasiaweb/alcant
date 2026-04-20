@@ -159,11 +159,29 @@ export const SupabaseCartProvider = ({ children }) => {
     }
   }, [localCart, isAuthenticated]);
 
-  // Use only local cart (disable database to prevent Supabase calls)
+  // Load cart from database when user is authenticated
   useEffect(() => {
-    // Always use local cart regardless of authentication
-    setCartItems(localCart);
-  }, [localCart]);
+    const loadAndMergeCart = async () => {
+      if (user) {
+        // Reset merge flag when user changes
+        hasMergedCart.current = false;
+        
+        // Try to load from database
+        await loadCartFromDatabase();
+        
+        // If there are local cart items and haven't merged yet, merge them with database
+        if (localCart.length > 0 && !hasMergedCart.current) {
+          hasMergedCart.current = true;
+          await mergeCartOnLogin();
+        }
+      } else {
+        // Use local cart when not authenticated
+        setCartItems(localCart);
+      }
+    };
+    
+    loadAndMergeCart();
+  }, [user]);
 
   // Load cart from database
   const loadCartFromDatabase = async () => {
@@ -212,7 +230,7 @@ export const SupabaseCartProvider = ({ children }) => {
     try {
 
       if (isAuthenticated() && user) {
-        // Add to database cart
+        // Add to database cart with product data
         const cartItem = await cartService.addToCart(
           user.id,
           product.id,
@@ -220,7 +238,8 @@ export const SupabaseCartProvider = ({ children }) => {
           {
             selected_color: options.selected_color || product.variant,
             selected_size: options.selected_size
-          }
+          },
+          product // Pass complete product data
         );
         
         
@@ -299,56 +318,81 @@ export const SupabaseCartProvider = ({ children }) => {
     if (newQuantity < 1) return;
 
     try {
-      // Update in local cart only (no database calls)
-      setLocalCart(prev => {
-        const updatedCart = prev.map(item =>
-          (item.id === itemId || item.product_id === itemId) 
-            ? { ...item, quantity: newQuantity }
-            : item
-        );
-        
-        // Update cartItems state
-        setCartItems(updatedCart);
-        
-        return updatedCart;
-      });
+      if (isAuthenticated() && user) {
+        // Update in database
+        await cartService.updateQuantity(itemId, newQuantity);
+        await loadCartFromDatabase();
+      } else {
+        // Update in local cart
+        setLocalCart(prev => {
+          const updatedCart = prev.map(item =>
+            (item.id === itemId || item.product_id === itemId) 
+              ? { ...item, quantity: newQuantity }
+              : item
+          );
+          
+          // Update cartItems state for non-authenticated users
+          if (!isAuthenticated()) {
+            setCartItems(updatedCart);
+          }
+          
+          return updatedCart;
+        });
+      }
     } catch (error) {
       console.error('Error updating quantity:', error);
       throw error;
     }
-  }, []);
+  }, [user, isAuthenticated]);
 
   // Remove item from cart
   const removeItem = useCallback(async (itemId) => {
     try {
-      // Remove from local cart only (no database calls)
-      setLocalCart(prev => {
-        const updatedCart = prev.filter(item => 
-          item.id !== itemId && item.product_id !== itemId
-        );
-        
-        // Update cartItems state
-        setCartItems(updatedCart);
-        
-        return updatedCart;
-      });
+      if (isAuthenticated() && user) {
+        // Remove from database
+        await cartService.removeFromCart(itemId);
+        await loadCartFromDatabase();
+      } else {
+        // Remove from local cart
+        setLocalCart(prev => {
+          const updatedCart = prev.filter(item => 
+            item.id !== itemId && item.product_id !== itemId
+          );
+          
+          // Update cartItems state for non-authenticated users
+          if (!isAuthenticated()) {
+            setCartItems(updatedCart);
+          }
+          
+          return updatedCart;
+        });
+      }
     } catch (error) {
       console.error('Error removing item:', error);
       throw error;
     }
-  }, []);
+  }, [user, isAuthenticated]);
 
   // Clear entire cart
   const clearCart = useCallback(async () => {
     try {
-      // Clear local cart only (no database calls)
-      setLocalCart([]);
-      setCartItems([]);
+      if (isAuthenticated() && user) {
+        // Clear from database
+        await cartService.clearCart(user.id);
+        setCartItems([]);
+      } else {
+        // Clear local cart
+        setLocalCart([]);
+        // Update cartItems state for non-authenticated users
+        if (!isAuthenticated()) {
+          setCartItems([]);
+        }
+      }
     } catch (error) {
       console.error('Error clearing cart:', error);
       throw error;
     }
-  }, []);
+  }, [user, isAuthenticated]);
 
   // Calculate cart totals
   const calculateSubtotal = useCallback(() => {

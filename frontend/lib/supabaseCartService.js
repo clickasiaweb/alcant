@@ -9,119 +9,53 @@ class SupabaseCartService {
   // Get cart items for a user
   async getCartItems(userId) {
     try {
-      
       // Validate input
       if (!userId) {
         return [];
       }
       
-      // First try the simple query without relationships
-      let cartData, cartError;
-      
-      try {
-        const result = await supabase
-          .from(this.tableName)
-          .select('*')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false });
-        
-        cartData = result.data;
-        cartError = result.error;
-      } catch (queryError) {
-        cartError = queryError;
-      }
+      // Query cart items - we store all product data directly in cart_items
+      const { data: cartData, error: cartError } = await supabase
+        .from(this.tableName)
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
       if (cartError) {
-        
         // If it's a 400 error, the table might not exist or have permission issues
         if (cartError.code === '400' || cartError.message?.includes('400')) {
+          console.error('Cart table error:', cartError);
           return [];
         }
         
         throw new Error(`Cart query failed: ${cartError.message}`);
       }
 
-
       if (!cartData || cartData.length === 0) {
         return [];
       }
 
-      // Get product details for each cart item
-      const productIds = cartData.map(item => item.product_id).filter(Boolean);
-      let productsData = [];
-
-      if (productIds.length > 0) {
-        const { data: products, error: productsError } = await supabase
-          .from('products')
-          .select('id, name, price, old_price, description, images, category, slug, in_stock')
-          .in('id', productIds);
-
-        if (productsError) {
-          // Continue with cart data even if products fail
-        } else {
-          productsData = products || [];
-        }
-      }
-
-      // Transform the data to match expected cart item structure
-      const transformedData = cartData.map(item => {
-        const product = productsData.find(p => p.id === item.product_id);
-        
-        // Handle images - they might be stored as JSON string or array
-        let productImages = [];
-        if (product?.images) {
-          if (typeof product.images === 'string') {
-            try {
-              productImages = JSON.parse(product.images);
-            } catch (e) {
-              // If it's not valid JSON, treat as single image URL
-              productImages = [product.images];
-            }
-          } else if (Array.isArray(product.images)) {
-            productImages = product.images;
-          }
-        }
-        
-        // Get the first valid image URL
-        let firstImage = 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product';
-        if (productImages.length > 0) {
-          const img = productImages[0];
-          if (typeof img === 'string') {
-            firstImage = img;
-          } else if (img && img.url) {
-            firstImage = img.url;
-          }
-        }
-        
-        return {
-          ...item,
-          // Map product fields to cart item structure
-          name: product?.name || `Product ${item.product_id}`,
-          displayName: product?.name || `Product ${item.product_id}`,
-          price: typeof product?.price === 'number' ? product.price : parseFloat(product?.price) || 0,
-          originalPrice: typeof product?.old_price === 'number' ? product.old_price : parseFloat(product?.old_price) || parseFloat(product?.price) || 0,
-          image: firstImage,
-          images: productImages,
-          category: product?.category || 'Unknown',
-          slug: product?.slug || `product-${item.product_id}`,
-          inStock: product?.in_stock !== false,
-          // Keep existing cart item fields
-          product_id: item.product_id,
-          quantity: item.quantity,
-          selected_color: item.selected_color || 'Standard',
-          selected_size: item.selected_size || 'Standard',
-          variant: item.selected_color || 'Standard'
-        };
-      });
-
-      return transformedData;
+      // Return cart items directly since we store all product data in them
+      return cartData.map(item => ({
+        ...item,
+        // Ensure all required fields have defaults
+        name: item.name || item.product_name || `Product ${item.product_id}`,
+        displayName: item.name || item.product_name || `Product ${item.product_id}`,
+        price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
+        originalPrice: typeof item.originalPrice === 'number' ? item.originalPrice : parseFloat(item.originalPrice) || parseFloat(item.price) || 0,
+        image: item.image || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
+        category: item.category || 'Unknown',
+        quantity: item.quantity || 1,
+        variant: item.selected_color || item.variant || 'Standard'
+      }));
     } catch (error) {
+      console.error('Error in getCartItems:', error);
       throw error;
     }
   }
 
   // Add item to cart
-  async addToCart(userId, productId, quantity = 1, options = {}) {
+  async addToCart(userId, productId, quantity = 1, options = {}, productData = null) {
     try {
       
       // Validate inputs
@@ -207,15 +141,29 @@ class SupabaseCartService {
         let data, error;
         
         try {
+          const insertData = {
+            user_id: userId,
+            product_id: productId,
+            quantity,
+            selected_color: options.selected_color || null,
+            selected_size: options.selected_size || null
+          };
+          
+          // Add product data if provided
+          if (productData) {
+            insertData.name = productData.name;
+            insertData.price = productData.price;
+            insertData.originalPrice = productData.originalPrice || productData.old_price;
+            insertData.image = productData.image;
+            insertData.category = productData.category;
+            insertData.slug = productData.slug;
+            insertData.description = productData.description;
+            insertData.images = productData.images;
+          }
+          
           const result = await supabase
             .from(this.tableName)
-            .insert({
-              user_id: userId,
-              product_id: productId,
-              quantity,
-              selected_color: options.selected_color || null,
-              selected_size: options.selected_size || null
-            })
+            .insert(insertData)
             .select()
             .single();
           
