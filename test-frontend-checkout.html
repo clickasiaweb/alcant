@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Flow Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Checkout Flow Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Setup Test Cart</h2>
+        <button onclick="setupTestCart()">Add Test Items to Cart</button>
+        <div id="cart-status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Test Order Placement</h2>
+        <button onclick="testOrderPlacement()">Place Test Order</button>
+        <div id="order-status"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Debug Info</h2>
+        <button onclick="showDebugInfo()">Show Debug Info</button>
+        <pre id="debug-info"></pre>
+    </div>
+
+    <script>
+        // Mock cart items (same structure as frontend)
+        function setupTestCart() {
+            const testCart = [
+                {
+                    id: 'test-product-1',
+                    product_id: 'test-product-1',
+                    name: 'Test Product 1',
+                    displayName: 'Test Product 1',
+                    price: 1000,
+                    originalPrice: 1000,
+                    quantity: 2,
+                    image: '/images/products/default.jpg',
+                    category: 'Test Category',
+                    variant: 'Red',
+                    selected_color: 'Red',
+                    selected_size: 'M',
+                    inStock: true,
+                    slug: 'test-product-1',
+                    description: 'Test product description',
+                    images: ['/images/products/default.jpg']
+                },
+                {
+                    id: 'test-product-2',
+                    product_id: 'test-product-2',
+                    name: 'Test Product 2',
+                    displayName: 'Test Product 2',
+                    price: 500,
+                    originalPrice: 500,
+                    quantity: 1,
+                    image: '/images/products/default.jpg',
+                    category: 'Test Category',
+                    variant: 'Blue',
+                    selected_color: 'Blue',
+                    selected_size: 'L',
+                    inStock: true,
+                    slug: 'test-product-2',
+                    description: 'Test product description',
+                    images: ['/images/products/default.jpg']
+                }
+            ];
+            
+            localStorage.setItem('localCart', JSON.stringify(testCart));
+            updateCartStatus('Test cart setup complete. Items: ' + testCart.length, 'success');
+        }
+        
+        async function testOrderPlacement() {
+            try {
+                const cartData = localStorage.getItem('localCart');
+                if (!cartData) {
+                    updateOrderStatus('No cart items found. Please setup test cart first.', 'error');
+                    return;
+                }
+                
+                const cartItems = JSON.parse(cartData);
+                updateOrderStatus('Placing order with ' + cartItems.length + ' items...', '');
+                
+                // Calculate totals
+                const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+                const tax = subtotal * 0.18;
+                const shipping = subtotal > 1000 ? 0 : 50;
+                const totalAmount = subtotal + tax + shipping;
+                
+                // Prepare order data (same as checkout page)
+                const orderData = {
+                    products: cartItems.map(item => ({
+                        productId: item.product_id || item.id,
+                        name: item.name || `Product ${item.product_id}`,
+                        price: item.price || 1000,
+                        quantity: item.quantity,
+                        image: item.image || '/images/products/default.jpg',
+                        variant: {
+                            color: item.selected_color || item.variant || 'Standard',
+                            size: item.selected_size || 'Standard'
+                        }
+                    })),
+                    shippingAddress: {
+                        firstName: 'Test',
+                        lastName: 'User',
+                        email: 'test@example.com',
+                        phone: '1234567890',
+                        address: '123 Test Street',
+                        city: 'Mumbai',
+                        state: 'Maharashtra',
+                        postalCode: '400001',
+                        country: 'India'
+                    },
+                    paymentMethod: 'Credit Card',
+                    paymentDetails: {
+                        paidAt: new Date().toISOString(),
+                        transactionId: 'TXN' + Date.now()
+                    },
+                    discount: 0.00,
+                    notes: 'Test order from frontend test'
+                };
+                
+                const response = await fetch('http://localhost:5001/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateOrderStatus(
+                        'Order placed successfully! Order ID: ' + result.data.order_id + 
+                        ', Total: Rs. ' + result.data.total_amount, 
+                        'success'
+                    );
+                    // Clear cart after successful order
+                    localStorage.removeItem('localCart');
+                    updateCartStatus('Cart cleared after successful order', 'success');
+                } else {
+                    updateOrderStatus('Order failed: ' + result.message, 'error');
+                }
+                
+            } catch (error) {
+                updateOrderStatus('Error: ' + error.message, 'error');
+            }
+        }
+        
+        function showDebugInfo() {
+            const cartData = localStorage.getItem('localCart');
+            const debugInfo = {
+                localStorage: {
+                    localCart: cartData ? JSON.parse(cartData) : null,
+                    keys: Object.keys(localStorage)
+                },
+                calculated: {
+                    cartItems: cartData ? JSON.parse(cartData).length : 0,
+                    subtotal: cartData ? JSON.parse(cartData).reduce((total, item) => total + (item.price * item.quantity), 0) : 0
+                }
+            };
+            
+            document.getElementById('debug-info').textContent = JSON.stringify(debugInfo, null, 2);
+        }
+        
+        function updateCartStatus(message, type) {
+            const statusDiv = document.getElementById('cart-status');
+            statusDiv.innerHTML = '<div class="' + type + '">' + message + '</div>';
+        }
+        
+        function updateOrderStatus(message, type) {
+            const statusDiv = document.getElementById('order-status');
+            statusDiv.innerHTML = '<div class="' + type + '">' + message + '</div>';
+        }
+        
+        // Initialize
+        showDebugInfo();
+    </script>
+</body>
+</html>

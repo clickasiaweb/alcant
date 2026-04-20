@@ -76,6 +76,29 @@ const CheckoutPage = () => {
 
   // Use local cart to avoid API errors
   const currentCartItems = cartItems || [];
+  console.log('Checkout - Current cart items:', currentCartItems);
+  console.log('Checkout - Cart items length:', currentCartItems.length);
+  
+  // Fallback to localStorage if cart is empty (for debugging)
+  const [fallbackCart, setFallbackCart] = useState([]);
+  useEffect(() => {
+    if (currentCartItems.length === 0) {
+      try {
+        const savedCart = localStorage.getItem('localCart');
+        if (savedCart) {
+          const parsedCart = JSON.parse(savedCart);
+          console.log('Checkout - Using fallback cart from localStorage:', parsedCart);
+          setFallbackCart(parsedCart);
+        }
+      } catch (error) {
+        console.error('Checkout - Error reading localStorage:', error);
+      }
+    }
+  }, [currentCartItems]);
+  
+  // Use fallback cart if main cart is empty
+  const finalCartItems = currentCartItems.length > 0 ? currentCartItems : fallbackCart;
+  console.log('Checkout - Final cart items to use:', finalCartItems);
   
   // Form states
   const [shippingInfo, setShippingInfo] = useState({
@@ -296,14 +319,14 @@ const CheckoutPage = () => {
       }
       
       // Check if cart has items
-      console.log('Checkout - Checking cart items:', currentCartItems);
-      if (!currentCartItems || !Array.isArray(currentCartItems) || currentCartItems.length === 0) {
+      console.log('Checkout - Checking cart items:', finalCartItems);
+      if (!finalCartItems || !Array.isArray(finalCartItems) || finalCartItems.length === 0) {
         console.log('Checkout - Cart is empty or invalid');
         alert('Your cart is empty');
         if (isMounted.current) setLoading(false);
         return;
       }
-      console.log('Checkout - Cart has items:', currentCartItems.length);
+      console.log('Checkout - Cart has items:', finalCartItems.length);
 
       // Validate all information before placing order
       console.log('Checkout - Validating shipping info...');
@@ -338,9 +361,9 @@ const CheckoutPage = () => {
 
       console.log('Checkout - All validations passed, preparing order data...');
 
-      // Prepare order data using current cart items
+      // Prepare order data using final cart items
       const orderData = {
-        products: (currentCartItems || []).map(item => ({
+        products: (finalCartItems || []).map(item => ({
           productId: item.product_id || item.id,
           name: item.name || `Product ${item.product_id}`,
           price: item.price || 1000,
@@ -449,7 +472,7 @@ const CheckoutPage = () => {
         setLoading(false);
       }
     }
-  }, [currentCartItems, shippingInfo, billingInfo, paymentInfo, step, validateShippingInfo, validateBillingInfo, validatePaymentInfo, clearCart, router]);
+  }, [finalCartItems, shippingInfo, billingInfo, paymentInfo, step, validateShippingInfo, validateBillingInfo, validatePaymentInfo, clearCart, router]);
 
   const steps = [
     { id: 1, name: 'Shipping', icon: MapPin },
@@ -496,7 +519,7 @@ const CheckoutPage = () => {
   }
 
   // Early return for empty cart - AFTER all hooks are defined
-  const totalItems = isAuthenticated() ? calculateTotalItems() : (cartItems?.length || 0);
+  const totalItems = finalCartItems?.length || 0;
   if (totalItems === 0) {
     return (
       <Layout title="Checkout">
@@ -975,7 +998,7 @@ const CheckoutPage = () => {
                       <div className="bg-gray-50 rounded-lg p-4">
                         <h3 className="text-sm font-medium text-gray-700 mb-4">Order Items</h3>
                         <div className="space-y-3">
-                          {currentCartItems.map((item, index) => (
+                          {finalCartItems.map((item, index) => (
                             <div key={item.id} className="flex items-center space-x-4 p-3 bg-white rounded-lg">
                               <img
                                 src={item.image || '/images/products/default.jpg'}
@@ -1170,9 +1193,9 @@ const CheckoutPage = () => {
                   
                   {/* Cart Items */}
                   <div className="space-y-4">
-                    <h3 className="text-sm font-medium text-gray-900 mb-4">Cart Items ({currentCartItems.length})</h3>
+                    <h3 className="text-sm font-medium text-gray-900 mb-4">Cart Items ({finalCartItems.length})</h3>
                     <div className="space-y-3">
-                      {currentCartItems.map((item, index) => (
+                      {finalCartItems.map((item, index) => (
                         <div key={item.id} className="flex items-center space-x-3 p-3 bg-white rounded-lg border">
                           <img
                             src={item.image || '/images/products/default.jpg'}
