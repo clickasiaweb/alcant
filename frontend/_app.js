@@ -2,7 +2,6 @@ import '../styles/globals.css';
 import 'tailwindcss/tailwind.css';
 import { SupabaseAuthProvider } from '../contexts/SupabaseAuthContext';
 import { SupabaseCartProvider } from '../contexts/SupabaseCartContext';
-import { CartProvider } from '../contexts/CartContext';
 import { WishlistProvider } from '../contexts/WishlistContext';
 import { SearchProvider } from '../contexts/SearchContext';
 import Head from 'next/head';
@@ -17,15 +16,13 @@ function MyApp({ Component, pageProps }) {
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="true" />
       </Head>
       <SupabaseAuthProvider>
-        <CartProvider>
-          <WishlistProvider>
-            <SearchProvider>
-              <SupabaseCartProvider>
-                <Component {...pageProps} />
-              </SupabaseCartProvider>
-            </SearchProvider>
-          </WishlistProvider>
-        </CartProvider>
+        <WishlistProvider>
+          <SearchProvider>
+            <SupabaseCartProvider>
+              <Component {...pageProps} />
+            </SupabaseCartProvider>
+          </SearchProvider>
+        </WishlistProvider>
       </SupabaseAuthProvider>
     </>
   );
