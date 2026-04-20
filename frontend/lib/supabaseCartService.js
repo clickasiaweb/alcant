@@ -38,15 +38,23 @@ class SupabaseCartService {
       // Return cart items directly since we store all product data in them
       return cartData.map(item => ({
         ...item,
-        // Ensure all required fields have defaults
+        // Handle both snake_case and camelCase column names
         name: item.name || item.product_name || `Product ${item.product_id}`,
         displayName: item.name || item.product_name || `Product ${item.product_id}`,
-        price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
-        originalPrice: typeof item.originalPrice === 'number' ? item.originalPrice : parseFloat(item.originalPrice) || parseFloat(item.price) || 0,
-        image: item.image || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
-        category: item.category || 'Unknown',
-        quantity: item.quantity || 1,
-        variant: item.selected_color || item.variant || 'Standard'
+        price: typeof item.price === 'number' ? item.price : 
+               typeof item.product_price === 'number' ? item.product_price :
+               parseFloat(item.price) || parseFloat(item.product_price) || 0,
+        originalPrice: typeof item.originalPrice === 'number' ? item.originalPrice :
+                     typeof item.original_price === 'number' ? item.original_price :
+                     typeof item.product_original_price === 'number' ? item.product_original_price :
+                     parseFloat(item.originalPrice) || parseFloat(item.original_price) || parseFloat(item.product_original_price) || parseFloat(item.price) || parseFloat(item.product_price) || 0,
+        image: item.image || item.product_image || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
+        category: item.category || item.product_category || 'Unknown',
+        slug: item.slug || item.product_slug,
+        description: item.description || item.product_description,
+        images: item.images || item.product_images,
+        variant: item.variant || item.product_variant || item.selected_color || 'Standard',
+        quantity: item.quantity || 1
       }));
     } catch (error) {
       console.error('Error in getCartItems:', error);
@@ -149,8 +157,9 @@ class SupabaseCartService {
             selected_size: options.selected_size || null
           };
           
-          // Add product data if provided
+          // Add product data if provided (both naming conventions for compatibility)
           if (productData) {
+            // CamelCase columns
             insertData.name = productData.name;
             insertData.price = productData.price;
             insertData.originalPrice = productData.originalPrice || productData.old_price;
@@ -159,6 +168,18 @@ class SupabaseCartService {
             insertData.slug = productData.slug;
             insertData.description = productData.description;
             insertData.images = productData.images;
+            insertData.variant = productData.variant;
+            
+            // Snake_case columns (PostgreSQL convention)
+            insertData.product_name = productData.name;
+            insertData.product_price = productData.price;
+            insertData.product_original_price = productData.originalPrice || productData.old_price;
+            insertData.product_image = productData.image;
+            insertData.product_category = productData.category;
+            insertData.product_slug = productData.slug;
+            insertData.product_description = productData.description;
+            insertData.product_images = productData.images;
+            insertData.product_variant = productData.variant;
           }
           
           const result = await supabase
