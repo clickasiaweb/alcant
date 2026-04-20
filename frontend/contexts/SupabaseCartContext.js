@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useSupabaseAuth } from './SupabaseAuthContext';
 import { cartService } from '../lib/supabaseCartService';
+import { supabase } from '../lib/supabase';
 
 const SupabaseCartContext = createContext();
 
@@ -20,6 +21,53 @@ export const SupabaseCartProvider = ({ children }) => {
   const [localCart, setLocalCart] = useState([]);
   const hasMergedCart = useRef(false);
 
+  // Helper function to map cart items with product details
+  const mapCartItemsWithProducts = useCallback((cartItems, products) => {
+    return cartItems.map(item => {
+      const product = products?.find(p => p.id === (item.product_id || item.id));
+      
+      if (!product) {
+        // If no product found, return basic item with better defaults
+        return {
+          ...item,
+          name: 'Unknown Product',
+          price: 0,
+          originalPrice: 0,
+          image: 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product'
+        };
+      }
+      
+      // Handle images
+      let productImages = [];
+      if (product.images) {
+        if (typeof product.images === 'string') {
+          try {
+            productImages = JSON.parse(product.images);
+          } catch (e) {
+            productImages = [product.images];
+          }
+        } else if (Array.isArray(product.images)) {
+          productImages = product.images;
+        }
+      }
+      
+      const firstImage = productImages.length > 0 
+        ? (typeof productImages[0] === 'string' ? productImages[0] : productImages[0]?.url)
+        : 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product';
+      
+      return {
+        ...item,
+        name: product.name || 'Unknown Product',
+        displayName: product.name || 'Unknown Product',
+        price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
+        originalPrice: typeof product.old_price === 'number' ? product.old_price : parseFloat(product.old_price) || parseFloat(product.price) || 0,
+        image: firstImage,
+        images: productImages,
+        category: product.category || 'Unknown'
+      };
+    });
+  }, []);
+
   // Helper function to fetch product details and fix cart items
   const fetchProductDetailsForCart = useCallback(async (cartItems) => {
     if (!cartItems || cartItems.length === 0) return [];
@@ -31,66 +79,49 @@ export const SupabaseCartProvider = ({ children }) => {
       if (productIds.length === 0) return cartItems;
       
       // Fetch product details from database
-      const { supabase } = await import('../lib/supabase');
+      console.log('Fetching products for IDs:', productIds);
       const { data: products, error } = await supabase
         .from('products')
         .select('id, name, price, old_price, images, category')
         .in('id', productIds);
       
+      console.log('Product query result:', { data: products, error });
+      
       if (error) {
         console.error('Error fetching product details:', error);
+        // Fallback: try to fetch products one by one
+        const fallbackProducts = [];
+        for (const productId of productIds) {
+          try {
+            const { data: singleProduct, error: singleError } = await supabase
+              .from('products')
+              .select('id, name, price, old_price, images, category')
+              .eq('id', productId)
+              .single();
+            
+            if (!singleError && singleProduct) {
+              fallbackProducts.push(singleProduct);
+            }
+          } catch (e) {
+            console.log(`Failed to fetch product ${productId}:`, e);
+          }
+        }
+        
+        if (fallbackProducts.length > 0) {
+          console.log('Using fallback products:', fallbackProducts);
+          return mapCartItemsWithProducts(cartItems, fallbackProducts);
+        }
+        
         return cartItems;
       }
       
       // Map cart items with product details
-      return cartItems.map(item => {
-        const product = products?.find(p => p.id === (item.product_id || item.id));
-        
-        if (!product) {
-          // If no product found, return basic item with better defaults
-          return {
-            ...item,
-            name: 'Unknown Product',
-            price: 0,
-            originalPrice: 0,
-            image: 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product'
-          };
-        }
-        
-        // Handle images
-        let productImages = [];
-        if (product.images) {
-          if (typeof product.images === 'string') {
-            try {
-              productImages = JSON.parse(product.images);
-            } catch (e) {
-              productImages = [product.images];
-            }
-          } else if (Array.isArray(product.images)) {
-            productImages = product.images;
-          }
-        }
-        
-        const firstImage = productImages.length > 0 
-          ? (typeof productImages[0] === 'string' ? productImages[0] : productImages[0]?.url)
-          : 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product';
-        
-        return {
-          ...item,
-          name: product.name || 'Unknown Product',
-          displayName: product.name || 'Unknown Product',
-          price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
-          originalPrice: typeof product.old_price === 'number' ? product.old_price : parseFloat(product.old_price) || parseFloat(product.price) || 0,
-          image: firstImage,
-          images: productImages,
-          category: product.category || 'Unknown'
-        };
-      });
+      return mapCartItemsWithProducts(cartItems, products);
     } catch (error) {
       console.error('Error in fetchProductDetailsForCart:', error);
       return cartItems;
     }
-  }, []);
+  }, [mapCartItemsWithProducts]);
 
   // Load local cart from localStorage on mount
   useEffect(() => {
