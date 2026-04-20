@@ -125,15 +125,13 @@ export const SupabaseCartProvider = ({ children }) => {
 
   // Load local cart from localStorage on mount
   useEffect(() => {
-    const loadLocalCart = async () => {
+    const loadLocalCart = () => {
       const savedLocalCart = localStorage.getItem('localCart');
       if (savedLocalCart) {
         try {
           const parsedCart = JSON.parse(savedLocalCart);
-          // Apply product details fetching to loaded cart
-          const fixedCart = await fetchProductDetailsForCart(parsedCart);
-          
-          setLocalCart(fixedCart);
+          // Use cart data directly since we store all product info
+          setLocalCart(parsedCart);
         } catch (error) {
           console.error('Error parsing local cart:', error);
           localStorage.removeItem('localCart');
@@ -142,7 +140,7 @@ export const SupabaseCartProvider = ({ children }) => {
     };
     
     loadLocalCart();
-  }, []); // Remove fetchProductDetailsForCart dependency to avoid circular dependency
+  }, []);
 
   // Save local cart to localStorage whenever it changes
   useEffect(() => {
@@ -155,15 +153,11 @@ export const SupabaseCartProvider = ({ children }) => {
 
   // Sync cartItems with localCart for non-authenticated users
   useEffect(() => {
-    const syncCart = async () => {
-      if (!isAuthenticated()) {
-        const fixedCartItems = await fetchProductDetailsForCart(localCart);
-        setCartItems(fixedCartItems);
-      }
-    };
-    
-    syncCart();
-  }, [localCart, isAuthenticated]); // Remove fetchProductDetailsForCart dependency
+    if (!isAuthenticated()) {
+      // Use local cart directly since we store all product info
+      setCartItems(localCart);
+    }
+  }, [localCart, isAuthenticated]);
 
   // Load cart from database when user is authenticated
   useEffect(() => {
@@ -182,8 +176,7 @@ export const SupabaseCartProvider = ({ children }) => {
         }
       } else {
         // Use local cart when not authenticated
-        const fixedCartItems = await fetchProductDetailsForCart(localCart);
-        setCartItems(fixedCartItems);
+        setCartItems(localCart);
       }
     };
     
@@ -257,7 +250,7 @@ export const SupabaseCartProvider = ({ children }) => {
         
         return cartItem;
       } else {
-        // Add to local cart
+        // Add to local cart - store all product data directly
         const newItem = {
           id: product.id,
           name: product.name || product.displayName || product.title || `Product ${product.id}`,
@@ -271,7 +264,11 @@ export const SupabaseCartProvider = ({ children }) => {
           selected_color: options.selected_color || product.variant,
           selected_size: options.selected_size,
           inStock: product.inStock !== false,
-          product_id: product.id
+          product_id: product.id,
+          // Store all product data to avoid database fetches
+          slug: product.slug,
+          description: product.description,
+          images: product.images
         };
         
         setLocalCart(prev => {
