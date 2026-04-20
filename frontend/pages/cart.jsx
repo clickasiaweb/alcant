@@ -132,10 +132,22 @@ const CartPage = () => {
           <div className="max-w-6xl mx-auto">
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
-              <div className="flex items-center text-gray-600">
-                <ShoppingBag className="w-5 h-5 mr-2" />
-                <span>{cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}</span>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Shopping Cart</h1>
+                  <div className="flex items-center text-gray-600">
+                    <ShoppingBag className="w-5 h-5 mr-2" />
+                    <span>{cartItems.length} {cartItems.length === 1 ? 'item' : 'items'}</span>
+                  </div>
+                </div>
+                {cartItems.length > 0 && (
+                  <button
+                    onClick={clearCart}
+                    className="text-red-600 hover:text-red-700 text-sm font-medium transition-colors"
+                  >
+                    Clear Cart
+                  </button>
+                )}
               </div>
             </div>
 

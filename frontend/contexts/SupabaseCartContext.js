@@ -20,34 +20,98 @@ export const SupabaseCartProvider = ({ children }) => {
   const [localCart, setLocalCart] = useState([]);
   const hasMergedCart = useRef(false);
 
-  // Helper function to fix cart item prices and names
-  const fixCartItemPrices = useCallback((cartItems) => {
-    return cartItems.map(item => ({
-      ...item,
-      // Ensure name is valid
-      name: item.name || item.displayName || `Product ${item.id || item.product_id || 'Unknown'}`,
-      // Ensure price is a number with fallback
-      price: typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0,
-      originalPrice: typeof item.originalPrice === 'number' ? item.originalPrice : parseFloat(item.originalPrice) || parseFloat(item.old_price) || parseFloat(item.price) || 0
-    }));
+  // Helper function to fetch product details and fix cart items
+  const fetchProductDetailsForCart = useCallback(async (cartItems) => {
+    if (!cartItems || cartItems.length === 0) return [];
+    
+    try {
+      // Get product IDs from cart items
+      const productIds = cartItems.map(item => item.product_id || item.id).filter(Boolean);
+      
+      if (productIds.length === 0) return cartItems;
+      
+      // Fetch product details from database
+      const { supabase } = await import('../lib/supabase');
+      const { data: products, error } = await supabase
+        .from('products')
+        .select('id, name, price, old_price, images, category')
+        .in('id', productIds);
+      
+      if (error) {
+        console.error('Error fetching product details:', error);
+        return cartItems;
+      }
+      
+      // Map cart items with product details
+      return cartItems.map(item => {
+        const product = products?.find(p => p.id === (item.product_id || item.id));
+        
+        if (!product) {
+          // If no product found, return basic item with better defaults
+          return {
+            ...item,
+            name: 'Unknown Product',
+            price: 0,
+            originalPrice: 0,
+            image: 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product'
+          };
+        }
+        
+        // Handle images
+        let productImages = [];
+        if (product.images) {
+          if (typeof product.images === 'string') {
+            try {
+              productImages = JSON.parse(product.images);
+            } catch (e) {
+              productImages = [product.images];
+            }
+          } else if (Array.isArray(product.images)) {
+            productImages = product.images;
+          }
+        }
+        
+        const firstImage = productImages.length > 0 
+          ? (typeof productImages[0] === 'string' ? productImages[0] : productImages[0]?.url)
+          : 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product';
+        
+        return {
+          ...item,
+          name: product.name || 'Unknown Product',
+          displayName: product.name || 'Unknown Product',
+          price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
+          originalPrice: typeof product.old_price === 'number' ? product.old_price : parseFloat(product.old_price) || parseFloat(product.price) || 0,
+          image: firstImage,
+          images: productImages,
+          category: product.category || 'Unknown'
+        };
+      });
+    } catch (error) {
+      console.error('Error in fetchProductDetailsForCart:', error);
+      return cartItems;
+    }
   }, []);
 
   // Load local cart from localStorage on mount
   useEffect(() => {
-    const savedLocalCart = localStorage.getItem('localCart');
-    if (savedLocalCart) {
-      try {
-        const parsedCart = JSON.parse(savedLocalCart);
-        // Apply price fixing to loaded cart
-        const fixedCart = fixCartItemPrices(parsedCart);
-        
-        setLocalCart(fixedCart);
-      } catch (error) {
-        console.error('Error parsing local cart:', error);
-        localStorage.removeItem('localCart');
+    const loadLocalCart = async () => {
+      const savedLocalCart = localStorage.getItem('localCart');
+      if (savedLocalCart) {
+        try {
+          const parsedCart = JSON.parse(savedLocalCart);
+          // Apply product details fetching to loaded cart
+          const fixedCart = await fetchProductDetailsForCart(parsedCart);
+          
+          setLocalCart(fixedCart);
+        } catch (error) {
+          console.error('Error parsing local cart:', error);
+          localStorage.removeItem('localCart');
+        }
       }
-    }
-  }, []); // Remove fixCartItemPrices dependency to avoid circular dependency
+    };
+    
+    loadLocalCart();
+  }, []); // Remove fetchProductDetailsForCart dependency to avoid circular dependency
 
   // Save local cart to localStorage whenever it changes
   useEffect(() => {
@@ -60,11 +124,15 @@ export const SupabaseCartProvider = ({ children }) => {
 
   // Sync cartItems with localCart for non-authenticated users
   useEffect(() => {
-    if (!isAuthenticated()) {
-      const fixedCartItems = fixCartItemPrices(localCart);
-      setCartItems(fixedCartItems);
-    }
-  }, [localCart, isAuthenticated]); // Remove fixCartItemPrices dependency
+    const syncCart = async () => {
+      if (!isAuthenticated()) {
+        const fixedCartItems = await fetchProductDetailsForCart(localCart);
+        setCartItems(fixedCartItems);
+      }
+    };
+    
+    syncCart();
+  }, [localCart, isAuthenticated]); // Remove fetchProductDetailsForCart dependency
 
   // Load cart from database when user is authenticated
   useEffect(() => {
@@ -83,7 +151,8 @@ export const SupabaseCartProvider = ({ children }) => {
         }
       } else {
         // Use local cart when not authenticated
-        setCartItems(localCart);
+        const fixedCartItems = await fetchProductDetailsForCart(localCart);
+        setCartItems(fixedCartItems);
       }
     };
     
