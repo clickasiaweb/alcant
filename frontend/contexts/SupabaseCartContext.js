@@ -159,29 +159,11 @@ export const SupabaseCartProvider = ({ children }) => {
     }
   }, [localCart, isAuthenticated]);
 
-  // Load cart from database when user is authenticated
+  // Use only local cart (disable database to prevent Supabase calls)
   useEffect(() => {
-    const loadAndMergeCart = async () => {
-      if (user) {
-        // Reset merge flag when user changes
-        hasMergedCart.current = false;
-        
-        // Try to load from database
-        await loadCartFromDatabase();
-        
-        // If there are local cart items and haven't merged yet, merge them with database
-        if (localCart.length > 0 && !hasMergedCart.current) {
-          hasMergedCart.current = true;
-          await mergeCartOnLogin();
-        }
-      } else {
-        // Use local cart when not authenticated
-        setCartItems(localCart);
-      }
-    };
-    
-    loadAndMergeCart();
-  }, [user]);
+    // Always use local cart regardless of authentication
+    setCartItems(localCart);
+  }, [localCart]);
 
   // Load cart from database
   const loadCartFromDatabase = async () => {
@@ -317,81 +299,56 @@ export const SupabaseCartProvider = ({ children }) => {
     if (newQuantity < 1) return;
 
     try {
-      if (isAuthenticated() && user) {
-        // Update in database
-        await cartService.updateQuantity(itemId, newQuantity);
-        await loadCartFromDatabase();
-      } else {
-        // Update in local cart
-        setLocalCart(prev => {
-          const updatedCart = prev.map(item =>
-            (item.id === itemId || item.product_id === itemId) 
-              ? { ...item, quantity: newQuantity }
-              : item
-          );
-          
-          // Update cartItems state for non-authenticated users
-          if (!isAuthenticated()) {
-            setCartItems(updatedCart);
-          }
-          
-          return updatedCart;
-        });
-      }
+      // Update in local cart only (no database calls)
+      setLocalCart(prev => {
+        const updatedCart = prev.map(item =>
+          (item.id === itemId || item.product_id === itemId) 
+            ? { ...item, quantity: newQuantity }
+            : item
+        );
+        
+        // Update cartItems state
+        setCartItems(updatedCart);
+        
+        return updatedCart;
+      });
     } catch (error) {
       console.error('Error updating quantity:', error);
       throw error;
     }
-  }, [user, isAuthenticated]);
+  }, []);
 
   // Remove item from cart
   const removeItem = useCallback(async (itemId) => {
     try {
-      if (isAuthenticated() && user) {
-        // Remove from database
-        await cartService.removeFromCart(itemId);
-        await loadCartFromDatabase();
-      } else {
-        // Remove from local cart
-        setLocalCart(prev => {
-          const updatedCart = prev.filter(item => 
-            item.id !== itemId && item.product_id !== itemId
-          );
-          
-          // Update cartItems state for non-authenticated users
-          if (!isAuthenticated()) {
-            setCartItems(updatedCart);
-          }
-          
-          return updatedCart;
-        });
-      }
+      // Remove from local cart only (no database calls)
+      setLocalCart(prev => {
+        const updatedCart = prev.filter(item => 
+          item.id !== itemId && item.product_id !== itemId
+        );
+        
+        // Update cartItems state
+        setCartItems(updatedCart);
+        
+        return updatedCart;
+      });
     } catch (error) {
       console.error('Error removing item:', error);
       throw error;
     }
-  }, [user, isAuthenticated]);
+  }, []);
 
   // Clear entire cart
   const clearCart = useCallback(async () => {
     try {
-      if (isAuthenticated() && user) {
-        // Clear from database
-        await cartService.clearCart(user.id);
-        setCartItems([]);
-      } else {
-        // Clear local cart
-        setLocalCart([]);
-        // Update cartItems state for non-authenticated users
-        if (!isAuthenticated()) {
-          setCartItems([]);
-        }
-      }
+      // Clear local cart only (no database calls)
+      setLocalCart([]);
+      setCartItems([]);
     } catch (error) {
       console.error('Error clearing cart:', error);
       throw error;
     }
-  }, [user, isAuthenticated]);
+  }, []);
 
   // Calculate cart totals
   const calculateSubtotal = useCallback(() => {
