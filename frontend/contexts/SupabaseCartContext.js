@@ -228,6 +228,13 @@ export const SupabaseCartProvider = ({ children }) => {
   // Add item to cart
   const addToCart = useCallback(async (product, quantity = 1, options = {}) => {
     try {
+      console.log('=== SupabaseCartContext addToCart ===');
+      console.log('Product data:', product);
+      console.log('Product ID:', product.id);
+      console.log('Product name:', product.name);
+      console.log('Product price:', product.price);
+      console.log('User authenticated:', isAuthenticated());
+      console.log('User ID:', user?.id);
 
       if (isAuthenticated() && user) {
         // Add to database cart with product data
@@ -242,6 +249,8 @@ export const SupabaseCartProvider = ({ children }) => {
           product // Pass complete product data
         );
         
+        console.log('Cart item added to database:', cartItem);
+        
         
         // Reload cart from database
         await loadCartFromDatabase();
@@ -251,6 +260,7 @@ export const SupabaseCartProvider = ({ children }) => {
         
         return cartItem;
       } else {
+        console.log('Adding to local cart (user not authenticated)');
         // Add to local cart - store all product data directly
         const newItem = {
           id: product.id,
@@ -271,6 +281,8 @@ export const SupabaseCartProvider = ({ children }) => {
           description: product.description,
           images: product.images
         };
+        
+        console.log('Local cart item created:', newItem);
         
         setLocalCart(prev => {
           // Check if item already exists

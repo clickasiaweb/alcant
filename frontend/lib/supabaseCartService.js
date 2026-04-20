@@ -195,16 +195,28 @@ class SupabaseCartService {
         }
 
         if (error) {
+          console.error('Cart insert error:', error);
           
-          // If table doesn't exist or permission error, return fallback
+          // If table doesn't exist or permission error, return fallback with product data
           if (error.code === '400' || error.message?.includes('400') || error.message?.includes('permission')) {
-              return {
+            console.log('Using fallback with product data');
+            return {
               id: 'fallback-' + Date.now(),
               user_id: userId,
               product_id: productId,
               quantity,
               selected_color: options.selected_color,
               selected_size: options.selected_size,
+              // Include product data in fallback
+              name: productData?.name || 'Unknown Product',
+              price: productData?.price || 0,
+              originalPrice: productData?.originalPrice || productData?.old_price || 0,
+              image: productData?.image || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
+              category: productData?.category || 'Unknown',
+              slug: productData?.slug,
+              description: productData?.description,
+              images: productData?.images,
+              variant: options.selected_color || productData?.variant || 'Standard',
               created_at: new Date().toISOString()
             };
           }
