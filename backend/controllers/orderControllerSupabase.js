@@ -216,6 +216,7 @@ exports.createOrder = async (req, res) => {
       .single();
 
     if (error) {
+      console.error('=== ORDER CREATION ERROR DEBUG ===');
       console.error('Supabase insert error:', error);
       console.error('Error details:', {
         message: error.message,
@@ -223,6 +224,8 @@ exports.createOrder = async (req, res) => {
         hint: error.hint,
         code: error.code
       });
+      console.error('Order data that failed:', JSON.stringify(orderData, null, 2));
+      console.error('=== END ORDER CREATION ERROR DEBUG ===');
       throw error;
     }
 
@@ -257,7 +260,13 @@ exports.createOrder = async (req, res) => {
       message: 'Order created successfully'
     });
   } catch (error) {
+    console.error('=== MAIN CATCH BLOCK ERROR ===');
     console.error('Error creating order:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error message:', error.message);
+    console.error('Error type:', typeof error);
+    console.error('Request body received:', JSON.stringify(req.body, null, 2));
+    console.error('=== END MAIN CATCH BLOCK ERROR ===');
     res.status(500).json({
       success: false,
       message: 'Error creating order',

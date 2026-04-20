@@ -368,7 +368,7 @@ const CheckoutPage = () => {
           name: item.name || `Product ${item.product_id}`,
           price: item.price || 1000,
           quantity: item.quantity,
-          image: item.image || '/images/products/default.jpg',
+          image: item.image || `${process.env.NEXT_PUBLIC_SITE_URL || 'https://alcant12.vercel.app'}/images/products/default.jpg`,
           variant: {
             color: item.selected_color || item.variant || 'Standard',
             size: item.selected_size || 'Standard'
