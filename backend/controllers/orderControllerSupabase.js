@@ -197,10 +197,10 @@ exports.createOrder = async (req, res) => {
       shipping_address: shippingAddress,
       billing_address: billingAddress || shippingAddress,
       notes: notes || `Order created with products: ${orderProducts.length} items. Subtotal: ${subtotal}, Tax: ${tax}, Shipping: ${shipping}, Discount: ${discountAmount}`,
-      payment_status: paymentDetails?.paidAt ? 'paid' : 'pending', // Use lowercase to match check constraint
+      payment_status: paymentDetails?.paidAt ? 'Paid' : 'Pending', // Use lowercase to match check constraint
       payment_method: paymentMethod, // Include payment_method
       payment_details: paymentDetails || {},
-      order_status: 'pending', // Use lowercase to match check constraint
+      order_status: 'Pending', // Use lowercase to match check constraint
       status_history: [{ // Include status history
         status: 'Pending',
         timestamp: new Date().toISOString(),
@@ -230,7 +230,7 @@ exports.createOrder = async (req, res) => {
     const responseOrder = {
       ...order,
       order_id: order.order_id || orderId, // Use database order_id or generated one
-      order_number: order.order_id || orderId, // For frontend compatibility
+      order_number: order.order_number || orderNumber, // For frontend compatibility
       products: orderProducts,
       subtotal,
       tax,

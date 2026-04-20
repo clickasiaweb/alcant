@@ -5,6 +5,7 @@
 CREATE TABLE orders (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   order_id VARCHAR(50) NOT NULL UNIQUE,
+  order_number VARCHAR(50) NOT NULL UNIQUE,
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   products JSONB NOT NULL,
   subtotal DECIMAL(10,2) NOT NULL CHECK (subtotal >= 0),
