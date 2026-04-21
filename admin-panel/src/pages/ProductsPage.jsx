@@ -177,6 +177,17 @@ export default function ProductsPage() {
     }
   }, []);
 
+  // Helper function to get correct image URL for products
+  const getProductImageUrl = (imageUrl) => {
+    if (!imageUrl) return '';
+    // If it's already a full URL, return as is
+    if (imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+    // If it's a relative URL, add the backend URL
+    return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${imageUrl}`;
+  };
+
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     
@@ -185,7 +196,7 @@ export default function ProductsPage() {
         const formData = new FormData();
         formData.append('image', file);
         
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/upload/image`, {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/upload/image`, {
           method: 'POST',
           body: formData
         });
@@ -252,7 +263,7 @@ export default function ProductsPage() {
           const formData = new FormData();
           formData.append('image', img.file);
           
-          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/upload/image`, {
+          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/upload/image`, {
             method: 'POST',
             body: formData
           });
@@ -696,7 +707,7 @@ export default function ProductsPage() {
                         <div className="flex items-center">
                           {product.image && (
                             <img
-                              src={product.image}
+                              src={getProductImageUrl(product.image)}
                               alt={product.name || product.title}
                               className="w-12 h-12 object-cover rounded-md mr-3"
                             />

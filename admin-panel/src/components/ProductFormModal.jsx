@@ -44,6 +44,26 @@ const ProductFormModal = ({
       setAvailableSubSubcategories([]);
     }
   }, [formData.subcategory, availableSubcategories]);
+
+  // Helper function to get correct image URL
+  const getImageUrl = (image) => {
+    if (typeof image === 'string') {
+      // If it's already a full URL, return as is
+      if (image.startsWith('http')) {
+        return image;
+      }
+      // If it's a relative URL, add the backend URL
+      return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${image}`;
+    } else if (image && image.url) {
+      // If it's an object with url property
+      if (image.url.startsWith('http')) {
+        return image.url;
+      }
+      return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${image.url}`;
+    }
+    return '';
+  };
+
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleSubmit(e);
@@ -305,7 +325,7 @@ const ProductFormModal = ({
                     {formData.images.map((image, index) => (
                       <div key={index} className="relative">
                         <img
-                          src={typeof image === 'string' ? image : image.url}
+                          src={getImageUrl(image)}
                           alt={`Product ${index + 1}`}
                           className="w-full h-32 object-cover rounded-md"
                           onError={(e) => {

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload Workflow Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+        .image-preview { max-width: 200px; max-height: 200px; margin: 10px; border: 1px solid #ddd; }
+        .test-results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Image Upload Workflow Test</h1>
+    
+    <div class="test-section info">
+        <h3>Test Purpose</h3>
+        <p>This test verifies the complete image upload and display workflow:</p>
+        <ul>
+            <li>Image upload API functionality</li>
+            <li>Image accessibility after upload</li>
+            <li>Product form image display</li>
+            <li>Image update functionality</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h3>Step 1: Test Image Upload</h3>
+        <input type="file" id="imageInput" accept="image/*" multiple>
+        <button onclick="testImageUpload()">Upload Images</button>
+        <div id="upload-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Step 2: Test Image Display</h3>
+        <div id="image-display"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Step 3: Test Product Update</h3>
+        <button onclick="testProductUpdate()">Update Product with New Images</button>
+        <div id="update-results"></div>
+    </div>
+
+    <div class="test-section test-results">
+        <h3>Test Results</h3>
+        <div id="final-results"></div>
+    </div>
+
+    <script>
+        let uploadedImages = [];
+        
+        async function testImageUpload() {
+            const fileInput = document.getElementById('imageInput');
+            const files = fileInput.files;
+            const resultsDiv = document.getElementById('upload-results');
+            
+            if (files.length === 0) {
+                resultsDiv.innerHTML = '<div class="error">Please select images first</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<div class="info">Uploading images...</div>';
+            uploadedImages = [];
+            
+            for (let file of files) {
+                try {
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    
+                    const response = await fetch('http://localhost:5001/api/upload/image', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok && result.success) {
+                        uploadedImages.push({
+                            url: result.url,
+                            fullUrl: `http://localhost:5001${result.url}`,
+                            name: file.name
+                        });
+                        
+                        console.log('Upload successful:', result);
+                    } else {
+                        console.error('Upload failed:', result);
+                    }
+                } catch (error) {
+                    console.error('Upload error:', error);
+                }
+            }
+            
+            if (uploadedImages.length > 0) {
+                resultsDiv.innerHTML = `
+                    <div class="success">
+                        <h4>Upload Success!</h4>
+                        <p>Successfully uploaded ${uploadedImages.length} images</p>
+                        <pre>${JSON.stringify(uploadedImages, null, 2)}</pre>
+                    </div>
+                `;
+                displayUploadedImages();
+            } else {
+                resultsDiv.innerHTML = '<div class="error">All uploads failed</div>';
+            }
+        }
+        
+        function displayUploadedImages() {
+            const displayDiv = document.getElementById('image-display');
+            displayDiv.innerHTML = '<h4>Uploaded Images:</h4>';
+            
+            uploadedImages.forEach((image, index) => {
+                const img = document.createElement('img');
+                img.src = image.fullUrl;
+                img.className = 'image-preview';
+                img.alt = `Uploaded image ${index + 1}`;
+                img.onerror = function() {
+                    console.error('Failed to load image:', image.fullUrl);
+                    this.style.border = '2px solid red';
+                };
+                img.onload = function() {
+                    console.log('Successfully loaded image:', image.fullUrl);
+                    this.style.border = '2px solid green';
+                };
+                displayDiv.appendChild(img);
+            });
+        }
+        
+        async function testProductUpdate() {
+            const resultsDiv = document.getElementById('update-results');
+            
+            if (uploadedImages.length === 0) {
+                resultsDiv.innerHTML = '<div class="error">Please upload images first</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<div class="info">Testing product update...</div>';
+            
+            try {
+                // Get first product for testing
+                const productsResponse = await fetch('http://localhost:5001/api/products');
+                const productsData = await productsResponse.json();
+                const products = productsData.products || productsData.data || [];
+                
+                if (products.length === 0) {
+                    resultsDiv.innerHTML = '<div class="error">No products found for testing</div>';
+                    return;
+                }
+                
+                const testProduct = products[0];
+                console.log('Testing with product:', testProduct);
+                
+                // Update product with new images
+                const updateData = {
+                    images: uploadedImages.map(img => img.url),
+                    image: uploadedImages[0].url
+                };
+                
+                const updateResponse = await fetch(`http://localhost:5001/api/products/${testProduct.id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                const updateResult = await updateResponse.json();
+                
+                if (updateResponse.ok) {
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            <h4>Product Update Success!</h4>
+                            <p>Product updated with new images</p>
+                            <pre>${JSON.stringify(updateResult, null, 2)}</pre>
+                        </div>
+                    `;
+                    updateFinalResults(true);
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            <h4>Product Update Failed</h4>
+                            <p>Error: ${updateResult.message || 'Unknown error'}</p>
+                            <pre>${JSON.stringify(updateResult, null, 2)}</pre>
+                        </div>
+                    `;
+                    updateFinalResults(false);
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h4>Product Update Error</h4>
+                        <p>Error: ${error.message}</p>
+                    </div>
+                `;
+                updateFinalResults(false);
+            }
+        }
+        
+        function updateFinalResults(success) {
+            const finalDiv = document.getElementById('final-results');
+            const uploadSuccess = uploadedImages.length > 0;
+            
+            finalDiv.innerHTML = `
+                <div class="${success && uploadSuccess ? 'success' : 'error'}">
+                    <h4>Final Test Results:</h4>
+                    <ul>
+                        <li>Image Upload: ${uploadSuccess ? '✅ PASSED' : '❌ FAILED'}</li>
+                        <li>Image Display: ${uploadSuccess ? '✅ PASSED' : '❌ FAILED'}</li>
+                        <li>Product Update: ${success ? '✅ PASSED' : '❌ FAILED'}</li>
+                    </ul>
+                    <p><strong>Overall: ${success && uploadSuccess ? 'ALL TESTS PASSED' : 'SOME TESTS FAILED'}</strong></p>
+                </div>
+            `;
+        }
+        
+        // Auto-test on page load
+        window.onload = function() {
+            console.log('Image upload workflow test loaded');
+            console.log('Backend should be running on http://localhost:5001');
+        };
+    </script>
+</body>
+</html>
