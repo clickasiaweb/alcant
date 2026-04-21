@@ -53,13 +53,13 @@ const ProductFormModal = ({
         return image;
       }
       // If it's a relative URL, add the backend URL
-      return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${image}`;
+      return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${image.startsWith('/') ? '' : '/'}${image}`;
     } else if (image && image.url) {
       // If it's an object with url property
       if (image.url.startsWith('http')) {
         return image.url;
       }
-      return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${image.url}`;
+      return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${image.url.startsWith('/') ? '' : '/'}${image.url}`;
     }
     return '';
   };

@@ -257,7 +257,8 @@ export default function ProductsPage() {
     const uploadedImages = [];
     
     for (const img of images) {
-      if (typeof img === 'object' && img.url && img.url.startsWith('blob:') && img.file) {
+      if (typeof img === 'object' && img.url && img.file) {
+        // Handle newly uploaded images (from handleImageUpload)
         try {
           console.log('🔄 Uploading blob image:', img.name);
           const formData = new FormData();
@@ -285,8 +286,10 @@ export default function ProductsPage() {
           // Skip this image if upload fails
         }
       } else if (typeof img === 'string') {
+        // Already uploaded images (strings)
         uploadedImages.push(img);
       } else if (typeof img === 'object' && img.url && !img.url.startsWith('blob:')) {
+        // Already uploaded images (objects with full URLs)
         uploadedImages.push(img.url);
       }
     }
