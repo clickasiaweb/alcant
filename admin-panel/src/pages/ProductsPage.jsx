@@ -185,7 +185,7 @@ export default function ProductsPage() {
       return imageUrl;
     }
     // If it's a relative URL, add the backend URL
-    return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${imageUrl}`;
+    return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
   };
 
   const handleImageUpload = async (e) => {
@@ -196,7 +196,7 @@ export default function ProductsPage() {
         const formData = new FormData();
         formData.append('image', file);
         
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/upload/image`, {
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/upload/image`, {
           method: 'POST',
           body: formData
         });
@@ -263,7 +263,7 @@ export default function ProductsPage() {
           const formData = new FormData();
           formData.append('image', img.file);
           
-          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/upload/image`, {
+          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/upload/image`, {
             method: 'POST',
             body: formData
           });
