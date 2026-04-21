@@ -186,7 +186,7 @@ exports.createOrder = async (req, res) => {
 
     // Create order with EXISTING SCHEMA ONLY (explicitly set user_id to null)
     const orderData = {
-      user_id: null, // Explicitly set to null to avoid foreign key constraint
+      user_id: '00000000-0000-0000-0000-000000000000', // System UUID for orders without user
       order_id: orderId, // Use order_id instead of order_number
       order_number: orderNumber, // Include order_number as well
       products: orderProducts, // Include products array
