@@ -78,11 +78,17 @@ export default function ProductsPage() {
       setLoading(true);
       const [productsData, categoriesData] = await Promise.all([
         getAdminProducts(),
-        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:3000/api'}/categories/hierarchy`).then(res => res.json()),
+        fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/categories/hierarchy`).then(res => {
+          if (!res.ok) throw new Error('Failed to fetch categories');
+          return res.json();
+        }),
       ]);
 
       const products = productsData.products || productsData.data || [];
       const categories = categoriesData.data || [];
+      
+      console.log('📦 Products loaded:', products.length);
+      console.log('📂 Categories loaded:', categories.length);
       
       setProducts(Array.isArray(products) ? products : []);
       setCategories(Array.isArray(categories) ? categories : []);
@@ -298,25 +304,28 @@ export default function ProductsPage() {
       let processedImages = [];
       let mainImage = '';
 
-      // Process image URLs if provided
-      if (formData.imageUrls && formData.imageUrls.trim()) {
+      // Always process images from formData.images first (includes new uploads)
+      if (formData.images && formData.images.length > 0) {
+        console.log('🔄 Processing images before form submission...');
+        console.log('📸 Form images:', formData.images);
+        
+        // Upload blob URLs and get final URLs
+        processedImages = await uploadBlobImages(formData.images);
+        mainImage = processedImages[0] || '';
+        console.log('✅ Final processed images:', processedImages);
+      }
+      // Process image URLs if provided as fallback
+      else if (formData.imageUrls && formData.imageUrls.trim()) {
         const urls = formData.imageUrls.split('\n').filter(url => url.trim());
         processedImages = urls;
         mainImage = urls[0] || '';
         console.log('📸 Processing image URLs:', processedImages);
       }
-      // Process existing images from formData.images (including blob URLs)
-      else if (formData.images && formData.images.length > 0) {
-        console.log('🔄 Uploading blob images before form submission...');
-        processedImages = await uploadBlobImages(formData.images);
-        mainImage = processedImages[0] || '';
-        console.log('📸 Final processed images:', processedImages);
-      }
-
-      // Fallback to existing product image if no new valid images
-      if (editingProduct && processedImages.length === 0 && editingProduct.image) {
-        mainImage = editingProduct.image;
-        processedImages = editingProduct.images || [mainImage];
+      // Fallback to existing product images if no new images
+      else if (editingProduct && editingProduct.images && editingProduct.images.length > 0) {
+        processedImages = editingProduct.images;
+        mainImage = editingProduct.image || editingProduct.images[0];
+        console.log('📸 Using existing product images:', processedImages);
       }
 
       // ✅ SCHEMA COMPLIANT: Only fields that exist in Supabase
@@ -381,6 +390,11 @@ export default function ProductsPage() {
     }
     
     setEditingProduct(product);
+    
+    // ✅ FIX: Properly handle existing images
+    const existingImages = product.images || [];
+    console.log('📸 Loading existing images for edit:', existingImages);
+    
     setFormData({
       name: product.name || product.title || "",
       slug: product.slug || "",
@@ -393,7 +407,8 @@ export default function ProductsPage() {
       subSubcategoryId: product.sub_subcategory_id || "",
       price: product.price || product.final_price || "",
       oldPrice: product.old_price || "",
-      images: product.images || [],
+      images: existingImages, // ✅ Load existing images properly
+      imageUrls: existingImages.join('\n') || '', // ✅ Also populate image URLs field
       stock: product.stock || 0,
       isActive: product.is_active !== false,
       isNew: product.is_new || false,
@@ -756,8 +771,6 @@ export default function ProductsPage() {
             formData={formData}
             editingProduct={editingProduct}
             categories={categories}
-            subcategories={[]}
-            subSubcategories={[]}
             handleInputChange={handleInputChange}
             handleSubmit={handleSubmit}
             resetForm={resetForm}

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 
 const ProductFormModal = ({ 
@@ -11,6 +11,39 @@ const ProductFormModal = ({
   handleImageUpload, 
   removeImage 
 }) => {
+  const [availableSubcategories, setAvailableSubcategories] = useState([]);
+  const [availableSubSubcategories, setAvailableSubSubcategories] = useState([]);
+
+  // Update available subcategories when category changes
+  useEffect(() => {
+    if (formData.category && categories.length > 0) {
+      const selectedCategory = categories.find(cat => cat.id === formData.category);
+      if (selectedCategory && selectedCategory.subcategories) {
+        setAvailableSubcategories(selectedCategory.subcategories);
+      } else {
+        setAvailableSubcategories([]);
+      }
+      // Reset sub-subcategory when category changes
+      setAvailableSubSubcategories([]);
+    } else {
+      setAvailableSubcategories([]);
+      setAvailableSubSubcategories([]);
+    }
+  }, [formData.category, categories]);
+
+  // Update available sub-subcategories when subcategory changes
+  useEffect(() => {
+    if (formData.subcategory && availableSubcategories.length > 0) {
+      const selectedSubcategory = availableSubcategories.find(sub => sub.id === formData.subcategory);
+      if (selectedSubcategory && selectedSubcategory.sub_subcategories) {
+        setAvailableSubSubcategories(selectedSubcategory.sub_subcategories);
+      } else {
+        setAvailableSubSubcategories([]);
+      }
+    } else {
+      setAvailableSubSubcategories([]);
+    }
+  }, [formData.subcategory, availableSubcategories]);
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleSubmit(e);
@@ -117,14 +150,38 @@ const ProductFormModal = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Sub-Category
                 </label>
-                <input
-                  type="text"
+                <select
                   name="subcategory"
                   value={formData.subcategory}
                   onChange={handleInputChange}
-                  placeholder="Enter sub-category"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                >
+                  <option value="">Select Sub-Category</option>
+                  {availableSubcategories.map(subcategory => (
+                    <option key={subcategory.id || subcategory._id} value={subcategory.id || subcategory._id}>
+                      {subcategory.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Sub-Sub-Category (Level 3)
+                </label>
+                <select
+                  name="subSubcategoryId"
+                  value={formData.subSubcategoryId}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select Sub-Sub-Category</option>
+                  {availableSubSubcategories.map(subSubcategory => (
+                    <option key={subSubcategory.id || subSubcategory._id} value={subSubcategory.id || subSubcategory._id}>
+                      {subSubcategory.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
@@ -240,23 +297,44 @@ const ProductFormModal = ({
               </div>
 
               {formData.images.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {formData.images.map((image, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={image.url}
-                        alt={`Product ${index + 1}`}
-                        className="w-full h-32 object-cover rounded-md"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(index)}
-                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                      >
-                        <FiTrash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">
+                    Current Images ({formData.images.length})
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {formData.images.map((image, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={typeof image === 'string' ? image : image.url}
+                          alt={`Product ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-md"
+                          onError={(e) => {
+                            e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y3ZjdmNyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2UgRXJyb3I8L3RleHQ+PC9zdmc+';
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                          title="Remove image"
+                        >
+                          <FiTrash2 className="w-3 h-3" />
+                        </button>
+                        <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
+                          {index + 1}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {editingProduct && editingProduct.images && editingProduct.images.length > 0 && (
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> This product has {editingProduct.images.length} existing image(s). 
+                    New images will replace the existing ones when you update.
+                  </p>
                 </div>
               )}
             </div>
