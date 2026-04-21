@@ -184,8 +184,9 @@ exports.createOrder = async (req, res) => {
       payment_method: paymentMethod
     });
 
-    // Create order with EXISTING SCHEMA ONLY (skip user_id to avoid foreign key constraint)
+    // Create order with EXISTING SCHEMA ONLY (explicitly set user_id to null)
     const orderData = {
+      user_id: null, // Explicitly set to null to avoid foreign key constraint
       order_id: orderId, // Use order_id instead of order_number
       order_number: orderNumber, // Include order_number as well
       products: orderProducts, // Include products array

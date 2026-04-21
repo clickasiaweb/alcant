@@ -156,7 +156,7 @@ export const SupabaseCartProvider = ({ children }) => {
     if (!isAuthenticated()) {
       // Use local cart directly since we store all product info
       setCartItems(localCart);
-      console.log('Cart sync - Set cartItems to localCart:', localCart);
+      // console.log('Cart sync - Set cartItems to localCart:', localCart);
     }
   }, [localCart, isAuthenticated]);
 
@@ -164,7 +164,7 @@ export const SupabaseCartProvider = ({ children }) => {
   useEffect(() => {
     const loadAndMergeCart = async () => {
       if (user) {
-        console.log('Cart sync - User authenticated, loading from database');
+        // console.log('Cart sync - User authenticated, loading from database');
         // Reset merge flag when user changes
         hasMergedCart.current = false;
         
@@ -177,7 +177,7 @@ export const SupabaseCartProvider = ({ children }) => {
           await mergeCartOnLogin();
         }
       } else {
-        console.log('Cart sync - User not authenticated, using local cart');
+        // console.log('Cart sync - User not authenticated, using local cart');
         // Use local cart when not authenticated
         setCartItems(localCart);
       }
@@ -189,15 +189,15 @@ export const SupabaseCartProvider = ({ children }) => {
   // Load cart from database
   const loadCartFromDatabase = async () => {
     if (!user) {
-      console.log('Cart sync - No user provided, skipping database cart load');
+      // console.log('Cart sync - No user provided, skipping database cart load');
       return;
     }
 
     setLoading(true);
     try {
-      console.log('Cart sync - Loading cart from database for user:', user.id);
+      // console.log('Cart sync - Loading cart from database for user:', user.id);
       const items = await cartService.getCartItems(user.id);
-      console.log('Cart sync - Loaded items from database:', items);
+      // console.log('Cart sync - Loaded items from database:', items);
       setCartItems(items);
     } catch (error) {
       console.error('Cart sync - Error loading from database, using local cart:', error);

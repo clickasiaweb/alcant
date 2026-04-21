@@ -21,7 +21,7 @@ class SupabaseClient {
     // Service client for admin operations (only create if service key is provided)
     this.serviceClient = this.supabaseServiceKey
       ? createClient(this.supabaseUrl, this.supabaseServiceKey)
-      : null;
+      : this.client; // Fallback to regular client if service key not available
   }
 
   /**

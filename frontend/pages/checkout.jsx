@@ -55,7 +55,7 @@ const CheckoutPage = () => {
   let cartContext;
   try {
     cartContext = useSupabaseCart();
-    console.log('Checkout - SupabaseCart context loaded successfully');
+    // console.log('Checkout - SupabaseCart context loaded successfully');
   } catch (error) {
     console.error('Checkout - Cart context error:', error);
     setError('Cart context error');
