@@ -81,6 +81,14 @@ const ProductFormModal = ({
     return image && image.isBlob;
   };
 
+  const handleImageUrlChange = (e) => {
+    const { name, value } = e.target;
+    // Update the parent form data with image URL changes
+    if (typeof handleInputChange === 'function') {
+      handleInputChange(e);
+    }
+  };
+
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleSubmit(e);
@@ -335,6 +343,66 @@ const ProductFormModal = ({
                   />
                   <div className="mt-2 text-xs text-gray-500">
                     You can select multiple images at once. Images will be uploaded immediately or shown as preview.
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  OR Add Image URLs
+                  <span className="text-gray-500 font-normal ml-2">(Google Drive, external URLs, etc.)</span>
+                </label>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Image 1 (Main)</label>
+                      <input
+                        type="url"
+                        name="imageUrl1"
+                        value={formData.imageUrl1 || ''}
+                        onChange={handleImageUrlChange}
+                        placeholder="https://drive.google.com/file/d/..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Image 2</label>
+                      <input
+                        type="url"
+                        name="imageUrl2"
+                        value={formData.imageUrl2 || ''}
+                        onChange={handleImageUrlChange}
+                        placeholder="https://drive.google.com/file/d/..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Image 3</label>
+                      <input
+                        type="url"
+                        name="imageUrl3"
+                        value={formData.imageUrl3 || ''}
+                        onChange={handleImageUrlChange}
+                        placeholder="https://drive.google.com/file/d/..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Image 4</label>
+                      <input
+                        type="url"
+                        name="imageUrl4"
+                        value={formData.imageUrl4 || ''}
+                        onChange={handleImageUrlChange}
+                        placeholder="https://drive.google.com/file/d/..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                    <p className="text-xs text-blue-800">
+                      <strong>💡 Tip:</strong> Paste Google Drive share links directly - they'll be auto-converted to image URLs!
+                    </p>
                   </div>
                 </div>
               </div>

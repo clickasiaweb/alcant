@@ -41,6 +41,10 @@ export default function ProductsPage() {
     oldPrice: "",
     images: [],
     imageUrls: "", // ✅ Add imageUrls field for URL input
+    imageUrl1: "", // ✅ Individual image URL fields
+    imageUrl2: "",
+    imageUrl3: "",
+    imageUrl4: "",
     stock: "",
     isActive: true,
     isNew: false,
@@ -119,6 +123,10 @@ export default function ProductsPage() {
           oldPrice: product.old_price || "",
           images: product.images || [],
           imageUrls: product.images ? product.images.join('\n') : '', // ✅ Add imageUrls field
+          imageUrl1: (product.images && product.images[0]) || '', // ✅ Add individual URL fields
+          imageUrl2: (product.images && product.images[1]) || '',
+          imageUrl3: (product.images && product.images[2]) || '',
+          imageUrl4: (product.images && product.images[3]) || '',
           stock: product.stock || "",
           isActive: product.is_active !== undefined ? product.is_active : true,
           isNew: product.is_new || false,
@@ -148,6 +156,31 @@ export default function ProductsPage() {
       .replace(/(^-|-$)/g, "");
   };
 
+  // Google Drive URL Converter
+  const convertGoogleDriveURL = (url) => {
+    if (!url || typeof url !== 'string') return url;
+    
+    // Handle different Google Drive URL formats
+    const patterns = [
+      // Standard format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+      /\/file\/d\/([a-zA-Z0-9_-]+)/,
+      // Alternative format: https://drive.google.com/open?id=FILE_ID
+      /[?&]id=([a-zA-Z0-9_-]+)/,
+      // Direct format: https://drive.google.com/uc?id=FILE_ID
+      /uc\?id=([a-zA-Z0-9_-]+)/
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        const fileId = match[1];
+        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+      }
+    }
+
+    return url; // Return original if no match found
+  };
+
   const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     
@@ -167,6 +200,13 @@ export default function ProductsPage() {
       setFormData(prev => ({
         ...prev,
         [name]: value
+      }));
+    } else if (type === "url") {
+      // Handle URL input - convert Google Drive URLs
+      const convertedURL = convertGoogleDriveURL(value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: convertedURL
       }));
     } else {
       // For other input types
@@ -313,6 +353,23 @@ export default function ProductsPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // ✅ Enhanced validation
+    if (!formData.name || formData.name.trim().length < 2) {
+      toast.error('Product name must be at least 2 characters long');
+      return;
+    }
+    
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      toast.error('Price must be greater than 0');
+      return;
+    }
+    
+    if (!formData.category) {
+      toast.error('Please select a category');
+      return;
+    }
+    
     try {
       console.log('🔥 Form submission started!');
       console.log('📝 Form data before submission:', JSON.stringify(formData, null, 2));
@@ -328,26 +385,63 @@ export default function ProductsPage() {
         }
       }
       
-      // ✅ FIX: Process images properly
+      // ✅ ENHANCED: Process images with better error handling
       let processedImages = [];
       let mainImage = '';
+      let hasImageErrors = false;
 
-      // Always process images from formData.images first (includes new uploads)
+      // Collect images from all sources: uploaded files + individual URL fields
+      const allImages = [];
+
+      // First, add uploaded files
       if (formData.images && formData.images.length > 0) {
-        console.log('🔄 Processing images before form submission...');
+        console.log('🔄 Processing uploaded files...');
         console.log('📸 Form images:', formData.images);
         
-        // Upload blob URLs and get final URLs
-        processedImages = await uploadBlobImages(formData.images);
-        mainImage = processedImages[0] || '';
-        console.log('✅ Final processed images:', processedImages);
+        try {
+          // Upload blob URLs and get final URLs
+          const uploadedImages = await uploadBlobImages(formData.images);
+          allImages.push(...uploadedImages);
+          console.log('✅ Uploaded images processed:', uploadedImages);
+          
+          // Check if any images failed to upload
+          if (uploadedImages.length === 0 && formData.images.length > 0) {
+            hasImageErrors = true;
+            toast.warning('Some uploaded images failed. Product will be saved without them.');
+          }
+        } catch (imageError) {
+          console.error('❌ Image processing error:', imageError);
+          hasImageErrors = true;
+          toast.warning('Image processing failed. Product will be saved without uploaded images.');
+        }
       }
-      // Process image URLs if provided as fallback
-      else if (formData.imageUrls && formData.imageUrls.trim()) {
+
+      // Second, add individual image URLs (Google Drive, external URLs, etc.)
+      const imageUrls = [
+        formData.imageUrl1,
+        formData.imageUrl2,
+        formData.imageUrl3,
+        formData.imageUrl4
+      ].filter(url => url && url.trim() !== '');
+
+      if (imageUrls.length > 0) {
+        console.log('🔗 Processing image URLs:', imageUrls);
+        allImages.push(...imageUrls);
+      }
+
+      // Third, process imageUrls field as fallback (for backward compatibility)
+      if (formData.imageUrls && formData.imageUrls.trim()) {
         const urls = formData.imageUrls.split('\n').filter(url => url.trim());
-        processedImages = urls;
-        mainImage = urls[0] || '';
-        console.log('📸 Processing image URLs:', processedImages);
+        console.log('📸 Processing legacy image URLs:', urls);
+        allImages.push(...urls);
+      }
+
+      // Set final processed images
+      if (allImages.length > 0) {
+        processedImages = allImages;
+        mainImage = allImages[0] || '';
+        console.log('✅ Final processed images:', processedImages);
+        console.log('🖼️ Main image:', mainImage);
       }
       // Fallback to existing product images if no new images
       else if (editingProduct && editingProduct.images && editingProduct.images.length > 0) {
@@ -356,11 +450,21 @@ export default function ProductsPage() {
         console.log('📸 Using existing product images:', processedImages);
       }
 
+      // ✅ ENHANCED: Generate unique slug if not provided
+      const generateUniqueSlug = (name, existingSlug = null) => {
+        if (existingSlug && existingSlug.trim()) {
+          return existingSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        }
+        const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const timestamp = Date.now();
+        return `${baseSlug}-${timestamp}`;
+      };
+
       // ✅ SCHEMA COMPLIANT: Only fields that exist in Supabase
       const productData = {
-        name: formData.name,
-        slug: formData.slug || formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        description: formData.description || formData.shortDescription || 'Product description', // ✅ Required field
+        name: formData.name.trim(),
+        slug: generateUniqueSlug(formData.name, formData.slug),
+        description: formData.description?.trim() || formData.shortDescription?.trim() || 'Product description', // ✅ Required field
         price: parseFloat(formData.price) || 0,
         old_price: parseFloat(formData.oldPrice) || null,
         final_price: parseFloat(formData.price) || 0,
@@ -368,7 +472,7 @@ export default function ProductsPage() {
         subcategory: formData.subcategory || 'uncategorized', // ✅ Required field, cannot be null
         sub_subcategory: formData.subSubcategory || null, // ✅ Add sub-subcategory field (text)
         sub_subcategory_id: formData.subSubcategoryId || null, // ✅ Add sub-subcategory ID field (UUID)
-        brand: formData.brand || 'Unknown Brand', // ✅ Add brand field with default
+        brand: formData.brand?.trim() || 'Unknown Brand', // ✅ Add brand field with default
         images: processedImages,
         image: mainImage,
         stock: parseInt(formData.stock) || 0,
@@ -388,23 +492,66 @@ export default function ProductsPage() {
       console.log('📸 Final images:', processedImages);
       console.log('🖼️ Main image:', mainImage);
 
-      if (editingProduct) {
-        console.log('📝 Updating product...');
-        const result = await updateProduct(productId, productData);
-        console.log('✅ Update result:', result);
-        toast.success("Product updated successfully!");
-      } else {
-        console.log('➕ Creating new product...');
-        const result = await createProduct(productData);
-        console.log('✅ Create result:', result);
-        toast.success("Product created successfully!");
+      // ✅ ENHANCED: Show loading state
+      const loadingMessage = editingProduct ? 'Updating product...' : 'Creating product...';
+      const loadingToast = toast.loading(loadingMessage);
+
+      try {
+        let result;
+        if (editingProduct) {
+          console.log('📝 Updating product...');
+          result = await updateProduct(productId, productData);
+          console.log('✅ Update result:', result);
+          toast.success("Product updated successfully!");
+        } else {
+          console.log('➕ Creating new product...');
+          result = await createProduct(productData);
+          console.log('✅ Create result:', result);
+          toast.success("Product created successfully!");
+        }
+        
+        // ✅ Success feedback
+        toast.dismiss(loadingToast);
+        resetForm();
+        loadData();
+        
+        // ✅ Additional success message with image status
+        if (hasImageErrors) {
+          toast.info('Product saved but some images had issues. You can add images later.');
+        } else if (processedImages.length > 0) {
+          toast.success(`Product saved with ${processedImages.length} image(s)`);
+        }
+        
+      } catch (apiError) {
+        toast.dismiss(loadingToast);
+        throw apiError; // Re-throw to be caught by outer catch
       }
-      resetForm();
-      loadData();
+      
     } catch (error) {
-      console.error('❌ Product creation error:', error);
+      console.error('❌ Product submission error:', error);
       console.error('❌ Error response:', error.response?.data);
-      toast.error(error.response?.data?.message || "Error saving product");
+      
+      // ✅ ENHANCED: Better error handling
+      let errorMessage = "Error saving product";
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      // Handle specific error cases
+      if (errorMessage.includes('duplicate') || errorMessage.includes('already exists')) {
+        errorMessage = 'A product with this name or slug already exists. Please use a different name.';
+      } else if (errorMessage.includes('validation') || errorMessage.includes('required')) {
+        errorMessage = 'Please fill in all required fields correctly.';
+      } else if (errorMessage.includes('network') || errorMessage.includes('connection')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
@@ -437,6 +584,10 @@ export default function ProductsPage() {
       oldPrice: product.old_price || "",
       images: existingImages, // ✅ Load existing images properly
       imageUrls: existingImages.join('\n') || '', // ✅ Also populate image URLs field
+      imageUrl1: existingImages[0] || '', // ✅ Populate individual URL fields
+      imageUrl2: existingImages[1] || '',
+      imageUrl3: existingImages[2] || '',
+      imageUrl4: existingImages[3] || '',
       stock: product.stock || 0,
       isActive: product.is_active !== false,
       isNew: product.is_new || false,
@@ -529,6 +680,10 @@ export default function ProductsPage() {
       oldPrice: "",
       images: [],
       imageUrls: "", // ✅ Add imageUrls field
+      imageUrl1: "", // ✅ Individual image URL fields
+      imageUrl2: "",
+      imageUrl3: "",
+      imageUrl4: "",
       stock: "",
       isActive: true,
       isNew: false,

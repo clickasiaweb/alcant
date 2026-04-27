@@ -5,6 +5,31 @@ const { supabase } = require('../config/supabase');
 const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 
+// Google Drive URL Converter
+function convertGoogleDriveURL(url) {
+  if (!url || typeof url !== 'string') return url;
+  
+  // Handle different Google Drive URL formats
+  const patterns = [
+    // Standard format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+    /\/file\/d\/([a-zA-Z0-9_-]+)/,
+    // Alternative format: https://drive.google.com/open?id=FILE_ID
+    /[?&]id=([a-zA-Z0-9_-]+)/,
+    // Direct format: https://drive.google.com/uc?id=FILE_ID
+    /uc\?id=([a-zA-Z0-9_-]+)/
+  ];
+
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) {
+      const fileId = match[1];
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+  }
+
+  return url; // Return original if no match found
+}
+
 // Create direct service client to bypass RLS
 let supabaseService;
 try {
@@ -509,10 +534,10 @@ const parseVariants = (rowData) => {
           price: prices[i],
           stock: stocks[i],
           images: variantImages.length > 0 ? variantImages : [
-            rowData.image_1, 
-            rowData.image_2, 
-            rowData.image_3, 
-            rowData.image_4
+            convertGoogleDriveURL(rowData.image_1), 
+            convertGoogleDriveURL(rowData.image_2), 
+            convertGoogleDriveURL(rowData.image_3), 
+            convertGoogleDriveURL(rowData.image_4)
           ].filter(img => img && img.toString().trim() !== '')
         });
       }
@@ -520,10 +545,10 @@ const parseVariants = (rowData) => {
   } else if (rowData.color) {
     // Single color variant
     const variantImages = [
-      rowData.image_1, 
-      rowData.image_2, 
-      rowData.image_3, 
-      rowData.image_4
+      convertGoogleDriveURL(rowData.image_1), 
+      convertGoogleDriveURL(rowData.image_2), 
+      convertGoogleDriveURL(rowData.image_3), 
+      convertGoogleDriveURL(rowData.image_4)
     ].filter(img => img && img.toString().trim() !== '');
     
     variants.push({
@@ -699,8 +724,8 @@ const importProducts = async (req, res) => {
           short_description: productData.short_description || null,
           sku: productData.sku,
           weight: productData.weight || null,
-          images: images.length > 0 ? images : [productData.image_1 || ''],
-          image: productData.image_1 || '',
+          images: images.length > 0 ? images : [convertGoogleDriveURL(productData.image_1) || ''],
+          image: convertGoogleDriveURL(productData.image_1) || '',
           stock: productData.stock,
           rating: 0,
           reviews: 0,
