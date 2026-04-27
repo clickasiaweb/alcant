@@ -157,6 +157,33 @@ app.use('/api/orders', orderRoutes);
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Production-specific uploads setup
+if (process.env.NODE_ENV === 'production') {
+  // Ensure uploads directory exists in production
+  const uploadsDir = path.join(__dirname, 'uploads');
+  const imagesDir = path.join(uploadsDir, 'images');
+  
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('📁 Created production uploads directory');
+  }
+  
+  if (!fs.existsSync(imagesDir)) {
+    fs.mkdirSync(imagesDir, { recursive: true });
+    console.log('📁 Created production images directory');
+  }
+  
+  // Add CORS headers for uploads in production
+  app.use('/uploads', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type');
+    next();
+  });
+  
+  console.log('✅ Production uploads and CORS configured');
+}
+
 
 
 // Health check with database status
