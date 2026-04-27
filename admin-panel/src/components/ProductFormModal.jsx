@@ -64,6 +64,23 @@ const ProductFormModal = ({
     return '';
   };
 
+  // Helper function to get image display name
+  const getImageDisplayName = (image, index) => {
+    if (typeof image === 'string') {
+      return `Image ${index + 1}`;
+    } else if (image && image.name) {
+      return image.name;
+    } else if (image && image.filename) {
+      return image.filename;
+    }
+    return `Image ${index + 1}`;
+  };
+
+  // Helper function to check if image is a blob/preview
+  const isBlobImage = (image) => {
+    return image && image.isBlob;
+  };
+
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleSubmit(e);
@@ -306,14 +323,20 @@ const ProductFormModal = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Upload Images
+                  <span className="text-gray-500 font-normal ml-2">(JPEG, PNG, GIF, WebP - Max 5MB each)</span>
                 </label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="relative">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    onChange={handleImageUpload}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  <div className="mt-2 text-xs text-gray-500">
+                    You can select multiple images at once. Images will be uploaded immediately or shown as preview.
+                  </div>
+                </div>
               </div>
 
               {formData.images.length > 0 && (
@@ -323,11 +346,11 @@ const ProductFormModal = ({
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {formData.images.map((image, index) => (
-                      <div key={index} className="relative">
+                      <div key={index} className="relative group">
                         <img
                           src={getImageUrl(image)}
-                          alt={`Product ${index + 1}`}
-                          className="w-full h-32 object-cover rounded-md"
+                          alt={getImageDisplayName(image, index)}
+                          className="w-full h-32 object-cover rounded-md transition-opacity group-hover:opacity-90"
                           onError={(e) => {
                             e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y3ZjdmNyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2UgRXJyb3I8L3RleHQ+PC9zdmc+';
                           }}
@@ -335,7 +358,7 @@ const ProductFormModal = ({
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
                           title="Remove image"
                         >
                           <FiTrash2 className="w-3 h-3" />
@@ -343,9 +366,22 @@ const ProductFormModal = ({
                         <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
                           {index + 1}
                         </div>
+                        {isBlobImage(image) && (
+                          <div className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+                            Preview
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity rounded-md pointer-events-none"></div>
                       </div>
                     ))}
                   </div>
+                  {formData.images.some(img => isBlobImage(img)) && (
+                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                      <p className="text-sm text-yellow-800">
+                        <strong>Note:</strong> Some images are previews and will be uploaded when you save the product.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 

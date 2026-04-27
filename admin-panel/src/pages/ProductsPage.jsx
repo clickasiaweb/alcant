@@ -190,28 +190,35 @@ export default function ProductsPage() {
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
+    console.log('📸 Starting image upload for', files.length, 'files');
     
     try {
       const uploadPromises = files.map(async (file) => {
         const formData = new FormData();
         formData.append('image', file);
         
-        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/upload/image`, {
+        console.log('🔄 Uploading file:', file.name);
+        
+        const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/upload/image`, {
           method: 'POST',
           body: formData
         });
         
         if (!response.ok) {
-          throw new Error(`Upload failed: ${response.statusText}`);
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Upload failed: ${response.statusText}`);
         }
         
         const result = await response.json();
+        console.log('✅ Upload successful for:', file.name, result);
         
         if (result.success) {
           return {
             url: result.url,
+            fullUrl: result.fullUrl,
             name: file.name,
-            file: file
+            filename: result.filename,
+            size: result.size
           };
         } else {
           throw new Error(result.message || 'Upload failed');
@@ -219,6 +226,7 @@ export default function ProductsPage() {
       });
       
       const uploadedImages = await Promise.all(uploadPromises);
+      console.log('🎉 All images uploaded successfully:', uploadedImages);
       
       setFormData(prev => ({
         ...prev,
@@ -228,20 +236,24 @@ export default function ProductsPage() {
       toast.success(`${uploadedImages.length} image(s) uploaded successfully!`);
       
     } catch (error) {
-      console.error('Image upload error:', error);
+      console.error('❌ Image upload error:', error);
       toast.error('Failed to upload images: ' + error.message);
       
       // Fallback to blob URLs for preview if upload fails
+      console.log('🔄 Using blob URLs as fallback');
       const fallbackImages = files.map(file => ({
         url: URL.createObjectURL(file),
         name: file.name,
-        file: file
+        file: file,
+        isBlob: true
       }));
       
       setFormData(prev => ({
         ...prev,
         images: [...prev.images, ...fallbackImages]
       }));
+      
+      toast.warning('Images uploaded as preview. They will be uploaded when you save the product.');
     }
   };
 
@@ -252,25 +264,26 @@ export default function ProductsPage() {
     }));
   };
 
-  // Function to upload blob URLs before form submission
+  // Function to upload blob images before form submission
   const uploadBlobImages = async (images) => {
     const uploadedImages = [];
     
     for (const img of images) {
-      if (typeof img === 'object' && img.url && img.file) {
-        // Handle newly uploaded images (from handleImageUpload)
+      if (img.isBlob && img.file) {
+        // Handle newly uploaded images that failed to upload initially (blob URLs)
         try {
           console.log('🔄 Uploading blob image:', img.name);
           const formData = new FormData();
           formData.append('image', img.file);
           
-          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/upload/image`, {
+          const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/upload/image`, {
             method: 'POST',
             body: formData
           });
           
           if (!response.ok) {
-            throw new Error(`Upload failed: ${response.statusText}`);
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Upload failed: ${response.statusText}`);
           }
           
           const result = await response.json();
@@ -283,12 +296,13 @@ export default function ProductsPage() {
           }
         } catch (error) {
           console.error('❌ Failed to upload blob image:', img.name, error);
+          toast.error(`Failed to upload image ${img.name}: ${error.message}`);
           // Skip this image if upload fails
         }
       } else if (typeof img === 'string') {
         // Already uploaded images (strings)
         uploadedImages.push(img);
-      } else if (typeof img === 'object' && img.url && !img.url.startsWith('blob:')) {
+      } else if (typeof img === 'object' && img.url && !img.url.startsWith('blob:') && !img.isBlob) {
         // Already uploaded images (objects with full URLs)
         uploadedImages.push(img.url);
       }
@@ -552,7 +566,7 @@ export default function ProductsPage() {
       searchTerm,
       filterStatus,
       filterCategory
-    });
+    }); 
     
     return matchesSearch && matchesStatus && matchesCategory;
   });
