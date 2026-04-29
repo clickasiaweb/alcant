@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import ProductCard from '../../components/ProductCard';
-import { getProducts } from '../../services/apiService';
-import { getCategories } from '../../services/categoryService';
+import { getProducts } from '../../services/api';
+import { categoryService } from '../../services/categoryService';
 
 const CategoryPage = () => {
   const router = useRouter();
@@ -54,7 +54,7 @@ const CategoryPage = () => {
       });
 
       // Fetch category information for breadcrumb
-      const categoriesResponse = await getCategories();
+      const categoriesResponse = await categoryService.getCategories();
       const categoryData = buildCategoryInfo(categoriesResponse.data || [], slug);
       
       setCategoryInfo(categoryData);
