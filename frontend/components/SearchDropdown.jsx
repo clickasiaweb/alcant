@@ -2,75 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { Search, Clock, TrendingUp, X } from 'lucide-react';
 import { useSearch } from '../contexts/SearchContext';
+import searchService from '../lib/searchService';
 
-// Mock search results (exact copy from search.jsx)
-const mockProducts = [
-  {
-    id: 1,
-    name: 'Premium Industrial Automation System',
-    slug: 'premium-industrial-automation-system',
-    price: 25000,
-    originalPrice: 28000,
-    rating: 4.8,
-    reviews: 324,
-    image: 'https://via.placeholder.com/300x300/1a365d/ffffff?text=Automation',
-    category: 'Automation',
-    isNew: true,
-    discount: 10
-  },
-  {
-    id: 2,
-    name: 'Precision CNC Machine',
-    slug: 'precision-cnc-machine',
-    price: 180000,
-    rating: 4.9,
-    reviews: 128,
-    image: 'https://via.placeholder.com/300x300/2c5282/ffffff?text=CNC',
-    category: 'Machinery'
-  },
-  {
-    id: 3,
-    name: 'Quality Control System',
-    slug: 'quality-control-system',
-    price: 15000,
-    rating: 4.7,
-    reviews: 89,
-    image: 'https://via.placeholder.com/300x300/2b6cb0/ffffff?text=QC',
-    category: 'Quality Control'
-  },
-  {
-    id: 4,
-    name: 'Industrial Robot Arm',
-    slug: 'industrial-robot-arm',
-    price: 45000,
-    rating: 4.8,
-    reviews: 256,
-    image: 'https://via.placeholder.com/300x300/3182ce/ffffff?text=Robot',
-    category: 'Robotics'
-  },
-  {
-    id: 5,
-    name: 'Hydraulic Press System',
-    slug: 'hydraulic-press-system',
-    price: 35000,
-    originalPrice: 40000,
-    rating: 4.6,
-    reviews: 67,
-    image: 'https://via.placeholder.com/300x300/1a365d/ffffff?text=Press',
-    category: 'Machinery',
-    discount: 12
-  },
-  {
-    id: 6,
-    name: 'Conveyor Belt System',
-    slug: 'conveyor-belt-system',
-    price: 12000,
-    rating: 4.5,
-    reviews: 145,
-    image: 'https://via.placeholder.com/300x300/2c5282/ffffff?text=Conveyor',
-    category: 'Material Handling'
-  }
-];
 
 const SearchDropdown = () => {
   const router = useRouter();
@@ -106,7 +39,7 @@ const SearchDropdown = () => {
     }
   }, [isSearchOpen]);
 
-  // Handle search using exact logic from search.jsx
+  // Handle search using real searchService
   const performSearch = async (query) => {
     if (!query || query.trim().length < 2) {
       setSearchResults([]);
@@ -117,20 +50,8 @@ const SearchDropdown = () => {
     setIsSearching(true);
     
     try {
-      // Simulate API call (exact same as search.jsx)
-      await new Promise(resolve => setTimeout(resolve, 800));
-      
-      // Filter products based on search query (exact same logic as search.jsx)
-      let filteredProducts = mockProducts;
-      
-      if (query) {
-        filteredProducts = filteredProducts.filter(product =>
-          product.name.toLowerCase().includes(query.toLowerCase()) ||
-          product.category.toLowerCase().includes(query.toLowerCase())
-        );
-      }
-      
-      setSearchResults(filteredProducts);
+      const results = await searchService.searchProducts(query);
+      setSearchResults(results);
     } catch (error) {
       console.error('Search error:', error);
       setSearchResults([]);
@@ -162,11 +83,12 @@ const SearchDropdown = () => {
     }, 300);
   };
 
-  // Handle form submission (exact same logic as search.jsx)
+  // Handle form submission with real data
   const handleSubmit = (e) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      // Navigate to search results page (exact same as search.jsx)
+      // Save to recent searches and navigate
+      searchService.saveRecentSearch(inputValue.trim());
       router.push(`/search?q=${encodeURIComponent(inputValue.trim())}`);
       closeSearch();
     }
@@ -241,7 +163,8 @@ const SearchDropdown = () => {
                     <button
                       key={product.id}
                       onClick={() => {
-                        // Navigate to search results page (exact same as search.jsx)
+                        // Save to recent searches and navigate
+                        searchService.saveRecentSearch(product.name.trim());
                         router.push(`/search?q=${encodeURIComponent(product.name)}`);
                         closeSearch();
                       }}
@@ -329,7 +252,8 @@ const SearchDropdown = () => {
                     <button
                       key={index}
                       onClick={() => {
-                        // Navigate to search results page (exact same as search.jsx)
+                        // Save to recent searches and navigate
+                        searchService.saveRecentSearch(search.trim());
                         router.push(`/search?q=${encodeURIComponent(search)}`);
                         closeSearch();
                       }}
@@ -352,7 +276,8 @@ const SearchDropdown = () => {
                   <button
                     key={index}
                     onClick={() => {
-                      // Navigate to search results page (exact same as search.jsx)
+                      // Save to recent searches and navigate
+                      searchService.saveRecentSearch(suggestion.trim());
                       router.push(`/search?q=${encodeURIComponent(suggestion)}`);
                       closeSearch();
                     }}
