@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ProductCard from '../ProductCard';
+import UniversalProductCard from '../UniversalProductCard';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
 const RelatedProducts = ({ currentProduct }) => {
@@ -84,7 +84,7 @@ const RelatedProducts = ({ currentProduct }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mx-8">
             {relatedProducts.map((product) => (
               <div key={product.id} className="group">
-                <ProductCard product={product} />
+                <UniversalProductCard product={product} />
               </div>
             ))}
           </div>
