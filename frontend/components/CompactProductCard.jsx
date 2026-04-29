@@ -11,9 +11,29 @@ const CompactProductCard = ({ product, index = 0 }) => {
     e.preventDefault();
     e.stopPropagation();
     try {
-      addToCart(product, 1);
+      console.log('CompactProductCard - Adding to cart:', product);
+      console.log('CompactProductCard - Product ID:', product.id);
+      console.log('CompactProductCard - Product Name:', product.name);
+      console.log('CompactProductCard - Product Price:', product.price);
+      
+      // Ensure product has required fields
+      const productToAdd = {
+        id: product.id || product._id,
+        name: product.name || 'Unknown Product',
+        price: product.price || product.final_price || 0,
+        slug: product.slug,
+        image: product.image,
+        originalPrice: product.originalPrice || product.old_price,
+        category: product.category,
+        brand: product.brand
+      };
+      
+      console.log('CompactProductCard - Product to add:', productToAdd);
+      addToCart(productToAdd, 1);
+      console.log('CompactProductCard - addToCart called successfully');
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error('CompactProductCard - Error adding to cart:', error);
+      alert('Error adding to cart: ' + error.message);
     }
   };
 

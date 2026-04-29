@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import EnhancedProductCard from '../EnhancedProductCard';
+import CompactProductCard from '../CompactProductCard';
 import ViewAllProductsButton from '../ViewAllProductsButton';
 import { Grid } from 'lucide-react';
 import apiClient from '../../lib/api';
@@ -150,7 +150,7 @@ const RelatedProductsBySubCategory = ({ currentProduct }) => {
           ) : relatedProducts.length > 0 ? (
             // Show actual products
             relatedProducts.map((product, index) => (
-              <EnhancedProductCard 
+              <CompactProductCard 
                 key={product.id} 
                 product={product} 
                 index={index}
