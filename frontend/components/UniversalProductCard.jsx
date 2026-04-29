@@ -68,20 +68,20 @@ const UniversalProductCard = ({ product, index = 0 }) => {
     
     for (let i = 0; i < fullStars; i++) {
       stars.push(
-        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
       );
     }
     
     if (hasHalfStar) {
       stars.push(
-        <Star key="half" className="w-4 h-4 fill-yellow-400 text-yellow-400 opacity-50" />
+        <Star key="half" className="w-4 h-4 fill-amber-400 text-amber-400 opacity-60" />
       );
     }
     
     const emptyStars = 5 - Math.ceil(rating);
     for (let i = 0; i < emptyStars; i++) {
       stars.push(
-        <Star key={`empty-${i}`} className="w-4 h-4 text-gray-300" />
+        <Star key={`empty-${i}`} className="w-4 h-4 text-gray-200" />
       );
     }
     
@@ -90,27 +90,38 @@ const UniversalProductCard = ({ product, index = 0 }) => {
 
   const getColorHex = (colorName) => {
     const colors = {
-      'navy blue': '#000080',
+      'navy blue': '#1E3A8A',
+      'navy': '#1E3A8A',
       'black': '#000000',
       'white': '#FFFFFF',
-      'red': '#FF0000',
-      'blue': '#0000FF',
-      'green': '#008000',
-      'dark green': '#006400',
-      'light green': '#90EE90',
-      'yellow': '#FFFF00',
-      'purple': '#800080',
-      'orange': '#FFA500',
-      'pink': '#FFC0CB',
-      'brown': '#A52A2A',
-      'gray': '#808080',
-      'grey': '#808080',
-      'silver': '#C0C0C0',
-      'gold': '#FFD700',
-      'dark grey': '#4A4A4A',
-      'light grey': '#D3D3D3',
-      'dark gray': '#4A4A4A',
-      'light gray': '#D3D3D3'
+      'red': '#DC2626',
+      'blue': '#2563EB',
+      'green': '#059669',
+      'dark green': '#047857',
+      'light green': '#10B981',
+      'yellow': '#F59E0B',
+      'purple': '#7C3AED',
+      'orange': '#EA580C',
+      'pink': '#EC4899',
+      'rose gold': '#F43F5E',
+      'rose': '#F43F5E',
+      'brown': '#92400E',
+      'tan': '#D97706',
+      'beige': '#F5F5DC',
+      'gray': '#6B7280',
+      'grey': '#6B7280',
+      'silver': '#9CA3AF',
+      'gold': '#FCD34D',
+      'dark grey': '#374151',
+      'light grey': '#E5E7EB',
+      'dark gray': '#374151',
+      'light gray': '#E5E7EB',
+      'space grey': '#4B5563',
+      'space gray': '#4B5563',
+      'midnight green': '#1F2937',
+      'sierra blue': '#0EA5E9',
+      'alpine green': '#059669',
+      'product red': '#DC2626'
     };
     return colors[colorName?.toLowerCase()] || colorName || '#CCCCCC';
   };
@@ -198,24 +209,24 @@ const UniversalProductCard = ({ product, index = 0 }) => {
             <div className="flex items-center">
               {renderStars(product.average_rating || product.rating || 0)}
             </div>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-gray-600 font-medium">
               ({product.review_count || product.reviews || 0})
             </span>
           </div>
 
-          {/* Color Variants - Matching the image design */}
+          {/* Color Variants - Enhanced display */}
           {displayColors.length > 0 && (
-            <div className="flex items-center space-x-1 mb-3">
+            <div className="flex items-center space-x-2 mb-3">
               {displayColors.slice(0, 6).map((color, idx) => (
                 <div
                   key={idx}
-                  className="w-5 h-5 rounded-full border-2 border-gray-300 shadow-sm"
+                  className="w-6 h-6 rounded-full border-2 border-gray-400 shadow-md hover:scale-110 transition-transform cursor-pointer"
                   style={{ backgroundColor: color.hex }}
                   title={color.name}
                 />
               ))}
               {displayColors.length > 6 && (
-                <span className="text-xs text-gray-500 ml-1 font-medium">
+                <span className="text-xs text-gray-600 font-semibold bg-gray-100 px-2 py-1 rounded-full">
                   +{displayColors.length - 6}
                 </span>
               )}
