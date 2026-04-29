@@ -17,11 +17,23 @@ const CategoryPage = () => {
   useEffect(() => {
     if (slug && slug.length > 0) {
       loadCategoryProducts();
+      
+      // Add timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        if (loading) {
+          console.log('⏰ Loading timeout - setting error state');
+          setError('Loading timeout. Please try again.');
+          setLoading(false);
+        }
+      }, 10000); // 10 second timeout
+      
+      return () => clearTimeout(timeout);
     }
   }, [slug]);
 
   const loadCategoryProducts = async () => {
     try {
+      console.log('🔄 Loading category products for slug:', slug);
       setLoading(true);
       setError(null);
 
@@ -31,12 +43,14 @@ const CategoryPage = () => {
       if (slug.length === 1) {
         // Main category: /category/[categoryId]
         categoryFilter = { categoryId: slug[0] };
+        console.log('📂 Main category filter:', categoryFilter);
       } else if (slug.length === 2) {
         // Sub category: /category/[categoryId]/[subCategoryId]
         categoryFilter = { 
           categoryId: slug[0], 
           subCategoryId: slug[1] 
         };
+        console.log('📂 Sub category filter:', categoryFilter);
       } else if (slug.length === 3) {
         // Sub-sub category: /category/[categoryId]/[subCategoryId]/[subSubCategoryId]
         categoryFilter = { 
@@ -44,23 +58,29 @@ const CategoryPage = () => {
           subCategoryId: slug[1],
           subSubCategoryId: slug[2]
         };
+        console.log('📂 Sub-sub category filter:', categoryFilter);
       }
 
+      console.log('🔍 Fetching products with filter:', categoryFilter);
       // Fetch products with category filter
       const response = await getProducts({ 
         ...categoryFilter,
         limit: 50,
         isActive: true
       });
+      console.log('📦 Products response:', response);
 
+      console.log('🔍 Fetching categories for breadcrumb');
       // Fetch category information for breadcrumb
       const categoriesResponse = await categoryService.getCategories();
+      console.log('📂 Categories response:', categoriesResponse);
       const categoryData = buildCategoryInfo(categoriesResponse.data || [], slug);
       
       setCategoryInfo(categoryData);
       setProducts(response.data || []);
+      console.log('✅ Products loaded:', response.data?.length || 0);
     } catch (err) {
-      console.error('Error loading category products:', err);
+      console.error('❌ Error loading category products:', err);
       setError('Failed to load products for this category');
     } finally {
       setLoading(false);
@@ -89,7 +109,10 @@ const CategoryPage = () => {
       <Layout title="Loading...">
         <div className="container py-8">
           <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading products...</p>
+            </div>
           </div>
         </div>
       </Layout>
