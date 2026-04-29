@@ -193,13 +193,25 @@ const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
               homeContent.collections.items.map((item, index) => {
                 // Generate category-based link if category data is available
                 const getCollectionLink = (item) => {
+                  console.log('🔗 Collection item data:', {
+                    title: item.title,
+                    categoryId: item.categoryId,
+                    subCategoryId: item.subCategoryId,
+                    subSubCategoryId: item.subSubCategoryId,
+                    link: item.link
+                  });
+                  
                   if (item.subSubCategoryId) {
+                    console.log('🔗 Using 3-level category link');
                     return `/category/${item.categoryId}/${item.subCategoryId}/${item.subSubCategoryId}`;
                   } else if (item.subCategoryId) {
+                    console.log('🔗 Using 2-level category link');
                     return `/category/${item.categoryId}/${item.subCategoryId}`;
                   } else if (item.categoryId) {
+                    console.log('🔗 Using 1-level category link');
                     return `/category/${item.categoryId}`;
                   }
+                  console.log('🔗 Using fallback link:', item.link || "/products");
                   return item.link || "/products";
                 };
 
