@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Star from 'lucide-react/dist/esm/icons/star';
 import Filter from 'lucide-react/dist/esm/icons/filter';
 import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
-import UniversalProductCard from '../../../../components/UniversalProductCard';
+import ProductCard from '../../../../components/ProductCard';
 import FilterSidebar from '../../../../components/FilterSidebar';
 import { fetchCategories, fetchProducts, fetchRecommendedProducts } from '../../../../lib/services';
 
@@ -326,7 +326,7 @@ const SubSubCategoryPage = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
                   {products.map((product, index) => (
-                    <UniversalProductCard
+                    <ProductCard
                       key={product._id}
                       product={{
                         id: product._id,
@@ -354,7 +354,7 @@ const SubSubCategoryPage = () => {
                   <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Recommended for you</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {recommended.map((product, index) => (
-                      <UniversalProductCard
+                      <ProductCard
                         key={product._id}
                         product={{
                           id: product._id,

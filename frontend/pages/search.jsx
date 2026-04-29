@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-import UniversalProductCard from '../components/UniversalProductCard';
+import ProductCard from '../components/ProductCard';
 import { Search, Filter, X, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import searchService from '../lib/searchService';
 
@@ -371,7 +371,7 @@ const SearchResults = () => {
               ) : products.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {products.map((product, index) => (
-                    <UniversalProductCard key={product.id} product={product} index={index} />
+                    <ProductCard key={product.id} product={product} index={index} />
                   ))}
                 </div>
               ) : (

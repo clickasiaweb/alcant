@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import UniversalProductCard from "./UniversalProductCard";
+import ProductCard from "./ProductCard";
 import { useCart } from '../contexts/CartContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -179,7 +179,7 @@ const FeaturedProductsSection = () => {
                 className="flex-none w-72 md:w-80"
                 style={{ minWidth: '288px' }}
               >
-                <UniversalProductCard
+                <ProductCard
                   product={{
                     id: product.id,
                     name: product.name,
