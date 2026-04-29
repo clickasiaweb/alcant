@@ -72,17 +72,33 @@ exports.getProducts = async (req, res) => {
       query.sub_subcategory_id = sub_subcategory_id;
     }
 
-    // Handle camelCase parameters from frontend
+    // Handle camelCase parameters from frontend with backward compatibility
+    const categoryOrConditions = [];
+    
     if (categoryId) {
       query.category_id = categoryId;
+      categoryOrConditions.push({ category: categoryId });
     }
 
     if (subCategoryId) {
       query.subcategory_id = subCategoryId;
+      categoryOrConditions.push({ subcategory: subCategoryId });
     }
 
     if (subSubCategoryId) {
       query.sub_subcategory_id = subSubCategoryId;
+      categoryOrConditions.push({ sub_subcategory: subSubCategoryId });
+    }
+
+    // Combine category conditions with existing $or if present
+    if (categoryOrConditions.length > 0) {
+      if (query.$or) {
+        // If there's already an $or (from search), we need to combine them
+        query.$or = [...query.$or, ...categoryOrConditions];
+      } else {
+        // If no existing $or, create one with category conditions
+        query.$or = categoryOrConditions;
+      }
     }
 
     if (min_price || max_price) {
