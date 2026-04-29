@@ -76,9 +76,17 @@ export default function ContentPage() {
         getAdminSubSubCategories()
       ]);
       
-      setCategories(categoriesRes.data || []);
-      setSubCategories(subCategoriesRes.data || []);
-      setSubSubCategories(subSubCategoriesRes.data || []);
+      const categoriesData = categoriesRes.data || [];
+      const subCategoriesData = subCategoriesRes.data || [];
+      const subSubCategoriesData = subSubCategoriesRes.data || [];
+      
+      console.log('📂 Categories loaded:', categoriesData);
+      console.log('📂 Sub-categories loaded:', subCategoriesData);
+      console.log('📂 Sub-subcategories loaded:', subSubCategoriesData);
+      
+      setCategories(categoriesData);
+      setSubCategories(subCategoriesData);
+      setSubSubCategories(subSubCategoriesData);
     } catch (error) {
       console.error('Error loading categories:', error);
       toast.error('Error loading categories');
@@ -795,11 +803,21 @@ const DynamicFieldEditor = ({
 
   // Filter categories based on parent selection
   const getFilteredSubCategories = (categoryId) => {
-    return subCategories.filter(sub => sub.category_id === parseInt(categoryId));
+    if (!categoryId) return [];
+    console.log('🔍 Filtering subcategories for categoryId:', categoryId);
+    console.log('🔍 Available subcategories:', subCategories);
+    const filtered = subCategories.filter(sub => sub.category_id === categoryId || sub.category_id === parseInt(categoryId));
+    console.log('🔍 Filtered subcategories:', filtered);
+    return filtered;
   };
 
   const getFilteredSubSubCategories = (subCategoryId) => {
-    return subSubCategories.filter(subSub => subSub.subcategory_id === parseInt(subCategoryId));
+    if (!subCategoryId) return [];
+    console.log('🔍 Filtering sub-subcategories for subCategoryId:', subCategoryId);
+    console.log('🔍 Available sub-subcategories:', subSubCategories);
+    const filtered = subSubCategories.filter(subSub => subSub.subcategory_id === subCategoryId || subSub.subcategory_id === parseInt(subCategoryId));
+    console.log('🔍 Filtered sub-subcategories:', filtered);
+    return filtered;
   };
 
   const renderField = (field) => {

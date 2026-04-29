@@ -62,6 +62,12 @@ router.get(
   adminMiddleware,
   adminController.getSubCategories
 );
+router.get(
+  "/sub-subcategories",
+  authMiddleware,
+  adminMiddleware,
+  adminController.getSubSubCategories
+);
 router.post(
   "/category",
   authMiddleware,
