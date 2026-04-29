@@ -4,6 +4,8 @@ import { Search, Clock, TrendingUp, X } from 'lucide-react';
 import { useSearch } from '../contexts/SearchContext';
 import searchService from '../lib/searchService';
 
+// Deployment trigger: v2.1 - Search debugging enabled
+
 
 const SearchDropdown = () => {
   const router = useRouter();
