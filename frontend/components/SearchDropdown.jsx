@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { Search, Clock, TrendingUp, X } from 'lucide-react';
 import { useSearch } from '../contexts/SearchContext';
 
-// Mock products data (same as in search.jsx)
+// Mock search results (exact copy from search.jsx)
 const mockProducts = [
   {
     id: 1,
@@ -106,7 +106,7 @@ const SearchDropdown = () => {
     }
   }, [isSearchOpen]);
 
-  // Handle search using the same logic as the working search bar
+  // Handle search using exact logic from search.jsx
   const performSearch = async (query) => {
     if (!query || query.trim().length < 2) {
       setSearchResults([]);
@@ -117,10 +117,10 @@ const SearchDropdown = () => {
     setIsSearching(true);
     
     try {
-      // Simulate API call delay (same as in search.jsx)
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Simulate API call (exact same as search.jsx)
+      await new Promise(resolve => setTimeout(resolve, 800));
       
-      // Filter products based on search query (same logic as search.jsx)
+      // Filter products based on search query (exact same logic as search.jsx)
       let filteredProducts = mockProducts;
       
       if (query) {
@@ -162,11 +162,11 @@ const SearchDropdown = () => {
     }, 300);
   };
 
-  // Handle form submission (same logic as working search bar)
+  // Handle form submission (exact same logic as search.jsx)
   const handleSubmit = (e) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      // Navigate to search results page (same as search.jsx)
+      // Navigate to search results page (exact same as search.jsx)
       router.push(`/search?q=${encodeURIComponent(inputValue.trim())}`);
       closeSearch();
     }
@@ -241,6 +241,7 @@ const SearchDropdown = () => {
                     <button
                       key={product.id}
                       onClick={() => {
+                        // Navigate to search results page (exact same as search.jsx)
                         router.push(`/search?q=${encodeURIComponent(product.name)}`);
                         closeSearch();
                       }}
@@ -328,6 +329,7 @@ const SearchDropdown = () => {
                     <button
                       key={index}
                       onClick={() => {
+                        // Navigate to search results page (exact same as search.jsx)
                         router.push(`/search?q=${encodeURIComponent(search)}`);
                         closeSearch();
                       }}
@@ -350,6 +352,7 @@ const SearchDropdown = () => {
                   <button
                     key={index}
                     onClick={() => {
+                      // Navigate to search results page (exact same as search.jsx)
                       router.push(`/search?q=${encodeURIComponent(suggestion)}`);
                       closeSearch();
                     }}
