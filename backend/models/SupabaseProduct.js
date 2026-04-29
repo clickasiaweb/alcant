@@ -24,8 +24,16 @@ class SupabaseProduct {
       supabaseQuery = supabaseQuery.eq('subcategory_id', query.subcategory_id);
     }
     
+    if (query.category_id) {
+      supabaseQuery = supabaseQuery.eq('category_id', query.category_id);
+    }
+    
     if (query.sub_subcategory) {
       supabaseQuery = supabaseQuery.eq('sub_subcategory', query.sub_subcategory);
+    }
+    
+    if (query.sub_subcategory_id) {
+      supabaseQuery = supabaseQuery.eq('sub_subcategory_id', query.sub_subcategory_id);
     }
     
     if (query._id) {

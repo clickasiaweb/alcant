@@ -32,6 +32,10 @@ exports.getProducts = async (req, res) => {
       subcategory,
       subcategory_id,
       sub_subcategory_id,
+      // Support camelCase parameters from frontend
+      categoryId,
+      subCategoryId,
+      subSubCategoryId,
       min_price,
       max_price,
       page = 1,
@@ -66,6 +70,19 @@ exports.getProducts = async (req, res) => {
 
     if (sub_subcategory_id) {
       query.sub_subcategory_id = sub_subcategory_id;
+    }
+
+    // Handle camelCase parameters from frontend
+    if (categoryId) {
+      query.category_id = categoryId;
+    }
+
+    if (subCategoryId) {
+      query.subcategory_id = subCategoryId;
+    }
+
+    if (subSubCategoryId) {
+      query.sub_subcategory_id = subSubCategoryId;
     }
 
     if (min_price || max_price) {

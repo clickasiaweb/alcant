@@ -166,6 +166,12 @@ export const categoryService = {
     }
     return categoryServiceInstance.getCategoriesWithHierarchy();
   },
+  getCategories() {
+    if (!categoryServiceInstance) {
+      categoryServiceInstance = createCategoryService();
+    }
+    return categoryServiceInstance.getCategoriesWithHierarchy();
+  },
   getProductsByCategory(categorySlug, filters = {}) {
     if (!categoryServiceInstance) {
       categoryServiceInstance = createCategoryService();

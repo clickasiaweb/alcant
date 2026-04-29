@@ -190,37 +190,51 @@ const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {homeContent.collections?.items?.length > 0 ? (
-              homeContent.collections.items.map((item, index) => (
-                <Link
-                  key={index}
-                  href={item.link || "/products"}
-                  className="group block"
-                >
-                  <div className="relative overflow-hidden rounded-lg">
-                    {item.image ? (
-                      <img 
-                        src={item.image} 
-                        alt={item.title}
-                        className="w-full h-48 sm:h-56 md:h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-48 sm:h-56 md:h-64 bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-600 text-xs sm:text-sm">
-                          {item.title || 'Collection Image'}
+              homeContent.collections.items.map((item, index) => {
+                // Generate category-based link if category data is available
+                const getCollectionLink = (item) => {
+                  if (item.subSubCategoryId) {
+                    return `/category/${item.categoryId}/${item.subCategoryId}/${item.subSubCategoryId}`;
+                  } else if (item.subCategoryId) {
+                    return `/category/${item.categoryId}/${item.subCategoryId}`;
+                  } else if (item.categoryId) {
+                    return `/category/${item.categoryId}`;
+                  }
+                  return item.link || "/products";
+                };
+
+                return (
+                  <Link
+                    key={index}
+                    href={getCollectionLink(item)}
+                    className="group block"
+                  >
+                    <div className="relative overflow-hidden rounded-lg">
+                      {item.image ? (
+                        <img 
+                          src={item.image} 
+                          alt={item.title}
+                          className="w-full h-48 sm:h-56 md:h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="w-full h-48 sm:h-56 md:h-64 bg-gray-200 flex items-center justify-center">
+                          <span className="text-gray-600 text-xs sm:text-sm">
+                            {item.title || 'Collection Image'}
+                          </span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white font-semibold">
+                          View Collection
                         </span>
                       </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="text-white font-semibold">
-                        View Collection
-                      </span>
                     </div>
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold text-primary-900 mt-3 sm:mt-4">
-                    {item.title || "Collection"}
-                  </h3>
-                </Link>
-              ))
+                    <h3 className="text-sm sm:text-base font-semibold text-primary-900 mt-3 sm:mt-4">
+                      {item.title || "Collection"}
+                    </h3>
+                  </Link>
+                );
+              })
             ) : (
               collections.map((collection) => (
                 <Link

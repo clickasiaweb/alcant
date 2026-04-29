@@ -131,4 +131,20 @@ export const categoriesAPI = {
   },
 };
 
+// Generic get products function with filters
+export const getProducts = async (filters = {}) => {
+  const params = new URLSearchParams();
+  
+  // Add all filters to params
+  Object.keys(filters).forEach(key => {
+    if (filters[key] !== undefined && filters[key] !== null) {
+      params.append(key, filters[key]);
+    }
+  });
+
+  const url = params.toString() ? `/products?${params}` : '/products';
+  const response = await api.get(url);
+  return response.data;
+};
+
 export default api;

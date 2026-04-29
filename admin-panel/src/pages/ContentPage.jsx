@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FiEdit2, FiSave, FiEye, FiFileText, FiHome, FiInfo, FiMail, FiPhone, FiImage, FiShoppingBag, FiUpload, FiX, FiRefreshCw } from "react-icons/fi";
 import SidebarNoAuth from "../components/SidebarNoAuth";
-import { getContent, updateContent } from "../services/api-services";
+import { getContent, updateContent, getAdminCategories, getAdminSubCategories, getAdminSubSubCategories } from "../services/api-services";
 import { toast } from "react-toastify";
 
 export default function ContentPage() {
@@ -15,6 +15,12 @@ export default function ContentPage() {
   const [livePreview, setLivePreview] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(null);
   const fileInputRefs = useRef({});
+  
+  // Category states
+  const [categories, setCategories] = useState([]);
+  const [subCategories, setSubCategories] = useState([]);
+  const [subSubCategories, setSubSubCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
 
   const pages = [
     { key: "home", name: "Home", icon: FiHome, sections: [
@@ -53,6 +59,33 @@ export default function ContentPage() {
   useEffect(() => {
     loadContent(selectedPage, selectedSection);
   }, [selectedPage, selectedSection]);
+
+  // Load categories when editing collections section
+  useEffect(() => {
+    if (selectedPage === "home" && selectedSection === "collections" && editing) {
+      loadCategories();
+    }
+  }, [selectedPage, selectedSection, editing]);
+
+  const loadCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      const [categoriesRes, subCategoriesRes, subSubCategoriesRes] = await Promise.all([
+        getAdminCategories(),
+        getAdminSubCategories(),
+        getAdminSubSubCategories()
+      ]);
+      
+      setCategories(categoriesRes.data || []);
+      setSubCategories(subCategoriesRes.data || []);
+      setSubSubCategories(subSubCategoriesRes.data || []);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+      toast.error('Error loading categories');
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
 
   // Ensure file input refs are available
   useEffect(() => {
@@ -472,7 +505,10 @@ export default function ContentPage() {
         description: "",
         image: "",
         link: "",
-        order: prev.items.length
+        order: prev.items.length,
+        categoryId: "",
+        subCategoryId: "",
+        subSubCategoryId: ""
       }]
     }));
   };
@@ -654,6 +690,12 @@ export default function ContentPage() {
                   triggerVideoInput={triggerVideoInput}
                   uploadingImage={uploadingImage}
                   fileInputRefs={fileInputRefs}
+                  selectedPage={selectedPage}
+                  selectedSection={selectedSection}
+                  categories={categories}
+                  subCategories={subCategories}
+                  subSubCategories={subSubCategories}
+                  categoriesLoading={categoriesLoading}
                 />
               ) : (
                 <div className="space-y-4">
@@ -741,9 +783,24 @@ const DynamicFieldEditor = ({
   triggerFileInput, 
   triggerVideoInput,
   uploadingImage, 
-  fileInputRefs 
+  fileInputRefs,
+  selectedPage,
+  selectedSection,
+  categories,
+  subCategories,
+  subSubCategories,
+  categoriesLoading
 }) => {
   if (!sectionConfig) return <div>Select a section to edit</div>;
+
+  // Filter categories based on parent selection
+  const getFilteredSubCategories = (categoryId) => {
+    return subCategories.filter(sub => sub.category_id === parseInt(categoryId));
+  };
+
+  const getFilteredSubSubCategories = (subCategoryId) => {
+    return subSubCategories.filter(subSub => subSub.subcategory_id === parseInt(subCategoryId));
+  };
 
   const renderField = (field) => {
     switch (field) {
@@ -969,6 +1026,79 @@ const DynamicFieldEditor = ({
                       placeholder="Item description"
                     />
                   </div>
+
+                  {/* Category Selection Fields - Only show for Collections section */}
+                  {selectedPage === "home" && selectedSection === "collections" && (
+                    <div className="mt-3 space-y-3">
+                      <div className="text-xs font-medium text-gray-600 mb-2">Category Association</div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Main Category</label>
+                          <select
+                            value={item.categoryId || ""}
+                            onChange={(e) => {
+                              handleItemChange(index, "categoryId", e.target.value);
+                              // Reset dependent fields when category changes
+                              handleItemChange(index, "subCategoryId", "");
+                              handleItemChange(index, "subSubCategoryId", "");
+                              handleItemChange(index, "sub3CategoryId", "");
+                            }}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            disabled={categoriesLoading}
+                          >
+                            <option value="">Select Category</option>
+                            {categories.map(cat => (
+                              <option key={cat.id} value={cat.id}>{cat.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Sub Category</label>
+                          <select
+                            value={item.subCategoryId || ""}
+                            onChange={(e) => {
+                              handleItemChange(index, "subCategoryId", e.target.value);
+                              // Reset dependent fields when subcategory changes
+                              handleItemChange(index, "subSubCategoryId", "");
+                              handleItemChange(index, "sub3CategoryId", "");
+                            }}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            disabled={!item.categoryId || categoriesLoading}
+                          >
+                            <option value="">Select Sub Category</option>
+                            {getFilteredSubCategories(item.categoryId).map(sub => (
+                              <option key={sub.id} value={sub.id}>{sub.name}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Sub-Sub Category</label>
+                          <select
+                            value={item.subSubCategoryId || ""}
+                            onChange={(e) => {
+                              handleItemChange(index, "subSubCategoryId", e.target.value);
+                              // Reset dependent field when sub-subcategory changes
+                              handleItemChange(index, "sub3CategoryId", "");
+                            }}
+                            className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            disabled={!item.subCategoryId || categoriesLoading}
+                          >
+                            <option value="">Select Sub-Sub Category</option>
+                            {getFilteredSubSubCategories(item.subCategoryId).map(subSub => (
+                              <option key={subSub.id} value={subSub.id}>{subSub.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-gray-500 mt-2">
+                        When users click this collection card, they will see products from the selected category(s)
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="mt-3">
                     <label className="block text-xs font-medium text-gray-600 mb-1">Image</label>
