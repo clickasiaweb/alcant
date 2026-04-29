@@ -55,11 +55,15 @@ const searchService = {
   // Search products using real API
   searchProducts: async (query) => {
     try {
+      console.log('🔍 searchService: Searching for:', query);
+      
       if (!query || query.trim().length < 2) {
+        console.log('❌ Query too short');
         return [];
       }
 
       const url = `${API_BASE_URL}/products/search?q=${encodeURIComponent(query.trim())}&limit=5`;
+      console.log('🌐 Fetching URL:', url);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -73,13 +77,17 @@ const searchService = {
       }
 
       const data = await response.json();
+      console.log('📦 Raw API response:', data);
+      console.log('📊 Raw products count:', data.products?.length || 0);
       
       // Get category mapping
       const categoryMap = await getCategories();
+      console.log('🏷️ Category map:', categoryMap);
       
       // Transform product data to match expected format
       const transformedResults = (data.products || []).map(product => {
         const categoryName = categoryMap[product.category] || 'Unknown';
+        console.log('🔄 Transforming product:', product.name, 'Category ID:', product.category, 'Category Name:', categoryName);
         
         return {
           id: product.id || product._id,
@@ -96,6 +104,8 @@ const searchService = {
         };
       });
       
+      console.log('✨ Transformed results:', transformedResults);
+      console.log('📊 Final results count:', transformedResults.length);
       return transformedResults;
     } catch (error) {
       console.error('Search service error:', error);

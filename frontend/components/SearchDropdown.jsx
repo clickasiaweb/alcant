@@ -41,6 +41,8 @@ const SearchDropdown = () => {
 
   // Handle search using real searchService
   const performSearch = async (query) => {
+    console.log('🔍 Searching for:', query);
+    
     if (!query || query.trim().length < 2) {
       setSearchResults([]);
       setIsSearching(false);
@@ -51,9 +53,11 @@ const SearchDropdown = () => {
     
     try {
       const results = await searchService.searchProducts(query);
+      console.log('📦 Search results:', results);
+      console.log('📊 Results count:', results.length);
       setSearchResults(results);
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('❌ Search error:', error);
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -154,7 +158,7 @@ const SearchDropdown = () => {
             </div>
           ) : inputValue.length >= 2 ? (
             <>
-              {searchResults.length > 0 ? (
+              {console.log('🎯 Displaying search results:', searchResults.length, 'for query:', inputValue) || searchResults.length > 0 ? (
                 <div className="p-2">
                   <p className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                     Products
