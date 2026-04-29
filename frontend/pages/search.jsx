@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 
 import Layout from '../components/Layout';
 
-import ProductCard from '../components/ProductCard';
+import CompactProductCard from '../components/CompactProductCard';
 
 import { Search, Filter, X, ChevronDown, SlidersHorizontal } from 'lucide-react';
 
@@ -640,7 +640,7 @@ const SearchResults = () => {
 
                   {products.map((product, index) => (
 
-                    <ProductCard key={product.id} product={product} index={index} />
+                    <CompactProductCard key={product.id} product={product} index={index} />
 
                   ))}
 

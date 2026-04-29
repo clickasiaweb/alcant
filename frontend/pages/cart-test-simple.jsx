@@ -1,7 +1,7 @@
 import React from 'react';
 import CartDrawer from '../components/CartDrawer';
 import CartIcon from '../components/CartIcon';
-import ProductCard from '../components/ProductCard';
+import CompactProductCard from '../components/CompactProductCard';
 
 const CartTestSimple = () => {
   // Mock products for demo
@@ -84,7 +84,7 @@ const CartTestSimple = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {mockProducts.map((product, index) => (
-            <ProductCard 
+            <CompactProductCard 
               key={product.id} 
               product={product} 
               index={index} 

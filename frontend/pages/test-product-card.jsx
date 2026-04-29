@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import ProductCard from '../components/ProductCard';
+import CompactProductCard from '../components/CompactProductCard';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useCart } from '../contexts/CartContext';
 
@@ -79,7 +79,7 @@ const TestProductCard = () => {
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Test Product Cards</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {testProducts.map((product, index) => (
-              <ProductCard 
+              <CompactProductCard 
                 key={product.id} 
                 product={product} 
                 index={index}
