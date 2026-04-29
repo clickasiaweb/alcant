@@ -7,7 +7,19 @@ const ProductImage = ({ product, displayName, mainImage, selectedImage, images, 
       return `https://picsum.photos/seed/${product?.name || 'product'}/600/600.jpg`;
     }
     
-    // Handle full URLs
+    // Handle Google Drive URLs - use proxy to avoid CORS issues
+    if (image.includes('drive.google.com')) {
+      // Extract file ID from Google Drive URL
+      const match = image.match(/id=([a-zA-Z0-9_-]+)/);
+      if (match) {
+        const fileId = match[1];
+        return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/proxy/drive/${fileId}`;
+      }
+      // Fallback to generic proxy
+      return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/proxy/image?imageUrl=${encodeURIComponent(image)}`;
+    }
+    
+    // Handle other full URLs
     if (image.startsWith('http://') || image.startsWith('https://')) {
       return image;
     }

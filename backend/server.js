@@ -7,6 +7,8 @@ const dotenv = require("dotenv");
 
 const path = require("path");
 
+const fs = require("fs");
+
 
 
 // Load environment variables first
@@ -58,6 +60,8 @@ const inquiryRoutes = require('./routes/inquiries');
 const reviewRoutes = require('./routes/reviews');
 
 const uploadRoutes = require('./routes/upload');
+
+const imageProxyRoutes = require('./routes/imageProxy');
 
 const orderRoutes = require('./routes/orders');
 
@@ -151,6 +155,8 @@ app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/reviews', reviewRoutes);
 
 app.use('/api/upload', uploadRoutes);
+
+app.use('/api/proxy', imageProxyRoutes);
 
 app.use('/api/orders', orderRoutes);
 
