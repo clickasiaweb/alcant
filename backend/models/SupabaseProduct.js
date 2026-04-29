@@ -22,10 +22,16 @@ class SupabaseProduct {
     
     if (query.subcategory_id) {
       supabaseQuery = supabaseQuery.eq('subcategory_id', query.subcategory_id);
+    } else if (query.subcategory_id === null && query.subcategory) {
+      // Fallback to string field if UUID field is null
+      supabaseQuery = supabaseQuery.eq('subcategory', query.subcategory);
     }
     
     if (query.category_id) {
       supabaseQuery = supabaseQuery.eq('category_id', query.category_id);
+    } else if (query.category_id === null && query.category) {
+      // Fallback to string field if UUID field is null
+      supabaseQuery = supabaseQuery.eq('category', query.category);
     }
     
     if (query.sub_subcategory) {
@@ -34,6 +40,9 @@ class SupabaseProduct {
     
     if (query.sub_subcategory_id) {
       supabaseQuery = supabaseQuery.eq('sub_subcategory_id', query.sub_subcategory_id);
+    } else if (query.sub_subcategory_id === null && query.sub_subcategory) {
+      // Fallback to string field if UUID field is null
+      supabaseQuery = supabaseQuery.eq('sub_subcategory', query.sub_subcategory);
     }
     
     if (query._id) {

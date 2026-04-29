@@ -216,10 +216,13 @@ const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
                 };
 
                 return (
-                  <Link
+                  <a
                     key={index}
                     href={getCollectionLink(item)}
                     className="group block"
+                    onClick={(e) => {
+                      console.log('🖱️ Collection clicked, navigating to:', getCollectionLink(item));
+                    }}
                   >
                     <div className="relative overflow-hidden rounded-lg">
                       {item.image ? (
@@ -244,7 +247,7 @@ const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
                     <h3 className="text-sm sm:text-base font-semibold text-primary-900 mt-3 sm:mt-4">
                       {item.title || "Collection"}
                     </h3>
-                  </Link>
+                  </a>
                 );
               })
             ) : (

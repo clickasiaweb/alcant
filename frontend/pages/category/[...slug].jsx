@@ -9,6 +9,11 @@ const CategoryPage = () => {
   const router = useRouter();
   const { slug } = router.query;
   
+  // Add immediate log to see if page is being loaded
+  console.log('🚀 CategoryPage component loaded with slug:', slug);
+  console.log('🚀 Full router.query:', router.query);
+  console.log('🚀 Current URL path:', router.asPath);
+  
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categoryInfo, setCategoryInfo] = useState(null);

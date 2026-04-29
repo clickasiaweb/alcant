@@ -72,33 +72,17 @@ exports.getProducts = async (req, res) => {
       query.sub_subcategory_id = sub_subcategory_id;
     }
 
-    // Handle camelCase parameters from frontend with backward compatibility
-    const categoryOrConditions = [];
-    
+    // Handle camelCase parameters from frontend - use string fields as primary since UUID fields are null
     if (categoryId) {
-      query.category_id = categoryId;
-      categoryOrConditions.push({ category: categoryId });
+      query.category = categoryId; // Use string field as primary
     }
 
     if (subCategoryId) {
-      query.subcategory_id = subCategoryId;
-      categoryOrConditions.push({ subcategory: subCategoryId });
+      query.subcategory = subCategoryId; // Use string field as primary
     }
 
     if (subSubCategoryId) {
-      query.sub_subcategory_id = subSubCategoryId;
-      categoryOrConditions.push({ sub_subcategory: subSubCategoryId });
-    }
-
-    // Combine category conditions with existing $or if present
-    if (categoryOrConditions.length > 0) {
-      if (query.$or) {
-        // If there's already an $or (from search), we need to combine them
-        query.$or = [...query.$or, ...categoryOrConditions];
-      } else {
-        // If no existing $or, create one with category conditions
-        query.$or = categoryOrConditions;
-      }
+      query.sub_subcategory = subSubCategoryId; // Use string field as primary
     }
 
     if (min_price || max_price) {
