@@ -1,26 +1,92 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/router';
 import { Search, Clock, TrendingUp, X } from 'lucide-react';
 import { useSearch } from '../contexts/SearchContext';
 
+// Mock products data (same as in search.jsx)
+const mockProducts = [
+  {
+    id: 1,
+    name: 'Premium Industrial Automation System',
+    slug: 'premium-industrial-automation-system',
+    price: 25000,
+    originalPrice: 28000,
+    rating: 4.8,
+    reviews: 324,
+    image: 'https://via.placeholder.com/300x300/1a365d/ffffff?text=Automation',
+    category: 'Automation',
+    isNew: true,
+    discount: 10
+  },
+  {
+    id: 2,
+    name: 'Precision CNC Machine',
+    slug: 'precision-cnc-machine',
+    price: 180000,
+    rating: 4.9,
+    reviews: 128,
+    image: 'https://via.placeholder.com/300x300/2c5282/ffffff?text=CNC',
+    category: 'Machinery'
+  },
+  {
+    id: 3,
+    name: 'Quality Control System',
+    slug: 'quality-control-system',
+    price: 15000,
+    rating: 4.7,
+    reviews: 89,
+    image: 'https://via.placeholder.com/300x300/2b6cb0/ffffff?text=QC',
+    category: 'Quality Control'
+  },
+  {
+    id: 4,
+    name: 'Industrial Robot Arm',
+    slug: 'industrial-robot-arm',
+    price: 45000,
+    rating: 4.8,
+    reviews: 256,
+    image: 'https://via.placeholder.com/300x300/3182ce/ffffff?text=Robot',
+    category: 'Robotics'
+  },
+  {
+    id: 5,
+    name: 'Hydraulic Press System',
+    slug: 'hydraulic-press-system',
+    price: 35000,
+    originalPrice: 40000,
+    rating: 4.6,
+    reviews: 67,
+    image: 'https://via.placeholder.com/300x300/1a365d/ffffff?text=Press',
+    category: 'Machinery',
+    discount: 12
+  },
+  {
+    id: 6,
+    name: 'Conveyor Belt System',
+    slug: 'conveyor-belt-system',
+    price: 12000,
+    rating: 4.5,
+    reviews: 145,
+    image: 'https://via.placeholder.com/300x300/2c5282/ffffff?text=Conveyor',
+    category: 'Material Handling'
+  }
+];
+
 const SearchDropdown = () => {
+  const router = useRouter();
   const {
     isSearchOpen,
-    searchQuery,
-    searchResults,
-    isSearching,
+    closeSearch,
     recentSearches,
     popularSuggestions,
-    openSearch,
-    closeSearch,
-    handleSearch,
-    handleSearchSubmit,
     handleRecentSearchClick,
     handleSuggestionClick,
-    clearRecentSearches,
-    clearCache
+    clearRecentSearches
   } = useSearch();
 
   const [inputValue, setInputValue] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
   const searchInputRef = useRef(null);
   const searchTimeoutRef = useRef(null);
   const isMounted = useRef(true);
@@ -40,6 +106,39 @@ const SearchDropdown = () => {
     }
   }, [isSearchOpen]);
 
+  // Handle search using the same logic as the working search bar
+  const performSearch = async (query) => {
+    if (!query || query.trim().length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    
+    try {
+      // Simulate API call delay (same as in search.jsx)
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Filter products based on search query (same logic as search.jsx)
+      let filteredProducts = mockProducts;
+      
+      if (query) {
+        filteredProducts = filteredProducts.filter(product =>
+          product.name.toLowerCase().includes(query.toLowerCase()) ||
+          product.category.toLowerCase().includes(query.toLowerCase())
+        );
+      }
+      
+      setSearchResults(filteredProducts);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   // Handle input change with debouncing
   const handleInputChange = (e) => {
     const value = e.target.value;
@@ -52,21 +151,24 @@ const SearchDropdown = () => {
 
     // Don't search if value is too short
     if (value.trim().length < 2) {
-      handleSearch('');
+      setSearchResults([]);
+      setIsSearching(false);
       return;
     }
 
     // Debounce search with 300ms delay
     searchTimeoutRef.current = setTimeout(() => {
-      handleSearch(value);
+      performSearch(value);
     }, 300);
   };
 
-  // Handle form submission
+  // Handle form submission (same logic as working search bar)
   const handleSubmit = (e) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      handleSearchSubmit(inputValue);
+      // Navigate to search results page (same as search.jsx)
+      router.push(`/search?q=${encodeURIComponent(inputValue.trim())}`);
+      closeSearch();
     }
   };
 
@@ -138,7 +240,10 @@ const SearchDropdown = () => {
                   {searchResults.map((product) => (
                     <button
                       key={product.id}
-                      onClick={() => handleSearchSubmit(product.name)}
+                      onClick={() => {
+                        router.push(`/search?q=${encodeURIComponent(product.name)}`);
+                        closeSearch();
+                      }}
                       className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left group"
                     >
                       <div className="relative">
@@ -212,26 +317,20 @@ const SearchDropdown = () => {
                       <Clock className="w-3 h-3 mr-1" />
                       Recent
                     </p>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={clearCache}
-                        className="text-xs text-blue-400 hover:text-blue-600 transition-colors"
-                        title="Clear search cache"
-                      >
-                        Refresh
-                      </button>
-                      <button
-                        onClick={clearRecentSearches}
-                        className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
-                      >
-                        Clear
-                      </button>
-                    </div>
+                    <button
+                      onClick={clearRecentSearches}
+                      className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      Clear
+                    </button>
                   </div>
                   {recentSearches.map((search, index) => (
                     <button
                       key={index}
-                      onClick={() => handleRecentSearchClick(search)}
+                      onClick={() => {
+                        router.push(`/search?q=${encodeURIComponent(search)}`);
+                        closeSearch();
+                      }}
                       className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
                     >
                       <Clock className="w-4 h-4 text-gray-400" />
@@ -250,7 +349,10 @@ const SearchDropdown = () => {
                 {popularSuggestions.map((suggestion, index) => (
                   <button
                     key={index}
-                    onClick={() => handleSuggestionClick(suggestion)}
+                    onClick={() => {
+                      router.push(`/search?q=${encodeURIComponent(suggestion)}`);
+                      closeSearch();
+                    }}
                     className="w-full flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-left"
                   >
                     <TrendingUp className="w-4 h-4 text-gray-400" />
