@@ -15,7 +15,7 @@ const ProductCard = ({ product, index = 0 }) => {
       return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
     }
     
-    // Handle full URLs (including Supabase storage URLs)
+    // Handle full URLs
     if (image.startsWith('http://') || image.startsWith('https://')) {
       return image;
     }
@@ -30,20 +30,28 @@ const ProductCard = ({ product, index = 0 }) => {
       return image;
     }
     
+    // Handle relative paths starting with /
+    if (image.startsWith('/')) {
+      // If it's already a full path to uploads, use as is
+      if (image.startsWith('/uploads/')) {
+        return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}${image}`;
+      }
+      // Otherwise treat as absolute path
+      return image;
+    }
+    
+    // Handle relative paths without leading slash - assume uploads
+    if (image.includes('uploads/') || image.includes('product-')) {
+      return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/uploads/images/${image}`;
+    }
+    
     // Handle test/placeholder images
     if (image.includes('test-image') || image.includes('placeholder')) {
       return `https://picsum.photos/seed/${product.name}/300/300.jpg`;
     }
     
-    // Default fallback - assume it's a relative path and construct Supabase URL
-    // This handles cases where image is just a filename like "product-123.jpg"
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    if (supabaseUrl && image) {
-      return `${supabaseUrl}/storage/v1/object/public/products/${image}`;
-    }
-    
-    // Final fallback
-    return `https://picsum.photos/seed/${product.name}/300/300.jpg`;
+    // Default fallback for any other case
+    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/uploads/images/${image}`;
   };
 
   const handleQuickView = (e) => {
@@ -71,79 +79,25 @@ const ProductCard = ({ product, index = 0 }) => {
     
     for (let i = 0; i < fullStars; i++) {
       stars.push(
-        <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+        <Star key={i} className="w-4 h-4 fill-accent-500 text-accent-500" />
       );
     }
     
     if (hasHalfStar) {
       stars.push(
-        <Star key="half" className="w-4 h-4 fill-amber-400 text-amber-400 opacity-60" />
+        <Star key="half" className="w-4 h-4 fill-accent-500 text-accent-500 opacity-50" />
       );
     }
     
     const emptyStars = 5 - Math.ceil(rating);
     for (let i = 0; i < emptyStars; i++) {
       stars.push(
-        <Star key={`empty-${i}`} className="w-4 h-4 text-gray-200" />
+        <Star key={`empty-${i}`} className="w-4 h-4 text-secondary-300" />
       );
     }
     
     return stars;
   };
-
-  const getColorHex = (colorName) => {
-    const colors = {
-      'navy blue': '#1E3A8A',
-      'navy': '#1E3A8A',
-      'black': '#000000',
-      'white': '#FFFFFF',
-      'red': '#DC2626',
-      'blue': '#2563EB',
-      'green': '#059669',
-      'dark green': '#047857',
-      'light green': '#10B981',
-      'yellow': '#F59E0B',
-      'purple': '#7C3AED',
-      'orange': '#EA580C',
-      'pink': '#EC4899',
-      'rose gold': '#F43F5E',
-      'rose': '#F43F5E',
-      'brown': '#92400E',
-      'tan': '#D97706',
-      'beige': '#F5F5DC',
-      'gray': '#6B7280',
-      'grey': '#6B7280',
-      'silver': '#9CA3AF',
-      'gold': '#FCD34D',
-      'dark grey': '#374151',
-      'light grey': '#E5E7EB',
-      'dark gray': '#374151',
-      'light gray': '#E5E7EB',
-      'space grey': '#4B5563',
-      'space gray': '#4B5563',
-      'midnight green': '#1F2937',
-      'sierra blue': '#0EA5E9',
-      'alpine green': '#059669',
-      'product red': '#DC2626'
-    };
-    return colors[colorName?.toLowerCase()] || colorName || '#CCCCCC';
-  };
-
-  // Extract colors from variants if available
-  const availableColors = product.variants ? 
-    product.variants.map(variant => ({
-      name: variant.color || variant.name || 'Standard',
-      hex: variant.hex || getColorHex(variant.color || variant.name),
-      images: variant.images || []
-    })).filter((color, index, self) => 
-      self.findIndex(c => c.name === color.name) === index
-    ) : [];
-
-  const displayColors = availableColors.length > 0 ? availableColors : 
-    (product.colors ? product.colors.map(color => ({
-      name: color,
-      hex: getColorHex(color)
-    })) : []);
 
   return (
     <div 
@@ -256,12 +210,12 @@ const ProductCard = ({ product, index = 0 }) => {
             </h3>
           </Link>
 
-          {/* Rating and Reviews */}
+          {/* Rating */}
           <div className="flex items-center space-x-2 mb-3">
             <div className="flex items-center">
               {renderStars(product.average_rating || product.rating || 0)}
             </div>
-            <span className="text-xs text-gray-600 font-medium">
+            <span className="text-xs text-secondary-500">
               ({product.review_count || product.reviews || 0})
             </span>
           </div>
@@ -278,20 +232,20 @@ const ProductCard = ({ product, index = 0 }) => {
             )}
           </div>
 
-          {/* Color Variants - Enhanced display */}
-          {displayColors.length > 0 && (
-            <div className="flex items-center space-x-2 mt-3">
-              {displayColors.slice(0, 6).map((color, idx) => (
+          {/* Color Swatches */}
+          {product.colors && product.colors.length > 0 && (
+            <div className="flex items-center space-x-1 mt-3">
+              {product.colors.slice(0, 4).map((color, idx) => (
                 <div
                   key={idx}
-                  className="w-6 h-6 rounded-full border-2 border-gray-400 shadow-md hover:scale-110 transition-transform cursor-pointer"
-                  style={{ backgroundColor: color.hex }}
-                  title={color.name}
+                  className="w-4 h-4 rounded-full border border-ui-border"
+                  style={{ backgroundColor: color }}
+                  title={color}
                 />
               ))}
-              {displayColors.length > 6 && (
-                <span className="text-xs text-gray-600 font-semibold bg-gray-100 px-2 py-1 rounded-full">
-                  +{displayColors.length - 6}
+              {product.colors.length > 4 && (
+                <span className="text-xs text-secondary-500 ml-1">
+                  +{product.colors.length - 4}
                 </span>
               )}
             </div>

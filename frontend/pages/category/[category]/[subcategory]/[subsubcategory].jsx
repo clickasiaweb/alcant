@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Star from 'lucide-react/dist/esm/icons/star';
 import Filter from 'lucide-react/dist/esm/icons/filter';
 import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
-import ProductCard from '../../../../components/ProductCard';
+import CompactProductCard from '../../../../components/CompactProductCard';
 import FilterSidebar from '../../../../components/FilterSidebar';
 import { fetchCategories, fetchProducts, fetchRecommendedProducts } from '../../../../lib/services';
 
@@ -326,7 +326,7 @@ const SubSubCategoryPage = () => {
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
                   {products.map((product, index) => (
-                    <ProductCard
+                    <CompactProductCard
                       key={product._id}
                       product={{
                         id: product._id,
@@ -334,13 +334,14 @@ const SubSubCategoryPage = () => {
                         price: product.price,
                         originalPrice: product.originalPrice,
                         rating: product.rating || 4.5,
-                        review_count: product.reviews || Math.floor(Math.random() * 1000) + 100,
-                        features: product.features || 'Magsafe Compatible',
-                        colors: product.colors || [],
-                        variants: product.variants || [],
+                        reviews: product.reviews || Math.floor(Math.random() * 1000) + 100,
+                        isBestseller: index === 0, // First product is bestseller
+                        discount: index === 1 ? 30 : null, // Second product has 30% off
+                        isLimited: index === 2, // Third product is limited edition
                         isNew: product.isNew,
                         slug: product.slug,
-                        image: product.images && product.images.length > 0 ? product.images[0].url : null
+                        image: product.images && product.images.length > 0 ? product.images[0].url : null,
+                        colorCount: product.colors ? product.colors.length : 8
                       }}
                       index={index}
                     />
@@ -354,7 +355,7 @@ const SubSubCategoryPage = () => {
                   <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">Recommended for you</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                     {recommended.map((product, index) => (
-                      <ProductCard
+                      <CompactProductCard
                         key={product._id}
                         product={{
                           id: product._id,
@@ -362,13 +363,14 @@ const SubSubCategoryPage = () => {
                           price: product.price,
                           originalPrice: product.originalPrice,
                           rating: product.rating || 4.5,
-                          review_count: product.reviews || Math.floor(Math.random() * 1000) + 100,
-                          features: product.features || 'Magsafe Compatible',
-                          colors: product.colors || [],
-                          variants: product.variants || [],
+                          reviews: product.reviews || Math.floor(Math.random() * 1000) + 100,
+                          isBestseller: index === 0,
+                          discount: index === 1 ? 20 : null,
+                          isLimited: index === 2,
                           isNew: product.isNew,
                           slug: product.slug,
-                          image: product.images && product.images.length > 0 ? product.images[0].url : null
+                          image: product.images && product.images.length > 0 ? product.images[0].url : null,
+                          colorCount: product.colors ? product.colors.length : 8
                         }}
                         index={index}
                       />

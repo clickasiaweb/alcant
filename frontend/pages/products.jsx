@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import Layout from "../components/Layout";
-import ProductCard from "../components/ProductCard";
+import CompactProductCard from "../components/CompactProductCard";
 import FilterSidebar from "../components/FilterSidebar";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -318,7 +318,7 @@ const ProductsPage = () => {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
                   {products.map((product, index) => (
-                    <ProductCard
+                    <CompactProductCard
                       key={product._id}
                       product={{
                         id: product._id,
@@ -326,13 +326,14 @@ const ProductsPage = () => {
                         price: product.price,
                         originalPrice: product.originalPrice,
                         rating: product.rating || 4.5,
-                        review_count: product.reviews || Math.floor(Math.random() * 1000) + 100,
-                        features: product.magSafeCompatible ? 'Magsafe Compatible' : 'Premium Case',
-                        colors: product.colors || [],
-                        variants: product.variants || [],
+                        reviews: product.reviews || Math.floor(Math.random() * 1000) + 100,
+                        isBestseller: index === 0, // First product is bestseller
+                        discount: index === 1 ? 30 : null, // Second product has 30% off
+                        isLimited: index === 2, // Third product is limited edition
                         isNew: product.isNew,
                         slug: product.slug,
-                        image: product.images && product.images.length > 0 ? product.images[0].url : null
+                        image: product.images && product.images.length > 0 ? product.images[0].url : null,
+                        colorCount: product.colors ? product.colors.length : 8
                       }}
                       index={index}
                     />

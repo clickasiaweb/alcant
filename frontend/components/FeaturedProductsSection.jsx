@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ProductCard from "./ProductCard";
+import CompactProductCard from "./CompactProductCard";
 import { useCart } from '../contexts/CartContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -179,19 +179,20 @@ const FeaturedProductsSection = () => {
                 className="flex-none w-72 md:w-80"
                 style={{ minWidth: '288px' }}
               >
-                <ProductCard
+                <CompactProductCard
                   product={{
                     id: product.id,
                     name: product.name,
                     price: product.price,
                     originalPrice: product.old_price,
                     rating: product.rating,
-                    review_count: product.reviews,
-                    features: product.features || 'Magsafe Compatible',
-                    colors: product.colors || [],
-                    variants: product.variants || [],
+                    reviews: product.reviews,
+                    isBestseller: product.is_best_seller,
+                    discount: product.discount,
+                    isLimited: product.is_limited_edition,
                     slug: product.slug,
-                    image: product.image || (product.images && product.images[0])
+                    image: product.image || (product.images && product.images[0]),
+                    colorCount: product.color_count || 0
                   }}
                   index={index}
                 />
