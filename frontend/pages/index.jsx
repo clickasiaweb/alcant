@@ -191,7 +191,7 @@ const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {homeContent.collections?.items?.length > 0 ? (
               homeContent.collections.items.map((item, index) => {
-                // Generate category-based link if category data is available
+                // Generate collection link based on collection title
                 const getCollectionLink = (item) => {
                   console.log('🔗 Collection item data:', {
                     title: item.title,
@@ -201,18 +201,19 @@ const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
                     link: item.link
                   });
                   
-                  if (item.subSubCategoryId) {
-                    console.log('🔗 Using 3-level category link');
-                    return `/category/${item.categoryId}/${item.subCategoryId}/${item.subSubCategoryId}`;
-                  } else if (item.subCategoryId) {
-                    console.log('🔗 Using 2-level category link');
-                    return `/category/${item.categoryId}/${item.subCategoryId}`;
-                  } else if (item.categoryId) {
-                    console.log('🔗 Using 1-level category link');
-                    return `/category/${item.categoryId}`;
-                  }
-                  console.log('🔗 Using fallback link:', item.link || "/products");
-                  return item.link || "/products";
+                  // Map collection titles to collection slugs
+                  const collectionSlugMap = {
+                    'Phone Cases': 'phone-cases',
+                    'Wallets': 'wallets',
+                    'Accessories': 'accessories',
+                    'Car & Travel': 'car-travel',
+                    'Office': 'office',
+                    'Sale': 'sale'
+                  };
+                  
+                  const slug = collectionSlugMap[item.title] || item.title?.toLowerCase().replace(/\s+/g, '-');
+                  console.log('🔗 Using collection link:', `/collections/${slug}`);
+                  return `/collections/${slug}`;
                 };
 
                 return (
