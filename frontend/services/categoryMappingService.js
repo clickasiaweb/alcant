@@ -85,24 +85,51 @@ class CategoryMappingService {
 
       // Subcategory collections
       Object.entries(category.subcategories).forEach(([subcategoryId, subcategory]) => {
+        // Create unique slug to avoid conflicts
+        const categorySlug = this.slugify(category.name);
         const subSlug = this.slugify(subcategory.name);
-        mapping[subSlug] = {
+        const uniqueSubSlug = `${categorySlug}-${subSlug}`;
+        
+        mapping[uniqueSubSlug] = {
           title: `${subcategory.name} Collection`,
           description: `Premium ${subcategory.name.toLowerCase()} with advanced protection and style`,
           categoryId: categoryId,
           subCategoryId: subcategoryId
         };
 
+        // Also add the simple slug if it doesn't conflict
+        if (!mapping[subSlug]) {
+          mapping[subSlug] = {
+            title: `${subcategory.name} Collection`,
+            description: `Premium ${subcategory.name.toLowerCase()} with advanced protection and style`,
+            categoryId: categoryId,
+            subCategoryId: subcategoryId
+          };
+        }
+
         // Sub-subcategory collections
         Object.entries(subcategory.subSubcategories).forEach(([subSubcategoryId, subSubcategory]) => {
           const subSubSlug = this.slugify(subSubcategory.name);
-          mapping[subSubSlug] = {
+          const uniqueSubSubSlug = `${categorySlug}-${subSlug}-${subSubSlug}`;
+          
+          mapping[uniqueSubSubSlug] = {
             title: `${subSubcategory.name} Collection`,
             description: `Latest ${subSubcategory.name.toLowerCase()} with cutting-edge protection`,
             categoryId: categoryId,
             subCategoryId: subcategoryId,
             subSubCategoryId: subSubcategoryId
           };
+          
+          // Also add simple slug if no conflict
+          if (!mapping[subSubSlug]) {
+            mapping[subSubSlug] = {
+              title: `${subSubcategory.name} Collection`,
+              description: `Latest ${subSubcategory.name.toLowerCase()} with cutting-edge protection`,
+              categoryId: categoryId,
+              subCategoryId: subcategoryId,
+              subSubCategoryId: subSubcategoryId
+            };
+          }
         });
       });
     });
@@ -144,6 +171,15 @@ class CategoryMappingService {
     if (name.includes('Samsung')) return 'Samsung Cases';
     if (name.includes('Watch')) return 'Watch Accessories';
     if (name.includes('AirPod')) return 'AirPod Cases';
+    if (name.includes('Wallet')) return 'Wallets';
+    if (name.includes('Pet')) return 'Pet Accessories';
+    if (name.includes('Screen')) return 'Screen Protectors';
+    
+    // If subcategoryId is a readable string, use it
+    if (subcategoryId && !subcategoryId.match(/^[a-f0-9-]{36}$/i)) {
+      return subcategoryId;
+    }
+    
     return subcategoryId; // Fallback to ID
   }
 
