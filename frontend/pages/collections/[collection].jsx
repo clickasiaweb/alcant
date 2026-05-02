@@ -97,7 +97,7 @@ const CollectionPage = () => {
         fetchedProducts = await productsAPI.getAll();
       }
       
-      setProducts(fetchedProducts || []);
+      setProducts(Array.isArray(fetchedProducts) ? fetchedProducts : []);
       setCollectionInfo(collectionData);
     } catch (err) {
       console.error('Error fetching collection products:', err);
@@ -108,7 +108,7 @@ const CollectionPage = () => {
   };
 
   const applyFilters = () => {
-    let filtered = [...products];
+    let filtered = Array.isArray(products) ? [...products] : [];
     
     // Apply color filters
     if (selectedColors.length > 0) {
@@ -162,15 +162,17 @@ const CollectionPage = () => {
   // Get unique colors from products
   const getAvailableColors = () => {
     const colors = new Set();
-    products.forEach(product => {
-      if (product.variants && product.variants.length > 0) {
-        product.variants.forEach(variant => {
-          if (variant.color) colors.add(variant.color.toLowerCase());
-        });
-      } else if (product.color) {
-        colors.add(product.color.toLowerCase());
-      }
-    });
+    if (Array.isArray(products)) {
+      products.forEach(product => {
+        if (product.variants && product.variants.length > 0) {
+          product.variants.forEach(variant => {
+            if (variant.color) colors.add(variant.color.toLowerCase());
+          });
+        } else if (product.color) {
+          colors.add(product.color.toLowerCase());
+        }
+      });
+    }
     return Array.from(colors);
   };
 
@@ -182,12 +184,14 @@ const CollectionPage = () => {
       '50-100': 0
     };
     
-    products.forEach(product => {
-      const price = product.price || 0;
-      if (price < 2500) counts['under-25']++;
-      else if (price >= 2500 && price <= 5000) counts['25-50']++;
-      else if (price > 5000 && price <= 10000) counts['50-100']++;
-    });
+    if (Array.isArray(products)) {
+      products.forEach(product => {
+        const price = product.price || 0;
+        if (price < 2500) counts['under-25']++;
+        else if (price >= 2500 && price <= 5000) counts['25-50']++;
+        else if (price > 5000 && price <= 10000) counts['50-100']++;
+      });
+    }
     
     return counts;
   };
