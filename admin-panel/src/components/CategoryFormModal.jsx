@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 const CategoryFormModal = ({ 
   formData, 
@@ -7,6 +7,46 @@ const CategoryFormModal = ({
   handleSubmit, 
   resetForm 
 }) => {
+  const [slugPreview, setSlugPreview] = useState('');
+
+  // Auto-generate slug from name
+  const generateSlug = (name) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
+  // Update slug preview when name changes
+  useEffect(() => {
+    if (formData.name && !formData.slug) {
+      const autoSlug = generateSlug(formData.name);
+      setSlugPreview(autoSlug);
+    } else {
+      setSlugPreview(formData.slug);
+    }
+  }, [formData.name, formData.slug]);
+
+  // Handle name change with auto-slug generation
+  const handleNameChange = (e) => {
+    const newName = e.target.value;
+    handleInputChange(e);
+    
+    // Auto-generate slug if slug field is empty
+    if (!formData.slug && newName) {
+      const autoSlug = generateSlug(newName);
+      setSlugPreview(autoSlug);
+      // Trigger slug field update
+      const slugEvent = {
+        target: {
+          name: 'slug',
+          value: autoSlug
+        }
+      };
+      handleInputChange(slugEvent);
+    }
+  };
+
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleSubmit(e);
@@ -28,7 +68,7 @@ const CategoryFormModal = ({
               type="text"
               name="name"
               value={formData.name}
-              onChange={handleInputChange}
+              onChange={handleNameChange}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., Phone Cases"
@@ -37,7 +77,7 @@ const CategoryFormModal = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Slug *
+              URL Slug *
             </label>
             <input
               type="text"
@@ -48,6 +88,15 @@ const CategoryFormModal = ({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="e.g., phone-cases"
             />
+            {slugPreview && (
+              <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
+                <span className="text-gray-600">Collection URL will be:</span>
+                <br />
+                <code className="text-blue-600 font-mono">
+                  /collections/{slugPreview}
+                </code>
+              </div>
+            )}
           </div>
 
           <div>

@@ -60,7 +60,6 @@ export default function CategoriesPage() {
   const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     
-    // Simple state update - no auto-slug generation for now
     if (type === "text" || type === "textarea" || type === "number" || type === "email") {
       setFormData(prev => ({
         ...prev,
@@ -74,6 +73,26 @@ export default function CategoriesPage() {
       }));
     }
   }, []);
+
+  // Enhanced name change handler with auto-slug generation
+  const handleNameChange = useCallback((e) => {
+    const newName = e.target.value;
+    
+    // Update name
+    setFormData(prev => ({
+      ...prev,
+      name: newName
+    }));
+    
+    // Auto-generate slug if slug field is empty
+    if (!formData.slug && newName) {
+      const autoSlug = generateSlug(newName);
+      setFormData(prev => ({
+        ...prev,
+        slug: autoSlug
+      }));
+    }
+  }, [formData.slug]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -279,6 +298,9 @@ export default function CategoriesPage() {
                       Slug
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Collection URL
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Description
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -320,6 +342,26 @@ export default function CategoriesPage() {
                         <div className="text-sm text-gray-500">
                           {category.slug}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {category.slug && (
+                          <div className="flex items-center gap-2">
+                            <code className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">
+                              /collections/{category.slug}
+                            </code>
+                            <button
+                              onClick={() => {
+                                const url = `${window.location.origin}/collections/${category.slug}`;
+                                navigator.clipboard.writeText(url);
+                                alert('Collection URL copied to clipboard!');
+                              }}
+                              className="text-gray-400 hover:text-gray-600"
+                              title="Copy URL"
+                            >
+                              📋
+                            </button>
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-500 max-w-xs truncate">
@@ -376,6 +418,7 @@ export default function CategoriesPage() {
             formData={formData}
             editingCategory={editingCategory}
             handleInputChange={handleInputChange}
+            handleNameChange={handleNameChange}
             handleSubmit={handleSubmit}
             resetForm={resetForm}
           />

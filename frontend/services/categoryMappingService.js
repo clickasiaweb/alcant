@@ -1,5 +1,6 @@
 // Dynamic category mapping service
 import { getProducts } from './api';
+import { categoryService } from './categoryService';
 
 class CategoryMappingService {
   constructor() {
@@ -65,78 +66,27 @@ class CategoryMappingService {
     }
   }
 
-  // Generate collection slugs from category hierarchy
+  // Generate collection slugs from category hierarchy (now dynamic)
   async generateCollectionMapping() {
     if (this.mappingCache) {
       return this.mappingCache;
     }
 
-    const hierarchy = await this.getCategoriesWithHierarchy();
     const mapping = {};
 
-    Object.entries(hierarchy).forEach(([categoryId, category]) => {
-      // Main category collection
-      const mainSlug = this.slugify(category.name);
-      mapping[mainSlug] = {
-        title: `${category.name} Collection`,
-        description: `Browse our premium ${category.name.toLowerCase()} collection`,
-        categoryId: categoryId
-      };
-
-      // Subcategory collections
-      Object.entries(category.subcategories).forEach(([subcategoryId, subcategory]) => {
-        // Create unique slug to avoid conflicts
-        const categorySlug = this.slugify(category.name);
-        const subSlug = this.slugify(subcategory.name);
-        const uniqueSubSlug = `${categorySlug}-${subSlug}`;
-        
-        mapping[uniqueSubSlug] = {
-          title: `${subcategory.name} Collection`,
-          description: `Premium ${subcategory.name.toLowerCase()} with advanced protection and style`,
-          categoryId: categoryId,
-          subCategoryId: subcategoryId
-        };
-
-        // Also add the simple slug if it doesn't conflict
-        if (!mapping[subSlug]) {
-          mapping[subSlug] = {
-            title: `${subcategory.name} Collection`,
-            description: `Premium ${subcategory.name.toLowerCase()} with advanced protection and style`,
-            categoryId: categoryId,
-            subCategoryId: subcategoryId
-          };
-        }
-
-        // Sub-subcategory collections
-        Object.entries(subcategory.subSubcategories).forEach(([subSubcategoryId, subSubcategory]) => {
-          const subSubSlug = this.slugify(subSubcategory.name);
-          const uniqueSubSubSlug = `${categorySlug}-${subSlug}-${subSubSlug}`;
-          
-          mapping[uniqueSubSubSlug] = {
-            title: `${subSubcategory.name} Collection`,
-            description: `Latest ${subSubcategory.name.toLowerCase()} with cutting-edge protection`,
-            categoryId: categoryId,
-            subCategoryId: subcategoryId,
-            subSubCategoryId: subSubcategoryId
-          };
-          
-          // Also add simple slug if no conflict
-          if (!mapping[subSubSlug]) {
-            mapping[subSubSlug] = {
-              title: `${subSubcategory.name} Collection`,
-              description: `Latest ${subSubcategory.name.toLowerCase()} with cutting-edge protection`,
-              categoryId: categoryId,
-              subCategoryId: subcategoryId,
-              subSubCategoryId: subSubcategoryId
-            };
-          }
-        });
-      });
-    });
-
-    // Add special mappings for admin panel selections
-    const specialMappings = this.generateSpecialMappings(hierarchy);
-    Object.assign(mapping, specialMappings);
+    try {
+      // Add dynamic special mappings from database
+      const specialMappings = await this.generateSpecialMappings({});
+      Object.assign(mapping, specialMappings);
+      
+      console.log('🎯 Dynamic mapping created with', Object.keys(mapping).length, 'mappings');
+      
+    } catch (error) {
+      console.error('❌ Error generating dynamic mapping:', error);
+      // Use fallback mappings if dynamic generation fails
+      const fallbackMappings = this.getFallbackMappings();
+      Object.assign(mapping, fallbackMappings);
+    }
 
     this.mappingCache = mapping;
     return mapping;
@@ -144,13 +94,21 @@ class CategoryMappingService {
 
   // Get collection data by slug
   async getCollectionData(collectionSlug) {
-    // Clear cache for phone-cases to ensure fresh data
-    if (collectionSlug === 'phone-cases' || collectionSlug === 'phone-case' || collectionSlug === 'phone' || collectionSlug === 'cases') {
-      this.mappingCache = null;
-      this.categoryCache = null;
-    }
+    // Clear cache on every access to ensure fresh data from database
+    this.mappingCache = null;
+    this.categoryCache = null;
+    
     const mapping = await this.generateCollectionMapping();
-    return mapping[collectionSlug] || null;
+    const result = mapping[collectionSlug] || null;
+    
+    if (!result) {
+      console.log(`❌ No mapping found for collection slug: "${collectionSlug}"`);
+      console.log('📋 Available mappings:', Object.keys(mapping).slice(0, 10));
+    } else {
+      console.log(`✅ Found mapping for "${collectionSlug}":`, result.title);
+    }
+    
+    return result;
   }
 
   // Helper methods to extract names from products
@@ -199,60 +157,102 @@ class CategoryMappingService {
     return subSubcategoryId; // Fallback to ID
   }
 
-  // Special handling for admin panel selections
-  generateSpecialMappings(hierarchy) {
+  // Dynamic special mappings from database
+  async generateSpecialMappings(hierarchy) {
     const specialMappings = {};
     
-    // Hardcoded mapping for phone-cases to ensure it works correctly
-    specialMappings['phone-cases'] = {
-      title: 'Phone Cases Collection',
-      description: 'Browse our premium phone cases collection with advanced protection and style',
-      categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be'
-    };
-    
-    // Also add singular form (actual URL being used)
-    specialMappings['phone-case'] = {
-      title: 'Phone Case Collection',
-      description: 'Browse our premium phone case collection with advanced protection and style',
-      categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be'
-    };
-    
-    // Also add alternative spellings
-    specialMappings['phone'] = {
-      title: 'Phone Cases Collection',
-      description: 'Browse our premium phone cases collection with advanced protection and style',
-      categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be'
-    };
-    
-    specialMappings['cases'] = {
-      title: 'Phone Cases Collection',
-      description: 'Browse our premium phone cases collection with advanced protection and style',
-      categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be'
-    };
-    
-    // Handle iPhone 17 Pro specific case
-    const phoneCaseCategory = hierarchy['f009ca1d-9f5d-4bf3-81f7-b246d105d1be'];
-    if (phoneCaseCategory) {
-      // Find iPhone 17 Pro products
-      const iphone17ProProducts = [];
-      Object.values(phoneCaseCategory.subcategories).forEach(subcategory => {
-        Object.values(subcategory.subSubcategories).forEach(subSubcategory => {
-          // This would be populated if products had sub-subcategories
-        });
+    try {
+      // Fetch categories from database
+      const categoriesResponse = await categoryService.getCategoriesWithHierarchy();
+      const categories = categoriesResponse.data || [];
+      
+      console.log('📊 Dynamic categories fetched:', categories.length, 'categories');
+      
+      // Create mappings for each category from database
+      categories.forEach(category => {
+        if (category && category.id && category.name && category.slug) {
+          // Primary slug mapping
+          specialMappings[category.slug] = {
+            title: `${category.name} Collection`,
+            description: category.description || `Browse our premium ${category.name.toLowerCase()} collection`,
+            categoryId: category.id
+          };
+          
+          // Create alternative slugs for common variations
+          const altSlugs = this.generateAlternativeSlugs(category.name, category.slug);
+          altSlugs.forEach(altSlug => {
+            if (!specialMappings[altSlug]) {
+              specialMappings[altSlug] = {
+                title: `${category.name} Collection`,
+                description: category.description || `Browse our premium ${category.name.toLowerCase()} collection`,
+                categoryId: category.id
+              };
+            }
+          });
+          
+          console.log(`✅ Mapped "${category.name}" (${category.slug}) → ${category.id}`);
+        }
       });
       
-      // Since iPhone 17 Pro products don't have sub-subcategories, 
-      // create a special mapping based on product names
-      specialMappings['iphone-17-pro'] = {
-        title: 'iPhone 17 Pro Collection',
-        description: 'Premium iPhone 17 Pro cases with advanced protection',
-        categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be',
-        subCategoryId: '3207f43f-b904-486e-b2e5-9c6230eb7793',
-        specialFilter: 'iphone-17-pro' // Special filter for name-based matching
-      };
+      // Handle iPhone 17 Pro specific case (if needed)
+      const phoneCaseCategory = categories.find(cat => cat.name?.toLowerCase().includes('phone case'));
+      if (phoneCaseCategory) {
+        specialMappings['iphone-17-pro'] = {
+          title: 'iPhone 17 Pro Collection',
+          description: 'Premium iPhone 17 Pro cases with advanced protection',
+          categoryId: phoneCaseCategory.id,
+          specialFilter: 'iphone-17-pro'
+        };
+      }
+      
+    } catch (error) {
+      console.error('❌ Error fetching dynamic categories:', error);
+      // Fallback to minimal hardcoded mappings if database fails
+      console.log('🔄 Using fallback mappings due to database error');
+      return this.getFallbackMappings();
     }
     
     return specialMappings;
+  }
+  
+  // Generate alternative slugs for better URL matching
+  generateAlternativeSlugs(categoryName, primarySlug) {
+    const alternatives = [];
+    const name = categoryName.toLowerCase();
+    
+    // Generate common variations
+    if (name.includes('phone cases')) {
+      alternatives.push('phone-case', 'phone', 'cases');
+    }
+    if (name.includes('wallets')) {
+      alternatives.push('wallet', 'wallets-cards');
+    }
+    if (name.includes('accessories')) {
+      alternatives.push('accessory');
+    }
+    
+    return alternatives.filter(alt => alt !== primarySlug);
+  }
+  
+  // Fallback mappings if database fails
+  getFallbackMappings() {
+    return {
+      'phone-case': {
+        title: 'Phone Case Collection',
+        description: 'Browse our premium phone case collection',
+        categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be'
+      },
+      'phone-cases': {
+        title: 'Phone Cases Collection',
+        description: 'Browse our premium phone cases collection',
+        categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be'
+      },
+      'wallet': {
+        title: 'Wallet Collection',
+        description: 'Browse our premium wallet collection',
+        categoryId: '10ed20c8-b707-471c-be22-fe4ed960e1cd'
+      }
+    };
   }
 
   // Convert string to slug
