@@ -56,6 +56,18 @@ exports.getAdminProducts = async (req, res) => {
       limit = 20
     } = req.query;
 
+    // Debug: Log received parameters
+    console.log('getAdminProducts received params:', {
+      search,
+      category,
+      categoryId,
+      subCategoryId,
+      subSubCategoryId,
+      status,
+      page,
+      limit
+    });
+
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
@@ -93,6 +105,9 @@ exports.getAdminProducts = async (req, res) => {
       query.is_active = status === "active";
     }
 
+    // Debug: Log the final query
+    console.log('Final query for products:', query);
+
     const [productsResult, total] = await Promise.all([
       SupabaseProduct.find(query, {
         sort: { created_at: -1 },
@@ -103,6 +118,13 @@ exports.getAdminProducts = async (req, res) => {
     ]);
 
     const products = productsResult.data || [];
+
+    // Debug: Log results
+    console.log('Products query results:', {
+      totalFound: total,
+      productsReturned: products.length,
+      sampleProduct: products[0] || 'No products found'
+    });
 
     res.json({
       products,

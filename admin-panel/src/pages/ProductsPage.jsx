@@ -152,6 +152,34 @@ export default function ProductsPage() {
       console.log('Sub-subcategories loaded:', subSubcategoriesList.length);
       console.log('Pagination:', paginationData);
       
+      // Debug: Show sample product data
+      if (productsList.length > 0) {
+        console.log('Sample product data:', productsList[0]);
+        console.log('Product category fields:', {
+          category: productsList[0].category,
+          subcategory: productsList[0].subcategory,
+          sub_subcategory: productsList[0].sub_subcategory,
+          category_type: typeof productsList[0].category,
+          subcategory_type: typeof productsList[0].subcategory,
+          sub_subcategory_type: typeof productsList[0].sub_subcategory
+        });
+      }
+      
+      // Debug: Show filter values and types
+      console.log('Current filter values:', {
+        filterCategory,
+        filterSubcategory,
+        filterSubSubcategory,
+        filterCategory_type: typeof filterCategory,
+        filterSubcategory_type: typeof filterSubcategory,
+        filterSubSubcategory_type: typeof filterSubSubcategory
+      });
+      
+      // Debug: Show sub-subcategory data structure
+      if (subSubcategoriesList.length > 0) {
+        console.log('Sample sub-subcategory data:', subSubcategoriesList[0]);
+      }
+      
       setProducts(Array.isArray(productsList) ? productsList : []);
       setCategories(Array.isArray(categoriesList) ? categoriesList : []);
       setSubcategories(Array.isArray(subcategoriesList) ? subcategoriesList : []);
@@ -779,8 +807,35 @@ export default function ProductsPage() {
                          (filterStatus === "active" && product.is_active) ||
                          (filterStatus === "inactive" && !product.is_active);
     const matchesCategory = filterCategory === "all" || product.category === filterCategory;
-    const matchesSubcategory = filterSubcategory === "all" || product.subcategory === filterSubcategory;
-    const matchesSubSubcategory = filterSubSubcategory === "all" || product.sub_subcategory === filterSubSubcategory;
+    // Handle subcategory matching - support both ID and name matching
+    let matchesSubcategory = filterSubcategory === "all";
+    if (filterSubcategory !== "all") {
+      // Find the selected subcategory object to get its name
+      const selectedSub = subcategories.find(sub => 
+        (sub._id || sub.id) === filterSubcategory
+      );
+      
+      if (selectedSub) {
+        // Match by ID or by name
+        matchesSubcategory = product.subcategory === filterSubcategory || 
+                           product.subcategory === selectedSub.name;
+      }
+    }
+    
+    // Handle sub-subcategory matching - support both ID and name matching
+    let matchesSubSubcategory = filterSubSubcategory === "all";
+    if (filterSubSubcategory !== "all") {
+      // Find the selected sub-subcategory object to get its name
+      const selectedSubSub = subSubcategories.find(subSub => 
+        (subSub._id || subSub.id) === filterSubSubcategory
+      );
+      
+      if (selectedSubSub) {
+        // Match by ID or by name
+        matchesSubSubcategory = product.sub_subcategory === filterSubSubcategory || 
+                               product.sub_subcategory === selectedSubSub.name;
+      }
+    }
     
     console.log('Filtering product:', {
       name: product.name,
@@ -798,7 +853,34 @@ export default function ProductsPage() {
       filterCategory,
       filterSubcategory,
       filterSubSubcategory
-    }); 
+    });
+    
+    // Debug: Show why a product might be filtered out
+    if (!matchesSubSubcategory && filterSubSubcategory !== "all") {
+      const selectedSubSub = subSubcategories.find(subSub => 
+        (subSub._id || subSub.id) === filterSubSubcategory
+      );
+      console.log(`Product "${product.name}" filtered out - sub_subcategory mismatch:`, {
+        product_sub_subcategory: product.sub_subcategory,
+        filter_sub_subcategory: filterSubSubcategory,
+        selected_sub_sub_name: selectedSubSub?.name,
+        comparison_by_id: product.sub_subcategory === filterSubSubcategory,
+        comparison_by_name: product.sub_subcategory === selectedSubSub?.name
+      });
+    }
+    
+    if (!matchesSubcategory && filterSubcategory !== "all") {
+      const selectedSub = subcategories.find(sub => 
+        (sub._id || sub.id) === filterSubcategory
+      );
+      console.log(`Product "${product.name}" filtered out - subcategory mismatch:`, {
+        product_subcategory: product.subcategory,
+        filter_subcategory: filterSubcategory,
+        selected_sub_name: selectedSub?.name,
+        comparison_by_id: product.subcategory === filterSubcategory,
+        comparison_by_name: product.subcategory === selectedSub?.name
+      });
+    } 
     
     return matchesSearch && matchesStatus && matchesCategory && matchesSubcategory && matchesSubSubcategory;
   });
