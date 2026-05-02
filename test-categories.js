@@ -1,21 +1,49 @@
 // Test script to check category-product connection
 const axios = require('axios');
 
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
 async function testCategories() {
-    console.log('🔍 Testing Category-Product Connection...\n');
+    console.log('🔍 Testing Category-Product Connection...');
+    console.log(`🌐 API Base URL: ${API_BASE_URL}\n`);
     
     try {
-        // 1. Get all available categories
-        console.log('📂 Fetching all categories...');
-        const categoriesResponse = await axios.get(`${API_BASE_URL}/categories`);
-        console.log('Categories:', JSON.stringify(categoriesResponse.data, null, 2));
+        // 0. Test basic connection
+        console.log('🔌 Testing API connection...');
+        try {
+            const pingResponse = await axios.get(`${API_BASE_URL}/health`, { timeout: 5000 });
+            console.log('✅ API is reachable');
+        } catch (pingError) {
+            console.log('❌ API not reachable - Backend server might not be running');
+            console.log('💡 Solution: Start your backend server first');
+            console.log('   - Navigate to backend folder');
+            console.log('   - Run: npm start or npm run dev');
+            return;
+        }
+        
+        // 1. Get all available categories (skip if error)
+        console.log('\n📂 Fetching all categories...');
+        try {
+            const categoriesResponse = await axios.get(`${API_BASE_URL}/categories`);
+            console.log('Categories:', JSON.stringify(categoriesResponse.data, null, 2));
+        } catch (catError) {
+            console.log('❌ Categories endpoint failed, will analyze products instead');
+        }
         
         // 2. Get all products to see their category structure
         console.log('\n📦 Fetching all products...');
         const productsResponse = await axios.get(`${API_BASE_URL}/products`);
-        const products = productsResponse.data;
+        
+        // Handle different response formats
+        let products = [];
+        if (Array.isArray(productsResponse.data)) {
+            products = productsResponse.data;
+        } else if (productsResponse.data?.products && Array.isArray(productsResponse.data.products)) {
+            products = productsResponse.data.products;
+        } else {
+            console.log('❌ Unexpected products response format:', typeof productsResponse.data);
+            return;
+        }
         
         console.log(`Found ${products.length} products`);
         

@@ -25,39 +25,61 @@ const CollectionPage = () => {
   const [selectedPriceRanges, setSelectedPriceRanges] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Collection mapping - more dynamic to handle admin panel categories
+  // Collection mapping - using actual category IDs from database
   const getCollectionData = (collectionSlug) => {
+    // Map collection slugs to actual category IDs from database
+    const categoryMapping = {
+      'phone-case': 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be', // Main category with phone products
+      'iphone-cases': 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be', // Same category
+      'accessories': '883e60ba-b93d-4cb8-ab9e-680ac6bd6575',
+      'car-interior': '10ed20c8-b707-471c-be22-fe4ed960e1cd',
+      'yoga': '824e190f-b8f0-41e1-be24-da03ba52faa9',
+      'travel-accessories': '73f3c2de-7ab8-4166-a351-671969411301'
+    };
+    
     const collections = {
-      'phone-cases': {
+      'phone-case': {
         title: 'Phone Cases Collection',
-        description: 'Discover our complete collection of high-quality phone accessories designed to enhance your mobile experience'
+        description: 'Discover our complete collection of high-quality phone accessories designed to enhance your mobile experience',
+        categoryId: categoryMapping['phone-case']
+      },
+      'iphone-cases': {
+        title: 'iPhone Cases Collection', 
+        description: 'Premium iPhone cases with advanced protection and style',
+        categoryId: categoryMapping['iphone-cases']
       },
       'accessories': {
         title: 'Accessories Collection',
-        description: 'Discover our premium ΛʟcΛɴᴛ accessories for your devices'
-      },
-      'wallets': {
-        title: 'Wallets Collection',
-        description: 'Premium ΛʟcΛɴᴛ wallets and card holders'
-      },
-      'office': {
-        title: 'Office Collection',
-        description: 'Premium ΛʟcΛɴᴛ office accessories'
+        description: 'Discover our premium ΛʟcΛɴᴛ accessories for your devices',
+        categoryId: categoryMapping['accessories']
       },
       'car-travel': {
         title: 'Car & Travel Collection',
-        description: 'Premium ΛʟcΛɴᴛ car and travel accessories'
+        description: 'Premium ΛʟcΛɴᴛ car and travel accessories',
+        categoryId: categoryMapping['car-interior']
+      },
+      'yoga': {
+        title: 'Yoga Collection',
+        description: 'Premium yoga accessories and equipment',
+        categoryId: categoryMapping['yoga']
+      },
+      'travel': {
+        title: 'Travel Accessories Collection',
+        description: 'Essential travel accessories for your journeys',
+        categoryId: categoryMapping['travel-accessories']
       },
       'sale': {
         title: 'Sale Collection',
-        description: 'Special offers and discounted items'
+        description: 'Special offers and discounted items',
+        categoryId: null // Sale uses different endpoint
       }
     };
     
     // Return matching collection or create a dynamic one
     return collections[collectionSlug] || {
       title: `${collectionSlug.charAt(0).toUpperCase() + collectionSlug.slice(1).replace('-', ' ')} Collection`,
-      description: `Browse our premium ${collectionSlug.replace('-', ' ')} collection`
+      description: `Browse our premium ${collectionSlug.replace('-', ' ')} collection`,
+      categoryId: categoryMapping[collectionSlug] || null
     };
   };
 
@@ -89,58 +111,64 @@ const CollectionPage = () => {
         console.log('🏷️ Fetching sale products');
         fetchedProducts = await productsAPI.getSale();
       } else {
-        // Try multiple approaches to get products
-        console.log('📂 Trying different API approaches for category:', collection);
+        // Use the actual category ID from collection data
+        const categoryId = collectionData?.categoryId;
+        console.log('📂 Using category ID:', categoryId, 'for collection:', collection);
         
-        // Approach 1: Try getProducts with category filter
-        try {
-          console.log('🔄 Approach 1: getProducts with category filter');
-          fetchedProducts = await getProducts({ 
-            category: collection,
-            limit: 50,
-            isActive: true 
-          });
-          console.log('✅ Approach 1 result:', fetchedProducts);
-        } catch (error1) {
-          console.log('❌ Approach 1 failed:', error1);
-          
-          // Approach 2: Try getByCategory API
+        if (!categoryId) {
+          console.log('❌ No category ID found for collection:', collection);
+          fetchedProducts = await productsAPI.getAll(); // Fallback to all products
+        } else {
+          // Approach 1: Try getProducts with categoryId filter
           try {
-            console.log('🔄 Approach 2: getByCategory API');
-            fetchedProducts = await productsAPI.getByCategory(collection);
-            console.log('✅ Approach 2 result:', fetchedProducts);
-          } catch (error2) {
-            console.log('❌ Approach 2 failed:', error2);
+            console.log('🔄 Approach 1: getProducts with categoryId filter');
+            fetchedProducts = await getProducts({ 
+              categoryId: categoryId,
+              limit: 50,
+              isActive: true 
+            });
+            console.log('✅ Approach 1 result:', fetchedProducts);
+          } catch (error1) {
+            console.log('❌ Approach 1 failed:', error1);
             
-            // Approach 3: Try with different category names
-            const alternativeNames = [
-              collection,
-              collection.replace('-', ' '),
-              collection.replace('-', ''),
-              collection.charAt(0).toUpperCase() + collection.slice(1)
-            ];
-            
-            for (const altName of alternativeNames) {
-              try {
-                console.log('🔄 Approach 3: Trying alternative name:', altName);
-                fetchedProducts = await getProducts({ 
-                  category: altName,
-                  limit: 50,
-                  isActive: true 
-                });
-                if (Array.isArray(fetchedProducts) && fetchedProducts.length > 0) {
-                  console.log('✅ Approach 3 success with:', altName);
-                  break;
+            // Approach 2: Try getByCategory API
+            try {
+              console.log('🔄 Approach 2: getByCategory API');
+              fetchedProducts = await productsAPI.getByCategory(collection);
+              console.log('✅ Approach 2 result:', fetchedProducts);
+            } catch (error2) {
+              console.log('❌ Approach 2 failed:', error2);
+              
+              // Approach 3: Try with different category names
+              const alternativeNames = [
+                collection,
+                collection.replace('-', ' '),
+                collection.replace('-', ''),
+                collection.charAt(0).toUpperCase() + collection.slice(1)
+              ];
+              
+              for (const altName of alternativeNames) {
+                try {
+                  console.log('🔄 Approach 3: Trying alternative name:', altName);
+                  fetchedProducts = await getProducts({ 
+                    category: altName,
+                    limit: 50,
+                    isActive: true 
+                  });
+                  if (Array.isArray(fetchedProducts) && fetchedProducts.length > 0) {
+                    console.log('✅ Approach 3 success with:', altName);
+                    break;
+                  }
+                } catch (error3) {
+                  console.log('❌ Approach 3 failed for', altName, ':', error3);
                 }
-              } catch (error3) {
-                console.log('❌ Approach 3 failed for', altName, ':', error3);
               }
-            }
-            
-            // Approach 4: Fallback to all products
-            if (!Array.isArray(fetchedProducts) || fetchedProducts.length === 0) {
-              console.log('🔄 Approach 4: Fetching all products as fallback');
-              fetchedProducts = await productsAPI.getAll();
+              
+              // Approach 4: Fallback to all products
+              if (!Array.isArray(fetchedProducts) || fetchedProducts.length === 0) {
+                console.log('🔄 Approach 4: Fetching all products as fallback');
+                fetchedProducts = await productsAPI.getAll();
+              }
             }
           }
         }
