@@ -107,6 +107,10 @@ class CategoryMappingService {
       });
     });
 
+    // Add special mappings for admin panel selections
+    const specialMappings = this.generateSpecialMappings(hierarchy);
+    Object.assign(mapping, specialMappings);
+
     this.mappingCache = mapping;
     return mapping;
   }
@@ -152,6 +156,35 @@ class CategoryMappingService {
     if (name.includes('8 Pro')) return 'Pixel 8 Pro Cases';
     if (name.includes('7 Pro')) return 'Pixel 7 Pro Cases';
     return subSubcategoryId; // Fallback to ID
+  }
+
+  // Special handling for admin panel selections
+  generateSpecialMappings(hierarchy) {
+    const specialMappings = {};
+    
+    // Handle iPhone 17 Pro specific case
+    const phoneCaseCategory = hierarchy['f009ca1d-9f5d-4bf3-81f7-b246d105d1be'];
+    if (phoneCaseCategory) {
+      // Find iPhone 17 Pro products
+      const iphone17ProProducts = [];
+      Object.values(phoneCaseCategory.subcategories).forEach(subcategory => {
+        Object.values(subcategory.subSubcategories).forEach(subSubcategory => {
+          // This would be populated if products had sub-subcategories
+        });
+      });
+      
+      // Since iPhone 17 Pro products don't have sub-subcategories, 
+      // create a special mapping based on product names
+      specialMappings['iphone-17-pro'] = {
+        title: 'iPhone 17 Pro Collection',
+        description: 'Premium iPhone 17 Pro cases with advanced protection',
+        categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be',
+        subCategoryId: '3207f43f-b904-486e-b2e5-9c6230eb7793',
+        specialFilter: 'iphone-17-pro' // Special filter for name-based matching
+      };
+    }
+    
+    return specialMappings;
   }
 
   // Convert string to slug

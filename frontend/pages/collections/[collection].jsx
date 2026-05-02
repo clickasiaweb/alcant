@@ -103,24 +103,40 @@ const CollectionPage = () => {
         } else {
           // Approach 1: Try getProducts with specific category filters
           try {
-            const filters = { 
-              categoryId: categoryId,
+            let filters = { 
               limit: 50,
               isActive: true 
             };
             
-            // Add subcategory filter if available
-            if (subCategoryId) {
-              filters.subCategoryId = subCategoryId;
+            // Handle special filter for iPhone 17 Pro
+            if (collectionData.specialFilter === 'iphone-17-pro') {
+              // Filter by product name since sub-subcategory is not set
+              console.log('🔄 Using special iPhone 17 Pro filter');
+              const allProducts = await getProducts({ limit: 100 });
+              const iphone17ProProducts = allProducts.products?.filter(product => 
+                product.name?.toLowerCase().includes('17 pro')
+              ) || [];
+              fetchedProducts = { products: iphone17ProProducts };
+            } else {
+              // Normal category filtering
+              if (categoryId) {
+                filters.categoryId = categoryId;
+              }
+              
+              // Add subcategory filter if available
+              if (subCategoryId) {
+                filters.subCategoryId = subCategoryId;
+              }
+              
+              // Add sub-subcategory filter if available
+              if (subSubCategoryId) {
+                filters.subSubCategoryId = subSubCategoryId;
+              }
+              
+              console.log('🔄 Approach 1: getProducts with specific filters:', filters);
+              fetchedProducts = await getProducts(filters);
             }
             
-            // Add sub-subcategory filter if available
-            if (subSubCategoryId) {
-              filters.subSubCategoryId = subSubCategoryId;
-            }
-            
-            console.log('🔄 Approach 1: getProducts with specific filters:', filters);
-            fetchedProducts = await getProducts(filters);
             console.log('✅ Approach 1 result:', fetchedProducts);
           } catch (error1) {
             console.log('❌ Approach 1 failed:', error1);
