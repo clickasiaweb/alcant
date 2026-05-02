@@ -144,6 +144,11 @@ class CategoryMappingService {
 
   // Get collection data by slug
   async getCollectionData(collectionSlug) {
+    // Clear cache for phone-cases to ensure fresh data
+    if (collectionSlug === 'phone-cases' || collectionSlug === 'phone' || collectionSlug === 'cases') {
+      this.mappingCache = null;
+      this.categoryCache = null;
+    }
     const mapping = await this.generateCollectionMapping();
     return mapping[collectionSlug] || null;
   }
@@ -197,6 +202,26 @@ class CategoryMappingService {
   // Special handling for admin panel selections
   generateSpecialMappings(hierarchy) {
     const specialMappings = {};
+    
+    // Hardcoded mapping for phone-cases to ensure it works correctly
+    specialMappings['phone-cases'] = {
+      title: 'Phone Cases Collection',
+      description: 'Browse our premium phone cases collection with advanced protection and style',
+      categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be'
+    };
+    
+    // Also add alternative spellings
+    specialMappings['phone'] = {
+      title: 'Phone Cases Collection',
+      description: 'Browse our premium phone cases collection with advanced protection and style',
+      categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be'
+    };
+    
+    specialMappings['cases'] = {
+      title: 'Phone Cases Collection',
+      description: 'Browse our premium phone cases collection with advanced protection and style',
+      categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be'
+    };
     
     // Handle iPhone 17 Pro specific case
     const phoneCaseCategory = hierarchy['f009ca1d-9f5d-4bf3-81f7-b246d105d1be'];
