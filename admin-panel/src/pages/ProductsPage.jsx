@@ -26,6 +26,14 @@ export default function ProductsPage() {
   const [selectedProducts, setSelectedProducts] = useState(new Set());
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  
+  // Pagination state
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 20,
+    total: 0,
+    pages: 0
+  });
 
   const [formData, setFormData] = useState({
     name: "",
@@ -76,12 +84,27 @@ export default function ProductsPage() {
     loadData();
   }, []);
 
-  const loadData = async () => {
+  // Reload data when filters or search changes
+  useEffect(() => {
+    loadData(1); // Reset to first page when filters change
+  }, [searchTerm, filterStatus, filterCategory, pagination.limit]);
+
+  const loadData = async (page = 1) => {
     try {
       console.log('Loading data...');
       setLoading(true);
+      
+      // Prepare query parameters for pagination and filtering
+      const params = {
+        page,
+        limit: pagination.limit,
+        ...(searchTerm && { search: searchTerm }),
+        ...(filterStatus !== "all" && { status: filterStatus }),
+        ...(filterCategory !== "all" && { category: filterCategory })
+      };
+      
       const [productsData, categoriesData] = await Promise.all([
-        getAdminProducts(),
+        getAdminProducts(params),
         fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/categories/hierarchy`).then(res => {
           if (!res.ok) throw new Error('Failed to fetch categories');
           return res.json();
@@ -90,12 +113,23 @@ export default function ProductsPage() {
 
       const products = productsData.products || productsData.data || [];
       const categories = categoriesData.data || [];
+      const paginationData = productsData.pagination || {};
       
       console.log('📦 Products loaded:', products.length);
       console.log('📂 Categories loaded:', categories.length);
+      console.log('📄 Pagination:', paginationData);
       
       setProducts(Array.isArray(products) ? products : []);
       setCategories(Array.isArray(categories) ? categories : []);
+      
+      // Update pagination state
+      setPagination({
+        page: paginationData.page || page,
+        limit: paginationData.limit || pagination.limit,
+        total: paginationData.total || 0,
+        pages: paginationData.pages || 0
+      });
+      
       setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -948,6 +982,75 @@ export default function ProductsPage() {
             </div>
           )}
         </div>
+
+        {/* Pagination Controls */}
+        {pagination.pages > 1 && (
+          <div className="bg-white rounded-lg shadow-md p-4 mt-6">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-gray-700">
+                Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                {pagination.total} products
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => loadData(pagination.page - 1)}
+                  disabled={pagination.page <= 1}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                    pagination.page <= 1
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Previous
+                </button>
+                
+                <div className="flex items-center gap-1">
+                  {/* Show page numbers */}
+                  {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
+                    let pageNum;
+                    if (pagination.pages <= 5) {
+                      pageNum = i + 1;
+                    } else if (pagination.page <= 3) {
+                      pageNum = i + 1;
+                    } else if (pagination.page >= pagination.pages - 2) {
+                      pageNum = pagination.pages - 4 + i;
+                    } else {
+                      pageNum = pagination.page - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => loadData(pageNum)}
+                        className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                          pagination.page === pageNum
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  onClick={() => loadData(pagination.page + 1)}
+                  disabled={pagination.page >= pagination.pages}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                    pagination.page >= pagination.pages
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {showForm && (
           <ProductFormModal
