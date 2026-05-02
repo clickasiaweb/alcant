@@ -24,41 +24,43 @@ const CollectionPage = () => {
   const [selectedPriceRanges, setSelectedPriceRanges] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Collection mapping
-  const collectionMap = {
-    'phone-cases': {
-      title: 'Phone Cases Collection',
-      description: 'Discover our complete collection of high-quality phone accessories designed to enhance your mobile experience',
-      category: 'phone-cases'
-    },
-    'accessories': {
-      title: 'Accessories Collection',
-      description: 'Discover our premium ΛʟcΛɴᴛ accessories for your devices',
-      category: 'accessories'
-    },
-    'wallets': {
-      title: 'Wallets Collection',
-      description: 'Premium ΛʟcΛɴᴛ wallets and card holders',
-      category: 'wallets'
-    },
-    'office': {
-      title: 'Office Collection',
-      description: 'Premium ΛʟcΛɴᴛ office accessories',
-      category: 'office'
-    },
-    'car-travel': {
-      title: 'Car & Travel Collection',
-      description: 'Premium ΛʟcΛɴᴛ car and travel accessories',
-      category: 'car-travel'
-    },
-    'sale': {
-      title: 'Sale Collection',
-      description: 'Special offers and discounted items',
-      category: 'sale'
-    }
+  // Collection mapping - more dynamic to handle admin panel categories
+  const getCollectionData = (collectionSlug) => {
+    const collections = {
+      'phone-cases': {
+        title: 'Phone Cases Collection',
+        description: 'Discover our complete collection of high-quality phone accessories designed to enhance your mobile experience'
+      },
+      'accessories': {
+        title: 'Accessories Collection',
+        description: 'Discover our premium ΛʟcΛɴᴛ accessories for your devices'
+      },
+      'wallets': {
+        title: 'Wallets Collection',
+        description: 'Premium ΛʟcΛɴᴛ wallets and card holders'
+      },
+      'office': {
+        title: 'Office Collection',
+        description: 'Premium ΛʟcΛɴᴛ office accessories'
+      },
+      'car-travel': {
+        title: 'Car & Travel Collection',
+        description: 'Premium ΛʟcΛɴᴛ car and travel accessories'
+      },
+      'sale': {
+        title: 'Sale Collection',
+        description: 'Special offers and discounted items'
+      }
+    };
+    
+    // Return matching collection or create a dynamic one
+    return collections[collectionSlug] || {
+      title: `${collectionSlug.charAt(0).toUpperCase() + collectionSlug.slice(1).replace('-', ' ')} Collection`,
+      description: `Browse our premium ${collectionSlug.replace('-', ' ')} collection`
+    };
   };
 
-  const collectionData = collectionMap[collection] || collectionMap['phone-cases'];
+  const collectionData = getCollectionData(collection || 'phone-cases');
 
   // Fetch products data
   useEffect(() => {
@@ -79,29 +81,35 @@ const CollectionPage = () => {
       
       let fetchedProducts = [];
       
-      // Fetch products based on collection type
+      // Fetch products based on collection type using the general getProducts API
       if (collection === 'sale') {
         fetchedProducts = await productsAPI.getSale();
-      } else if (collection === 'phone-cases') {
-        fetchedProducts = await productsAPI.getByCategory('phone-cases');
-      } else if (collection === 'accessories') {
-        fetchedProducts = await productsAPI.getByCategory('accessories');
-      } else if (collection === 'wallets') {
-        fetchedProducts = await productsAPI.getByCategory('wallets');
-      } else if (collection === 'office') {
-        fetchedProducts = await productsAPI.getByCategory('office');
-      } else if (collection === 'car-travel') {
-        fetchedProducts = await productsAPI.getByCategory('car-travel');
       } else {
-        // Fallback to all products
-        fetchedProducts = await productsAPI.getAll();
+        // Try to get products by category slug, fallback to all products
+        try {
+          fetchedProducts = await getProducts({ 
+            category: collection,
+            limit: 50,
+            isActive: true 
+          });
+        } catch (categoryError) {
+          console.log('Category not found, fetching all products:', categoryError);
+          // Fallback to all products
+          fetchedProducts = await productsAPI.getAll();
+        }
       }
       
-      setProducts(Array.isArray(fetchedProducts) ? fetchedProducts : []);
+      // Ensure we have an array of products
+      const productsArray = Array.isArray(fetchedProducts) ? fetchedProducts : 
+                           (fetchedProducts?.data && Array.isArray(fetchedProducts.data)) ? fetchedProducts.data : [];
+      
+      console.log('📦 Fetched products:', productsArray.length, 'for collection:', collection);
+      setProducts(productsArray);
       setCollectionInfo(collectionData);
     } catch (err) {
       console.error('Error fetching collection products:', err);
       setError('Failed to load products');
+      setProducts([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -259,45 +267,6 @@ const CollectionPage = () => {
   return (
     <Layout title={`${collectionData.title} - ΛʟcΛɴᴛ`} description={collectionData.description}>
       <div className="min-h-screen bg-gray-50">
-        {/* Navigation Header */}
-        <div className="bg-white border-b border-gray-200">
-          <div className="container">
-            <div className="flex items-center justify-between py-4">
-              <div className="flex items-center space-x-8">
-                <Link href="/" className="text-2xl font-bold text-primary-900">ALCANT</Link>
-                <nav className="hidden md:flex space-x-6">
-                  <Link href="/collections/accessories" className="text-gray-700 hover:text-primary-600">Accessories</Link>
-                  <Link href="/collections/car-travel" className="text-gray-700 hover:text-primary-600">Car & Travel</Link>
-                  <Link href="/collections/phone-cases" className="text-gray-700 hover:text-primary-600">Phone Cases</Link>
-                  <Link href="/collections/wallets" className="text-gray-700 hover:text-primary-600">Wallets & Cards</Link>
-                </nav>
-              </div>
-              <div className="flex items-center space-x-4">
-                <button className="p-2 text-gray-600 hover:text-primary-600">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
-                <button className="p-2 text-gray-600 hover:text-primary-600">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
-                </button>
-                <button className="p-2 text-gray-600 hover:text-primary-600 relative">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
-                </button>
-                <button className="p-2 text-gray-600 hover:text-primary-600">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Collection Header */}
         <div className="bg-white py-12">
