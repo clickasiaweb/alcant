@@ -17,12 +17,16 @@ import { toast } from "react-toastify";
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
+  const [subSubcategories, setSubSubcategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [filterSubcategory, setFilterSubcategory] = useState("all");
+  const [filterSubSubcategory, setFilterSubSubcategory] = useState("all");
   const [selectedProducts, setSelectedProducts] = useState(new Set());
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -87,7 +91,7 @@ export default function ProductsPage() {
   // Reload data when filters or search changes
   useEffect(() => {
     loadData(1); // Reset to first page when filters change
-  }, [searchTerm, filterStatus, filterCategory, pagination.limit]);
+  }, [searchTerm, filterStatus, filterCategory, filterSubcategory, filterSubSubcategory, pagination.limit]);
 
   const loadData = async (page = 1) => {
     try {
@@ -100,7 +104,9 @@ export default function ProductsPage() {
         limit: pagination.limit,
         ...(searchTerm && { search: searchTerm }),
         ...(filterStatus !== "all" && { status: filterStatus }),
-        ...(filterCategory !== "all" && { category: filterCategory })
+        ...(filterCategory !== "all" && { categoryId: filterCategory }),
+        ...(filterSubcategory !== "all" && { subCategoryId: filterSubcategory }),
+        ...(filterSubSubcategory !== "all" && { subSubCategoryId: filterSubSubcategory })
       };
       
       const [productsData, categoriesData] = await Promise.all([
@@ -108,19 +114,48 @@ export default function ProductsPage() {
         fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001/api'}/categories/hierarchy`).then(res => {
           if (!res.ok) throw new Error('Failed to fetch categories');
           return res.json();
-        }),
+        })
       ]);
 
-      const products = productsData.products || productsData.data || [];
-      const categories = categoriesData.data || [];
+      const productsList = productsData.products || productsData.data || [];
+      const categoriesList = categoriesData.data || [];
       const paginationData = productsData.pagination || {};
       
-      console.log('📦 Products loaded:', products.length);
-      console.log('📂 Categories loaded:', categories.length);
-      console.log('📄 Pagination:', paginationData);
+      // Extract subcategories and sub-subcategories from hierarchy data
+      const subcategoriesList = [];
+      const subSubcategoriesList = [];
       
-      setProducts(Array.isArray(products) ? products : []);
-      setCategories(Array.isArray(categories) ? categories : []);
+      categoriesList.forEach(category => {
+        if (category.subcategories) {
+          category.subcategories.forEach(subcategory => {
+            subcategoriesList.push({
+              ...subcategory,
+              category_id: category.id
+            });
+            
+            if (subcategory.sub_subcategories) {
+              subcategory.sub_subcategories.forEach(subSub => {
+                subSubcategoriesList.push({
+                  ...subSub,
+                  category_id: category.id,
+                  subcategory_id: subcategory.id
+                });
+              });
+            }
+          });
+        }
+      });
+      
+      console.log('Products loaded:', productsList.length);
+      console.log('Categories loaded:', categoriesList.length);
+      console.log('Subcategories loaded:', subcategoriesList.length);
+      console.log('Sub-subcategories loaded:', subSubcategoriesList.length);
+      console.log('Pagination:', paginationData);
+      
+      setProducts(Array.isArray(productsList) ? productsList : []);
+      setCategories(Array.isArray(categoriesList) ? categoriesList : []);
+      setSubcategories(Array.isArray(subcategoriesList) ? subcategoriesList : []);
+      setSubSubcategories(Array.isArray(subSubcategoriesList) ? subSubcategoriesList : []);
       
       // Update pagination state
       setPagination({
@@ -218,7 +253,7 @@ export default function ProductsPage() {
   const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     
-    console.log(`🔄 Input change: ${name} = ${value} (type: ${type})`);
+    console.log(`Input change: ${name} = ${value} (type: ${type})`);
     
     if (type === "checkbox") {
       setFormData(prev => ({
@@ -264,14 +299,14 @@ export default function ProductsPage() {
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    console.log('📸 Starting image upload for', files.length, 'files');
+    console.log('Starting image upload for', files.length, 'files');
     
     try {
       const uploadPromises = files.map(async (file) => {
         const formData = new FormData();
         formData.append('image', file);
         
-        console.log('🔄 Uploading file:', file.name);
+        console.log('Uploading file:', file.name);
         
         const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5001'}/api/upload/image`, {
           method: 'POST',
@@ -284,7 +319,7 @@ export default function ProductsPage() {
         }
         
         const result = await response.json();
-        console.log('✅ Upload successful for:', file.name, result);
+        console.log('Upload successful for:', file.name, result);
         
         if (result.success) {
           return {
@@ -300,7 +335,7 @@ export default function ProductsPage() {
       });
       
       const uploadedImages = await Promise.all(uploadPromises);
-      console.log('🎉 All images uploaded successfully:', uploadedImages);
+      console.log('All images uploaded successfully:', uploadedImages);
       
       setFormData(prev => ({
         ...prev,
@@ -310,11 +345,11 @@ export default function ProductsPage() {
       toast.success(`${uploadedImages.length} image(s) uploaded successfully!`);
       
     } catch (error) {
-      console.error('❌ Image upload error:', error);
+      console.error('Image upload error:', error);
       toast.error('Failed to upload images: ' + error.message);
       
       // Fallback to blob URLs for preview if upload fails
-      console.log('🔄 Using blob URLs as fallback');
+      console.log('Using blob URLs as fallback');
       const fallbackImages = files.map(file => ({
         url: URL.createObjectURL(file),
         name: file.name,
@@ -744,28 +779,38 @@ export default function ProductsPage() {
                          (filterStatus === "active" && product.is_active) ||
                          (filterStatus === "inactive" && !product.is_active);
     const matchesCategory = filterCategory === "all" || product.category === filterCategory;
+    const matchesSubcategory = filterSubcategory === "all" || product.subcategory === filterSubcategory;
+    const matchesSubSubcategory = filterSubSubcategory === "all" || product.sub_subcategory === filterSubSubcategory;
     
-    console.log('🔍 Filtering product:', {
+    console.log('Filtering product:', {
       name: product.name,
       is_active: product.is_active,
       category: product.category,
+      subcategory: product.subcategory,
+      sub_subcategory: product.sub_subcategory,
       matchesSearch,
       matchesStatus,
       matchesCategory,
+      matchesSubcategory,
+      matchesSubSubcategory,
       searchTerm,
       filterStatus,
-      filterCategory
+      filterCategory,
+      filterSubcategory,
+      filterSubSubcategory
     }); 
     
-    return matchesSearch && matchesStatus && matchesCategory;
+    return matchesSearch && matchesStatus && matchesCategory && matchesSubcategory && matchesSubSubcategory;
   });
 
-  console.log('📊 Filter results:', {
+  console.log('Filter results:', {
     totalProducts: products.length,
     filteredProducts: filteredProducts.length,
     searchTerm,
     filterStatus,
-    filterCategory
+    filterCategory,
+    filterSubcategory,
+    filterSubSubcategory
   });
 
   if (loading) {
@@ -821,7 +866,11 @@ export default function ProductsPage() {
 
               <select
                 value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
+                onChange={(e) => {
+                  setFilterCategory(e.target.value);
+                  setFilterSubcategory("all"); // Reset subcategory when category changes
+                  setFilterSubSubcategory("all"); // Reset sub-subcategory when category changes
+                }}
                 className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Categories</option>
@@ -830,6 +879,41 @@ export default function ProductsPage() {
                     {category.name}
                   </option>
                 ))}
+              </select>
+
+              <select
+                value={filterSubcategory}
+                onChange={(e) => {
+                  setFilterSubcategory(e.target.value);
+                  setFilterSubSubcategory("all"); // Reset sub-subcategory when subcategory changes
+                }}
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={filterCategory === "all"}
+              >
+                <option value="all">All Subcategories</option>
+                {subcategories
+                  .filter(sub => filterCategory === "all" || sub.category_id === filterCategory)
+                  .map(subcategory => (
+                    <option key={subcategory._id || subcategory.id} value={subcategory._id || subcategory.id}>
+                      {subcategory.name}
+                    </option>
+                  ))}
+              </select>
+
+              <select
+                value={filterSubSubcategory}
+                onChange={(e) => setFilterSubSubcategory(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={filterSubcategory === "all"}
+              >
+                <option value="all">All Sub-Subcategories</option>
+                {subSubcategories
+                  .filter(subSub => filterSubcategory === "all" || subSub.subcategory_id === filterSubcategory)
+                  .map(subSubcategory => (
+                    <option key={subSubcategory._id || subSubcategory.id} value={subSubcategory._id || subSubcategory.id}>
+                      {subSubcategory.name}
+                    </option>
+                  ))}
               </select>
             </div>
 
