@@ -36,17 +36,36 @@ const CategoryDebug = ({ collection }) => {
         info.apiCalls.push(`❌ getAll() - ${error.message}`);
       }
 
-      // Test 2: Get products by category slug
+      // Test 2: Get products by category ID (the correct way)
+      const categoryMapping = {
+        'phone-case': 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be',
+        'iphone-cases': 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be',
+        'accessories': '883e60ba-b93d-4cb8-ab9e-680ac6bd6575',
+        'car-travel': '10ed20c8-b707-471c-be22-fe4ed960e1cd',
+        'yoga': '824e190f-b8f0-41e1-be24-da03ba52faa9',
+        'travel': '73f3c2de-7ab8-4166-a351-671969411301'
+      };
+      
+      const categoryId = categoryMapping[collection];
+      info.categoryId = categoryId;
+      
       try {
-        const categoryProducts = await getProducts({ category: collection });
-        info.categoryProductsCount = Array.isArray(categoryProducts) ? categoryProducts.length : 
-                                  (categoryProducts?.data && Array.isArray(categoryProducts.data)) ? categoryProducts.data.length : 0;
-        info.apiCalls.push(`✅ getProducts(category: "${collection}") - ${info.categoryProductsCount} products`);
+        const categoryProducts = await getProducts({ categoryId: categoryId });
+        let productCount = 0;
+        if (Array.isArray(categoryProducts)) {
+          productCount = categoryProducts.length;
+        } else if (categoryProducts?.products && Array.isArray(categoryProducts.products)) {
+          productCount = categoryProducts.products.length;
+        } else if (categoryProducts?.data && Array.isArray(categoryProducts.data)) {
+          productCount = categoryProducts.data.length;
+        }
+        info.categoryProductsCount = productCount;
+        info.apiCalls.push(`✅ getProducts(categoryId: "${categoryId}") - ${productCount} products`);
       } catch (error) {
-        info.apiCalls.push(`❌ getProducts(category: "${collection}") - ${error.message}`);
+        info.apiCalls.push(`❌ getProducts(categoryId: "${categoryId}") - ${error.message}`);
       }
 
-      // Test 3: Try getByCategory
+      // Test 3: Try getByCategory (old way for comparison)
       try {
         const byCategoryProducts = await productsAPI.getByCategory(collection);
         info.byCategoryCount = Array.isArray(byCategoryProducts) ? byCategoryProducts.length : 0;
@@ -55,26 +74,14 @@ const CategoryDebug = ({ collection }) => {
         info.apiCalls.push(`❌ getByCategory("${collection}") - ${error.message}`);
       }
 
-      // Test 4: Try alternative names
-      const alternatives = [
-        collection.replace('-', ' '),
-        collection.replace('-', ''),
-        collection.charAt(0).toUpperCase() + collection.slice(1)
-      ];
-      
-      for (const alt of alternatives) {
-        try {
-          const altProducts = await getProducts({ category: alt });
-          const count = Array.isArray(altProducts) ? altProducts.length : 
-                       (altProducts?.data && Array.isArray(altProducts.data)) ? altProducts.data.length : 0;
-          if (count > 0) {
-            info.apiCalls.push(`✅ Alternative "${alt}" - ${count} products`);
-            info.workingAlternative = alt;
-            break;
-          }
-        } catch (error) {
-          // Skip failed alternatives
-        }
+      // Test 4: Try with category slug (old way)
+      try {
+        const slugProducts = await getProducts({ category: collection });
+        const slugCount = Array.isArray(slugProducts) ? slugProducts.length : 
+                         (slugProducts?.data && Array.isArray(slugProducts.data)) ? slugProducts.data.length : 0;
+        info.apiCalls.push(`✅ getProducts(category: "${collection}") - ${slugCount} products`);
+      } catch (error) {
+        info.apiCalls.push(`❌ getProducts(category: "${collection}") - ${error.message}`);
       }
 
     } catch (error) {
@@ -95,9 +102,10 @@ const CategoryDebug = ({ collection }) => {
       
       <div className="text-xs space-y-1">
         <p><strong>Collection Slug:</strong> {debugInfo.collectionSlug}</p>
+        <p><strong>Category ID:</strong> {debugInfo.categoryId || 'Not found'}</p>
         <p><strong>All Products:</strong> {debugInfo.allProductsCount || 0}</p>
-        <p><strong>Category Products:</strong> {debugInfo.categoryProductsCount || 0}</p>
-        <p><strong>By Category:</strong> {debugInfo.byCategoryCount || 0}</p>
+        <p><strong>Category Products (ID):</strong> {debugInfo.categoryProductsCount || 0}</p>
+        <p><strong>By Category (Slug):</strong> {debugInfo.byCategoryCount || 0}</p>
         
         {debugInfo.workingAlternative && (
           <p><strong>✅ Working Alternative:</strong> "{debugInfo.workingAlternative}"</p>

@@ -175,8 +175,14 @@ const CollectionPage = () => {
       }
       
       // Ensure we have an array of products
-      const productsArray = Array.isArray(fetchedProducts) ? fetchedProducts : 
-                           (fetchedProducts?.data && Array.isArray(fetchedProducts.data)) ? fetchedProducts.data : [];
+      let productsArray = [];
+      if (Array.isArray(fetchedProducts)) {
+        productsArray = fetchedProducts;
+      } else if (fetchedProducts?.products && Array.isArray(fetchedProducts.products)) {
+        productsArray = fetchedProducts.products;
+      } else if (fetchedProducts?.data && Array.isArray(fetchedProducts.data)) {
+        productsArray = fetchedProducts.data;
+      }
       
       console.log('📦 Final products array:', productsArray.length, 'items');
       console.log('📦 Sample product:', productsArray[0]);
