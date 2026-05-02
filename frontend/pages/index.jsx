@@ -216,7 +216,7 @@ const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
                 };
 
                 return (
-                  <a
+                  <Link
                     key={index}
                     href={getCollectionLink(item)}
                     className="group block"
@@ -247,7 +247,7 @@ const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
                     <h3 className="text-sm sm:text-base font-semibold text-primary-900 mt-3 sm:mt-4">
                       {item.title || "Collection"}
                     </h3>
-                  </a>
+                  </Link>
                 );
               })
             ) : (
