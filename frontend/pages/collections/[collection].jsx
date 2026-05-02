@@ -7,6 +7,7 @@ import ShoppingCart from 'lucide-react/dist/esm/icons/shopping-cart';
 import Plus from 'lucide-react/dist/esm/icons/plus';
 import { productsAPI, getProducts } from '../../services/api';
 import { categoryService } from '../../services/categoryService';
+import { categoryMappingService } from '../../services/categoryMappingService';
 import CategoryDebug from '../../components/CategoryDebug';
 
 const CollectionPage = () => {
@@ -25,80 +26,50 @@ const CollectionPage = () => {
   const [selectedPriceRanges, setSelectedPriceRanges] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Collection mapping - using actual category IDs from database
-  const getCollectionData = (collectionSlug) => {
-    // Map collection slugs to actual category IDs from database
-    const categoryMapping = {
-      'phone-case': 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be', // Main category with phone products
-      'iphone-cases': 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be', // Same category
-      'accessories': '883e60ba-b93d-4cb8-ab9e-680ac6bd6575',
-      'car-interior': '10ed20c8-b707-471c-be22-fe4ed960e1cd',
-      'yoga': '824e190f-b8f0-41e1-be24-da03ba52faa9',
-      'travel-accessories': '73f3c2de-7ab8-4166-a351-671969411301'
-    };
-    
-    const collections = {
-      'phone-case': {
-        title: 'Phone Cases Collection',
-        description: 'Discover our complete collection of high-quality phone accessories designed to enhance your mobile experience',
-        categoryId: categoryMapping['phone-case']
-      },
-      'iphone-cases': {
-        title: 'iPhone Cases Collection', 
-        description: 'Premium iPhone cases with advanced protection and style',
-        categoryId: categoryMapping['iphone-cases'],
-        subCategoryId: '3207f43f-b904-486e-b2e5-9c6230eb7793' // iPhone Cases subcategory
-      },
-      'iphone-17-pro': {
-        title: 'iPhone 17 Pro Case Collection',
-        description: 'Latest iPhone 17 Pro cases with cutting-edge protection',
-        categoryId: categoryMapping['iphone-cases'],
-        subCategoryId: '3207f43f-b904-486e-b2e5-9c6230eb7793',
-        subSubCategoryId: 'iphone-17-pro-case-new' // Specific sub-subcategory
-      },
-      'accessories': {
-        title: 'Accessories Collection',
-        description: 'Discover our premium ΛʟcΛɴᴛ accessories for your devices',
-        categoryId: categoryMapping['accessories']
-      },
-      'car-travel': {
-        title: 'Car & Travel Collection',
-        description: 'Premium ΛʟcΛɴᴛ car and travel accessories',
-        categoryId: categoryMapping['car-travel']
-      },
-      'yoga': {
-        title: 'Yoga Collection',
-        description: 'Premium yoga accessories and equipment',
-        categoryId: categoryMapping['yoga']
-      },
-      'travel': {
-        title: 'Travel Accessories Collection',
-        description: 'Essential travel accessories for your journeys',
-        categoryId: categoryMapping['travel']
-      },
-      'sale': {
-        title: 'Sale Collection',
-        description: 'Special offers and discounted items',
-        categoryId: null // Sale uses different endpoint
-      }
-    };
-    
-    // Return matching collection or create a dynamic one
-    return collections[collectionSlug] || {
-      title: `${collectionSlug.charAt(0).toUpperCase() + collectionSlug.slice(1).replace('-', ' ')} Collection`,
-      description: `Browse our premium ${collectionSlug.replace('-', ' ')} collection`,
-      categoryId: categoryMapping[collectionSlug] || null
-    };
-  };
+  // Dynamic collection data fetching
+  const [collectionData, setCollectionData] = useState(null);
+  const [mappingLoading, setMappingLoading] = useState(true);
 
-  const collectionData = getCollectionData(collection || 'phone-cases');
+  // Fetch collection data dynamically
+  useEffect(() => {
+    if (collection) {
+      fetchCollectionData();
+    }
+  }, [collection]);
+
+  const fetchCollectionData = async () => {
+    try {
+      setMappingLoading(true);
+      const data = await categoryMappingService.getCollectionData(collection);
+      setCollectionData(data);
+      
+      if (!data) {
+        console.log('❌ No collection data found for:', collection);
+        // Create fallback collection
+        setCollectionData({
+          title: `${collection.charAt(0).toUpperCase() + collection.slice(1).replace('-', ' ')} Collection`,
+          description: `Browse our premium ${collection.replace('-', ' ')} collection`,
+          categoryId: null
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching collection data:', error);
+      setCollectionData({
+        title: 'Collection',
+        description: 'Browse our products',
+        categoryId: null
+      });
+    } finally {
+      setMappingLoading(false);
+    }
+  };
 
   // Fetch products data
   useEffect(() => {
-    if (collection) {
+    if (collection && collectionData) {
       fetchCollectionProducts();
     }
-  }, [collection]);
+  }, [collection, collectionData]);
 
   // Apply filters
   useEffect(() => {
@@ -336,15 +307,17 @@ const CollectionPage = () => {
     return null;
   };
 
-  if (loading) {
+  if (loading || mappingLoading) {
     return (
       <Layout title="Loading...">
         <div className="container py-8">
           <div className="flex justify-center items-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading products for "{collection}"...</p>
-              <p className="text-xs text-gray-500 mt-2">Check browser console for API debugging</p>
+              <p className="text-gray-600">
+                {mappingLoading ? 'Loading category mapping...' : 'Loading products...'}
+              </p>
+              <p className="text-xs text-gray-500 mt-2">Collection: {collection}</p>
             </div>
           </div>
         </div>
