@@ -145,7 +145,7 @@ class CategoryMappingService {
   // Get collection data by slug
   async getCollectionData(collectionSlug) {
     // Clear cache for phone-cases to ensure fresh data
-    if (collectionSlug === 'phone-cases' || collectionSlug === 'phone' || collectionSlug === 'cases') {
+    if (collectionSlug === 'phone-cases' || collectionSlug === 'phone-case' || collectionSlug === 'phone' || collectionSlug === 'cases') {
       this.mappingCache = null;
       this.categoryCache = null;
     }
@@ -207,6 +207,13 @@ class CategoryMappingService {
     specialMappings['phone-cases'] = {
       title: 'Phone Cases Collection',
       description: 'Browse our premium phone cases collection with advanced protection and style',
+      categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be'
+    };
+    
+    // Also add singular form (actual URL being used)
+    specialMappings['phone-case'] = {
+      title: 'Phone Case Collection',
+      description: 'Browse our premium phone case collection with advanced protection and style',
       categoryId: 'f009ca1d-9f5d-4bf3-81f7-b246d105d1be'
     };
     
