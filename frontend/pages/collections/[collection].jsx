@@ -46,7 +46,15 @@ const CollectionPage = () => {
       'iphone-cases': {
         title: 'iPhone Cases Collection', 
         description: 'Premium iPhone cases with advanced protection and style',
-        categoryId: categoryMapping['iphone-cases']
+        categoryId: categoryMapping['iphone-cases'],
+        subCategoryId: '3207f43f-b904-486e-b2e5-9c6230eb7793' // iPhone Cases subcategory
+      },
+      'iphone-17-pro': {
+        title: 'iPhone 17 Pro Case Collection',
+        description: 'Latest iPhone 17 Pro cases with cutting-edge protection',
+        categoryId: categoryMapping['iphone-cases'],
+        subCategoryId: '3207f43f-b904-486e-b2e5-9c6230eb7793',
+        subSubCategoryId: 'iphone-17-pro-case-new' // Specific sub-subcategory
       },
       'accessories': {
         title: 'Accessories Collection',
@@ -56,7 +64,7 @@ const CollectionPage = () => {
       'car-travel': {
         title: 'Car & Travel Collection',
         description: 'Premium ΛʟcΛɴᴛ car and travel accessories',
-        categoryId: categoryMapping['car-interior']
+        categoryId: categoryMapping['car-travel']
       },
       'yoga': {
         title: 'Yoga Collection',
@@ -66,7 +74,7 @@ const CollectionPage = () => {
       'travel': {
         title: 'Travel Accessories Collection',
         description: 'Essential travel accessories for your journeys',
-        categoryId: categoryMapping['travel-accessories']
+        categoryId: categoryMapping['travel']
       },
       'sale': {
         title: 'Sale Collection',
@@ -113,20 +121,35 @@ const CollectionPage = () => {
       } else {
         // Use the actual category ID from collection data
         const categoryId = collectionData?.categoryId;
-        console.log('📂 Using category ID:', categoryId, 'for collection:', collection);
+        const subCategoryId = collectionData?.subCategoryId;
+        const subSubCategoryId = collectionData?.subSubCategoryId;
+        
+        console.log('📂 Using filters:', { categoryId, subCategoryId, subSubCategoryId }, 'for collection:', collection);
         
         if (!categoryId) {
           console.log('❌ No category ID found for collection:', collection);
           fetchedProducts = await productsAPI.getAll(); // Fallback to all products
         } else {
-          // Approach 1: Try getProducts with categoryId filter
+          // Approach 1: Try getProducts with specific category filters
           try {
-            console.log('🔄 Approach 1: getProducts with categoryId filter');
-            fetchedProducts = await getProducts({ 
+            const filters = { 
               categoryId: categoryId,
               limit: 50,
               isActive: true 
-            });
+            };
+            
+            // Add subcategory filter if available
+            if (subCategoryId) {
+              filters.subCategoryId = subCategoryId;
+            }
+            
+            // Add sub-subcategory filter if available
+            if (subSubCategoryId) {
+              filters.subSubCategoryId = subSubCategoryId;
+            }
+            
+            console.log('🔄 Approach 1: getProducts with specific filters:', filters);
+            fetchedProducts = await getProducts(filters);
             console.log('✅ Approach 1 result:', fetchedProducts);
           } catch (error1) {
             console.log('❌ Approach 1 failed:', error1);
