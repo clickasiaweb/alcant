@@ -7,6 +7,7 @@ import ShoppingCart from 'lucide-react/dist/esm/icons/shopping-cart';
 import Plus from 'lucide-react/dist/esm/icons/plus';
 import { productsAPI, getProducts } from '../../services/api';
 import { categoryService } from '../../services/categoryService';
+import CategoryDebug from '../../components/CategoryDebug';
 
 const CollectionPage = () => {
   const router = useRouter();
@@ -81,21 +82,67 @@ const CollectionPage = () => {
       
       let fetchedProducts = [];
       
-      // Fetch products based on collection type using the general getProducts API
+      console.log('🔍 Fetching products for collection:', collection);
+      
+      // Fetch products based on collection type using multiple approaches
       if (collection === 'sale') {
+        console.log('🏷️ Fetching sale products');
         fetchedProducts = await productsAPI.getSale();
       } else {
-        // Try to get products by category slug, fallback to all products
+        // Try multiple approaches to get products
+        console.log('📂 Trying different API approaches for category:', collection);
+        
+        // Approach 1: Try getProducts with category filter
         try {
+          console.log('🔄 Approach 1: getProducts with category filter');
           fetchedProducts = await getProducts({ 
             category: collection,
             limit: 50,
             isActive: true 
           });
-        } catch (categoryError) {
-          console.log('Category not found, fetching all products:', categoryError);
-          // Fallback to all products
-          fetchedProducts = await productsAPI.getAll();
+          console.log('✅ Approach 1 result:', fetchedProducts);
+        } catch (error1) {
+          console.log('❌ Approach 1 failed:', error1);
+          
+          // Approach 2: Try getByCategory API
+          try {
+            console.log('🔄 Approach 2: getByCategory API');
+            fetchedProducts = await productsAPI.getByCategory(collection);
+            console.log('✅ Approach 2 result:', fetchedProducts);
+          } catch (error2) {
+            console.log('❌ Approach 2 failed:', error2);
+            
+            // Approach 3: Try with different category names
+            const alternativeNames = [
+              collection,
+              collection.replace('-', ' '),
+              collection.replace('-', ''),
+              collection.charAt(0).toUpperCase() + collection.slice(1)
+            ];
+            
+            for (const altName of alternativeNames) {
+              try {
+                console.log('🔄 Approach 3: Trying alternative name:', altName);
+                fetchedProducts = await getProducts({ 
+                  category: altName,
+                  limit: 50,
+                  isActive: true 
+                });
+                if (Array.isArray(fetchedProducts) && fetchedProducts.length > 0) {
+                  console.log('✅ Approach 3 success with:', altName);
+                  break;
+                }
+              } catch (error3) {
+                console.log('❌ Approach 3 failed for', altName, ':', error3);
+              }
+            }
+            
+            // Approach 4: Fallback to all products
+            if (!Array.isArray(fetchedProducts) || fetchedProducts.length === 0) {
+              console.log('🔄 Approach 4: Fetching all products as fallback');
+              fetchedProducts = await productsAPI.getAll();
+            }
+          }
         }
       }
       
@@ -103,11 +150,13 @@ const CollectionPage = () => {
       const productsArray = Array.isArray(fetchedProducts) ? fetchedProducts : 
                            (fetchedProducts?.data && Array.isArray(fetchedProducts.data)) ? fetchedProducts.data : [];
       
-      console.log('📦 Fetched products:', productsArray.length, 'for collection:', collection);
+      console.log('📦 Final products array:', productsArray.length, 'items');
+      console.log('📦 Sample product:', productsArray[0]);
+      
       setProducts(productsArray);
       setCollectionInfo(collectionData);
     } catch (err) {
-      console.error('Error fetching collection products:', err);
+      console.error('❌ Error fetching collection products:', err);
       setError('Failed to load products');
       setProducts([]); // Set empty array on error
     } finally {
@@ -237,7 +286,8 @@ const CollectionPage = () => {
           <div className="flex justify-center items-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading products...</p>
+              <p className="text-gray-600">Loading products for "{collection}"...</p>
+              <p className="text-xs text-gray-500 mt-2">Check browser console for API debugging</p>
             </div>
           </div>
         </div>
@@ -251,12 +301,24 @@ const CollectionPage = () => {
         <div className="container py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Error</h1>
-            <p className="text-gray-600">{error}</p>
+            <p className="text-gray-600 mb-4">{error}</p>
+            <div className="bg-gray-100 rounded p-4 mb-4 text-left">
+              <p className="text-sm font-mono mb-2">Debug Info:</p>
+              <p className="text-xs text-gray-600">Collection: {collection}</p>
+              <p className="text-xs text-gray-600">Products loaded: {products.length}</p>
+              <p className="text-xs text-gray-600">Check browser console for API details</p>
+            </div>
             <button 
               onClick={() => router.push('/')}
-              className="mt-4 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
+              className="mt-4 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700 mr-2"
             >
               Back to Home
+            </button>
+            <button 
+              onClick={fetchCollectionProducts}
+              className="mt-4 px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+            >
+              Retry
             </button>
           </div>
         </div>
@@ -267,6 +329,9 @@ const CollectionPage = () => {
   return (
     <Layout title={`${collectionData.title} - ΛʟcΛɴᴛ`} description={collectionData.description}>
       <div className="min-h-screen bg-gray-50">
+
+        {/* Debug Component - Remove in production */}
+        <CategoryDebug collection={collection} />
 
         {/* Collection Header */}
         <div className="bg-white py-12">
