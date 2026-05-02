@@ -48,6 +48,9 @@ exports.getAdminProducts = async (req, res) => {
     const {
       search,
       category,
+      categoryId,
+      subCategoryId,
+      subSubCategoryId,
       status,
       page = 1,
       limit = 20
@@ -62,12 +65,28 @@ exports.getAdminProducts = async (req, res) => {
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } }
+        { description: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
+        { subcategory: { $regex: search, $options: "i" } },
+        { sub_subcategory: { $regex: search, $options: "i" } }
       ];
     }
 
     if (category) {
       query.category = category;
+    }
+
+    // Support camelCase parameters from frontend
+    if (categoryId) {
+      query.category = categoryId;
+    }
+
+    if (subCategoryId) {
+      query.subcategory = subCategoryId;
+    }
+
+    if (subSubCategoryId) {
+      query.sub_subcategory = subSubCategoryId;
     }
 
     if (status) {

@@ -97,6 +97,7 @@ exports.getProducts = async (req, res) => {
         { description: { $regex: search, $options: "i" } },
         { category: { $regex: search, $options: "i" } },
         { subcategory: { $regex: search, $options: "i" } },
+        { sub_subcategory: { $regex: search, $options: "i" } },
       ];
     }
 
