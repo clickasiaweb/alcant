@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Cache - Alcant</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #f8f9fa;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+        .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin-top: 1rem;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🧹</div>
+        <h1>Clear Cache</h1>
+        <p>Click the button below to clear all browser cache and reload the page with fresh data.</p>
+        <button class="btn" onclick="clearCacheAndReload()">Clear Cache & Reload</button>
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <script>
+        function clearCacheAndReload() {
+            const status = document.getElementById('status');
+            status.style.display = 'block';
+            status.className = 'status success';
+            status.textContent = 'Clearing cache...';
+            
+            // Clear localStorage
+            localStorage.clear();
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            
+            // Clear caches
+            if ('caches' in window) {
+                caches.keys().then(function(cacheNames) {
+                    Promise.all(cacheNames.map(function(cacheName) {
+                        return caches.delete(cacheName);
+                    })).then(function() {
+                        status.textContent = 'Cache cleared! Redirecting...';
+                        setTimeout(() => {
+                            window.location.href = '/category/phone-cases/iphone-cases/17-pro';
+                        }, 1500);
+                    });
+                });
+            } else {
+                status.textContent = 'Cache cleared! Redirecting...';
+                setTimeout(() => {
+                    window.location.href = '/category/phone-cases/iphone-cases/17-pro';
+                }, 1500);
+            }
+        }
+    </script>
+</body>
+</html>

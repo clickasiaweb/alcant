@@ -68,6 +68,20 @@ const ProductFormModal = ({
     }
     
     if (typeof image === 'string') {
+      // Handle corrupted JSON string data (fix for database corruption)
+      if (image.startsWith('{') && image.includes('"url"')) {
+        try {
+          const parsed = JSON.parse(image);
+          console.log('🔧 Fixed corrupted image data:', parsed);
+          if (parsed.url) {
+            return parsed.url;
+          }
+        } catch (parseError) {
+          console.log('❌ Failed to parse corrupted image data:', image);
+        }
+        return ''; // Return empty for corrupted data
+      }
+      
       // Handle blob URLs (for admin panel preview)
       if (image.startsWith('blob:')) {
         return image;
@@ -417,27 +431,43 @@ const ProductFormModal = ({
                           alt={getImageDisplayName(image, index)}
                           className="w-full h-32 object-cover rounded-md transition-opacity group-hover:opacity-90"
                           onError={(e) => {
+                            const imageUrl = getImageUrl(image);
                             console.log('❌ Image failed to load:', {
-                              imageUrl: getImageUrl(image),
+                              imageUrl,
                               imageType: typeof image === 'string' ? 'string' : 'object',
                               imageIndex: index,
                               error: e.target.error
                             });
                             
-                            // Try a different approach for blob URLs
-                            const imageUrl = getImageUrl(image);
-                            if (imageUrl.startsWith('blob:')) {
-                              console.log('🔄 Blob image failed, trying to recreate...');
-                              // For blob images, the blob might have been revoked
+                            // Try to fix blob URLs
+                            if (imageUrl && imageUrl.startsWith('blob:')) {
+                              console.log('🔄 Attempting to fix blob URL...');
                               if (image && image.file) {
-                                const newBlobUrl = URL.createObjectURL(image.file);
-                                e.target.src = newBlobUrl;
-                                return;
+                                try {
+                                  const newBlobUrl = URL.createObjectURL(image.file);
+                                  console.log('✅ Created new blob URL');
+                                  e.target.src = newBlobUrl;
+                                  return;
+                                } catch (blobError) {
+                                  console.log('❌ Failed to create blob URL:', blobError);
+                                }
                               }
                             }
                             
-                            // Final fallback - show a more informative error
-                            e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y3ZjdmNyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2UgRXJyb3I8L3RleHQ+PC9zdmc+';
+                            // For all other errors, show a helpful placeholder
+                            const placeholderSvg = `
+                              <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                                <rect width="100%" height="100%" fill="#f3f4f6"/>
+                                <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="12" fill="#6b7280" text-anchor="middle" dy=".3em">
+                                  Image Not Available
+                                </text>
+                                <text x="50%" y="65%" font-family="Arial, sans-serif" font-size="10" fill="#9ca3af" text-anchor="middle" dy=".3em">
+                                  ${getImageDisplayName(image, index)}
+                                </text>
+                              </svg>
+                            `;
+                            
+                            e.target.src = `data:image/svg+xml;base64,${Buffer.from(placeholderSvg).toString('base64')}`;
                           }}
                         />
                         <button

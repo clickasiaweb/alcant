@@ -2,7 +2,12 @@ import apiClient from "./api";
 
 export const fetchProducts = async (params = {}) => {
   try {
-    const response = await apiClient.get("/products", { params });
+    // Add cache-busting for product calls to ensure fresh results
+    const cacheBustingParams = {
+      ...params,
+      _t: Date.now() // Add timestamp to prevent caching
+    };
+    const response = await apiClient.get("/products", { params: cacheBustingParams });
     return response.data;
   } catch (error) {
     throw error.response?.data || error;
