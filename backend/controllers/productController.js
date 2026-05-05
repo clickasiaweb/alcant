@@ -64,25 +64,26 @@ exports.getProducts = async (req, res) => {
       query.subcategory = subcategory;
     }
 
+    // Handle UUID fields first (when available)
     if (subcategory_id) {
       query.subcategory_id = subcategory_id;
+    } else if (subCategoryId) {
+      // If no UUID but we have string field, explicitly set UUID to null for fallback
+      query.subcategory_id = null;
+      query.subcategory = subCategoryId;
     }
 
     if (sub_subcategory_id) {
       query.sub_subcategory_id = sub_subcategory_id;
+    } else if (subSubCategoryId) {
+      // If no UUID but we have string field, explicitly set UUID to null for fallback
+      query.sub_subcategory_id = null;
+      query.sub_subcategory = subSubCategoryId;
     }
 
-    // Handle camelCase parameters from frontend - use string fields as primary since UUID fields are null
+    // Handle camelCase parameters from frontend - prioritize UUID fields when present
     if (categoryId) {
       query.category = categoryId; // Use string field as primary
-    }
-
-    if (subCategoryId) {
-      query.subcategory = subCategoryId; // Use string field as primary
-    }
-
-    if (subSubCategoryId) {
-      query.sub_subcategory = subSubCategoryId; // Use string field as primary
     }
 
     if (min_price || max_price) {
