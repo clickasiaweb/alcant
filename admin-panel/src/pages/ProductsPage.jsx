@@ -52,11 +52,6 @@ export default function ProductsPage() {
     price: "",
     oldPrice: "",
     images: [],
-    imageUrls: "", // ✅ Add imageUrls field for URL input
-    imageUrl1: "", // ✅ Individual image URL fields
-    imageUrl2: "",
-    imageUrl3: "",
-    imageUrl4: "",
     stock: "",
     isActive: true,
     isNew: false,
@@ -253,31 +248,7 @@ export default function ProductsPage() {
       .replace(/(^-|-$)/g, "");
   };
 
-  // Google Drive URL Converter
-  const convertGoogleDriveURL = (url) => {
-    if (!url || typeof url !== 'string') return url;
-    
-    // Handle different Google Drive URL formats
-    const patterns = [
-      // Standard format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
-      /\/file\/d\/([a-zA-Z0-9_-]+)/,
-      // Alternative format: https://drive.google.com/open?id=FILE_ID
-      /[?&]id=([a-zA-Z0-9_-]+)/,
-      // Direct format: https://drive.google.com/uc?id=FILE_ID
-      /uc\?id=([a-zA-Z0-9_-]+)/
-    ];
-
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) {
-        const fileId = match[1];
-        return `https://drive.google.com/uc?export=view&id=${fileId}`;
-      }
-    }
-
-    return url; // Return original if no match found
-  };
-
+  
   const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
     
@@ -297,13 +268,6 @@ export default function ProductsPage() {
       setFormData(prev => ({
         ...prev,
         [name]: value
-      }));
-    } else if (type === "url") {
-      // Handle URL input - convert Google Drive URLs
-      const convertedURL = convertGoogleDriveURL(value);
-      setFormData(prev => ({
-        ...prev,
-        [name]: convertedURL
       }));
     } else {
       // For other input types
@@ -486,59 +450,31 @@ export default function ProductsPage() {
       let mainImage = '';
       let hasImageErrors = false;
 
-      // Collect images from different sources with proper prioritization
+      // Process only manual file uploads
       let allImages = [];
 
-      // Priority 1: Manual file uploads (highest priority)
       if (formData.images && formData.images.length > 0) {
-        console.log('🔄 Processing uploaded files (Priority 1)...');
+        console.log('🔄 Processing uploaded files...');
         console.log('📸 Form images:', formData.images);
         
         try {
           // Upload blob URLs and get final URLs
           const uploadedImages = await uploadBlobImages(formData.images);
           if (uploadedImages.length > 0) {
-            allImages = uploadedImages; // Replace any existing images
-            console.log('✅ Manual uploads processed and set as primary:', uploadedImages);
+            allImages = uploadedImages;
+            console.log('✅ Manual uploads processed successfully:', uploadedImages);
           }
           
           // Check if any images failed to upload
           if (uploadedImages.length === 0 && formData.images.length > 0) {
             hasImageErrors = true;
-            toast.warning('Manual image uploads failed. Will try URL-based images.');
+            toast.error('Manual image uploads failed. Please try again.');
           }
         } catch (imageError) {
           console.error('❌ Manual upload processing error:', imageError);
           hasImageErrors = true;
-          toast.warning('Manual upload failed. Will try URL-based images.');
+          toast.error('Image upload failed. Please try again.');
         }
-      }
-
-      // Priority 2: Individual image URLs (Google Drive, external URLs) - only if no manual uploads
-      if (allImages.length === 0) {
-        const imageUrls = [
-          formData.imageUrl1,
-          formData.imageUrl2,
-          formData.imageUrl3,
-          formData.imageUrl4
-        ].filter(url => url && url.trim() !== '');
-
-        if (imageUrls.length > 0) {
-          console.log('🔗 Processing image URLs (Priority 2):', imageUrls);
-          // Convert Google Drive URLs to direct URLs
-          const convertedUrls = imageUrls.map(url => convertGoogleDriveURL(url));
-          allImages.push(...convertedUrls);
-          console.log('✅ URL-based images processed:', convertedUrls);
-        }
-      }
-
-      // Priority 3: Legacy imageUrls field (backward compatibility) - only if no other images
-      if (allImages.length === 0 && formData.imageUrls && formData.imageUrls.trim()) {
-        const urls = formData.imageUrls.split('\n').filter(url => url.trim());
-        console.log('📸 Processing legacy image URLs (Priority 3):', urls);
-        const convertedUrls = urls.map(url => convertGoogleDriveURL(url));
-        allImages.push(...convertedUrls);
-        console.log('✅ Legacy URLs processed:', convertedUrls);
       }
 
       // Set final processed images
