@@ -13,11 +13,12 @@ const apiClient = axios.create({
 
 // Add token to requests if available
 apiClient.interceptors.request.use((config) => {
-  // Add caching for GET requests
+  // Add caching for GET requests (but include query params in cache key)
   if (config.method === 'get') {
-    const cacheKey = `${config.baseURL}${config.url}`;
+    const queryString = new URLSearchParams(config.params).toString();
+    const cacheKey = `${config.baseURL}${config.url}${queryString ? '?' + queryString : ''}`;
     const cachedData = apiCache.get(cacheKey);
-    if (cachedData) {
+    if (cachedData && config.cacheTTL !== 0) {
       config.adapter = () => Promise.resolve({ data: cachedData });
     }
   }
@@ -33,9 +34,12 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => {
     if (response.config.method === 'get') {
-      const cacheKey = `${response.config.baseURL}${response.config.url}`;
+      const queryString = new URLSearchParams(response.config.params).toString();
+      const cacheKey = `${response.config.baseURL}${response.config.url}${queryString ? '?' + queryString : ''}`;
       const ttl = response.config.cacheTTL || 5 * 60 * 1000; // 5 minutes default
-      apiCache.set(cacheKey, response.data, ttl);
+      if (response.config.cacheTTL !== 0) {
+        apiCache.set(cacheKey, response.data, ttl);
+      }
     }
     return response;
   },

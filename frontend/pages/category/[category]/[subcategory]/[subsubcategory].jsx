@@ -62,9 +62,15 @@ const SubSubCategoryPage = () => {
         const subSubNode = subNode?.sub_subcategories?.find((ss) => ss.slug === subsubcategory);
         
         console.log('🔍 Finding sub-subcategory:', { category, subcategory, subsubcategory });
-        console.log('📁 Found nodes:', { catNode, subNode, subSubNode });
+        console.log('📁 Found nodes:', { 
+          catNode: catNode ? { name: catNode.name, slug: catNode.slug, id: catNode.id } : null,
+          subNode: subNode ? { name: subNode.name, slug: subNode.slug, id: subNode.id } : null,
+          subSubNode: subSubNode ? { name: subSubNode.name, slug: subSubNode.slug, id: subSubNode.id } : null
+        });
         
-        setSubSubCategoryId(subSubNode?.id || null);
+        const resolvedId = subSubNode?.id || null;
+        console.log('🎯 Setting subSubCategoryId to:', resolvedId);
+        setSubSubCategoryId(resolvedId);
         const title = subSubNode?.name || subNode?.name || catNode?.name || 'Products';
         const description = subSubNode ? `${subSubNode.name} from ${subNode?.name} in ${catNode?.name}` : 
                              subNode ? `${subNode.name} from ${catNode?.name}` : 
@@ -81,10 +87,14 @@ const SubSubCategoryPage = () => {
   // Fetch products when filters/sort/page change
   useEffect(() => {
     const load = async () => {
-      if (!subSubCategoryId) return;
+      console.log('🔍 DEBUG: Starting product fetch with subSubCategoryId:', subSubCategoryId);
+      if (!subSubCategoryId) {
+        console.log('❌ DEBUG: No subSubCategoryId, returning early');
+        return;
+      }
       setLoading(true);
       try {
-        const { products: items, pagination: p } = await fetchProducts({
+        const params = {
           sub_subcategory_id: subSubCategoryId,
           page: pagination.page,
           limit: pagination.limit,
@@ -99,10 +109,21 @@ const SubSubCategoryPage = () => {
           magSafe: filters.magSafe,
           partnership: filters.partnership,
           search: filters.search
+        };
+        console.log('📤 DEBUG: Sending API request with params:', params);
+        
+        const { products: items, pagination: p } = await fetchProducts(params);
+        
+        console.log('📥 DEBUG: API response received:', {
+          productsCount: items?.length || 0,
+          pagination: p,
+          firstProduct: items?.[0]?.name
         });
+        
         setProducts(items || []);
         setPagination((prev) => ({ ...prev, ...p }));
       } catch (e) {
+        console.error('❌ DEBUG: Error fetching products:', e);
         setProducts([]);
       } finally {
         setLoading(false);

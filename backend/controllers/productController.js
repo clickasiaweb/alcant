@@ -50,6 +50,15 @@ exports.getProducts = async (req, res) => {
       hasDiscount,
     } = req.query;
 
+    console.log('🔍 DEBUG: Backend received query parameters:', {
+      sub_subcategory_id,
+      subSubCategoryId,
+      subcategory_id,
+      subCategoryId,
+      category,
+      categoryId
+    });
+
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
@@ -147,6 +156,8 @@ exports.getProducts = async (req, res) => {
       query.old_price = { $exists: true, $ne: null };
     }
 
+    console.log('🎯 DEBUG: Final query before execution:', JSON.stringify(query, null, 2));
+
     const [productsResult, total] = await Promise.all([
       SupabaseProduct.find(query, {
         sort: sortMap[sort] || sortMap.featured,
@@ -157,6 +168,13 @@ exports.getProducts = async (req, res) => {
     ]);
 
     const products = productsResult.data;
+    
+    console.log('📊 DEBUG: Query results:', {
+      productsFound: products.length,
+      total,
+      hasMore: skip + products.length < total,
+      firstProduct: products[0]?.name
+    });
 
     res.json({
       products,
