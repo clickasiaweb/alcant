@@ -201,6 +201,9 @@ export default function ProductsPage() {
       // ✅ FIX: Use consistent ID (Supabase uses 'id' only)
       const product = products.find(p => p.id === id);
       if (product) {
+        console.log('🔍 Loading product for edit:', product.name);
+        console.log('📸 Existing images:', product.images);
+        console.log('🖼️ Main image:', product.image);
         setEditingProduct(product);
         setFormData({
           name: product.name || "",
@@ -214,11 +217,6 @@ export default function ProductsPage() {
           price: product.price || product.final_price || "",
           oldPrice: product.old_price || "",
           images: product.images || [],
-          imageUrls: product.images ? product.images.join('\n') : '', // ✅ Add imageUrls field
-          imageUrl1: (product.images && product.images[0]) || '', // ✅ Add individual URL fields
-          imageUrl2: (product.images && product.images[1]) || '',
-          imageUrl3: (product.images && product.images[2]) || '',
-          imageUrl4: (product.images && product.images[3]) || '',
           stock: product.stock || "",
           isActive: product.is_active !== undefined ? product.is_active : true,
           isNew: product.is_new || false,
@@ -234,6 +232,7 @@ export default function ProductsPage() {
           featured: product.featured || false,
           status: product.status || "active",
         });
+        console.log('📝 Form data set with images:', product.images || []);
         setShowForm(true);
       }
     } catch (error) {
@@ -484,11 +483,19 @@ export default function ProductsPage() {
         console.log('✅ Final processed images:', processedImages);
         console.log('🖼️ Main image:', mainImage);
       }
-      // Fallback to existing product images if no new images
-      else if (editingProduct && editingProduct.images && editingProduct.images.length > 0) {
-        processedImages = editingProduct.images;
-        mainImage = editingProduct.image || editingProduct.images[0];
-        console.log('📸 Using existing product images:', processedImages);
+      // Only fallback to existing images if this is creating a new product (not editing)
+      // For editing, if no images are provided, it means user wants to remove them
+      else if (!editingProduct) {
+        // This case shouldn't happen for new products, but handle it gracefully
+        console.log('� No images provided for new product');
+        processedImages = [];
+        mainImage = '';
+      }
+      // For editing products with no images, it means images were intentionally removed
+      else if (editingProduct) {
+        processedImages = [];
+        mainImage = '';
+        console.log('🗑️ Images intentionally removed from existing product');
       }
 
       // ✅ ENHANCED: Generate unique slug if not provided
@@ -720,11 +727,6 @@ export default function ProductsPage() {
       price: "",
       oldPrice: "",
       images: [],
-      imageUrls: "", // ✅ Add imageUrls field
-      imageUrl1: "", // ✅ Individual image URL fields
-      imageUrl2: "",
-      imageUrl3: "",
-      imageUrl4: "",
       stock: "",
       isActive: true,
       isNew: false,

@@ -45,22 +45,79 @@ const ProductFormModal = ({
     }
   }, [formData.subcategory, availableSubcategories]);
 
+  // Debug: Log image changes
+  useEffect(() => {
+    console.log('🖼️ Form images updated:', formData.images);
+    if (formData.images.length > 0) {
+      formData.images.forEach((img, index) => {
+        const imgUrl = getImageUrl(img);
+        console.log(`  Image ${index + 1}:`, {
+          type: typeof img === 'string' ? 'string' : 'object',
+          url: imgUrl,
+          isBlob: img.isBlob,
+          name: img.name || img.filename || 'N/A'
+        });
+      });
+    }
+  }, [formData.images]);
+
   // Helper function to get correct image URL
   const getImageUrl = (image) => {
+    if (!image) {
+      return '';
+    }
+    
     if (typeof image === 'string') {
-      // If it's already a full URL, return as is
-      if (image.startsWith('http')) {
+      // Handle blob URLs (for admin panel preview)
+      if (image.startsWith('blob:')) {
         return image;
       }
-      // If it's a relative URL, add the backend URL
+      
+      // Handle data URLs (base64 images)
+      if (image.startsWith('data:')) {
+        return image;
+      }
+      
+      // Handle full URLs (including Supabase storage URLs)
+      if (image.startsWith('http://') || image.startsWith('https://')) {
+        return image;
+      }
+      
+      // Handle relative paths that start with /uploads/ (legacy local storage)
+      if (image.startsWith('/uploads/')) {
+        return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${image}`;
+      }
+      
+      // Default fallback - assume it's a relative path and construct backend URL
       return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${image.startsWith('/') ? '' : '/'}${image}`;
     } else if (image && image.url) {
-      // If it's an object with url property
-      if (image.url.startsWith('http')) {
-        return image.url;
+      // Handle object with url property
+      const imageUrl = image.url;
+      
+      // Handle blob URLs (for admin panel preview)
+      if (imageUrl.startsWith('blob:')) {
+        return imageUrl;
       }
-      return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${image.url.startsWith('/') ? '' : '/'}${image.url}`;
+      
+      // Handle data URLs (base64 images)
+      if (imageUrl.startsWith('data:')) {
+        return imageUrl;
+      }
+      
+      // Handle full URLs (including Supabase storage URLs)
+      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        return imageUrl;
+      }
+      
+      // Handle relative paths that start with /uploads/ (legacy local storage)
+      if (imageUrl.startsWith('/uploads/')) {
+        return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${imageUrl}`;
+      }
+      
+      // Default fallback - assume it's a relative path and construct backend URL
+      return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
     }
+    
     return '';
   };
 
@@ -360,7 +417,27 @@ const ProductFormModal = ({
                           alt={getImageDisplayName(image, index)}
                           className="w-full h-32 object-cover rounded-md transition-opacity group-hover:opacity-90"
                           onError={(e) => {
-                            e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y3ZjdmNyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE0IiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2UgRXJyb3I8L3RleHQ+PC9zdmc+';
+                            console.log('❌ Image failed to load:', {
+                              imageUrl: getImageUrl(image),
+                              imageType: typeof image === 'string' ? 'string' : 'object',
+                              imageIndex: index,
+                              error: e.target.error
+                            });
+                            
+                            // Try a different approach for blob URLs
+                            const imageUrl = getImageUrl(image);
+                            if (imageUrl.startsWith('blob:')) {
+                              console.log('🔄 Blob image failed, trying to recreate...');
+                              // For blob images, the blob might have been revoked
+                              if (image && image.file) {
+                                const newBlobUrl = URL.createObjectURL(image.file);
+                                e.target.src = newBlobUrl;
+                                return;
+                              }
+                            }
+                            
+                            // Final fallback - show a more informative error
+                            e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y3ZjdmNyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOTk5IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+SW1hZ2UgRXJyb3I8L3RleHQ+PC9zdmc+';
                           }}
                         />
                         <button
