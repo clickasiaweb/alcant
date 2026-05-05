@@ -50,7 +50,13 @@ const ProductCard = ({ product, index = 0 }) => {
       return `https://picsum.photos/seed/${product.name}/300/300.jpg`;
     }
     
-    // Default fallback for any other case
+    // Default fallback - assume it's a filename and construct Supabase URL
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (supabaseUrl && image) {
+      return `${supabaseUrl}/storage/v1/object/public/products/${image}`;
+    }
+    
+    // Final fallback
     return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/uploads/images/${image}`;
   };
 

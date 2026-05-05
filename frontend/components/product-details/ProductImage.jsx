@@ -19,7 +19,7 @@ const ProductImage = ({ product, displayName, mainImage, selectedImage, images, 
       return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/proxy/image?imageUrl=${encodeURIComponent(image)}`;
     }
     
-    // Handle full URLs (including Supabase storage URLs)
+    // Handle full URLs (including Supabase storage URLs) - return as is
     if (image.startsWith('http://') || image.startsWith('https://')) {
       return image;
     }
@@ -29,7 +29,7 @@ const ProductImage = ({ product, displayName, mainImage, selectedImage, images, 
       return image;
     }
     
-    // Handle data URLs
+    // Handle data URLs (base64 images)
     if (image.startsWith('data:')) {
       return image;
     }
@@ -39,7 +39,12 @@ const ProductImage = ({ product, displayName, mainImage, selectedImage, images, 
       return `https://picsum.photos/seed/${product.name}/600/600.jpg`;
     }
     
-    // Default fallback - assume it's a relative path and construct Supabase URL
+    // Handle relative paths that start with /uploads/ (legacy local storage)
+    if (image.startsWith('/uploads/')) {
+      return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}${image}`;
+    }
+    
+    // Default fallback - assume it's a filename and construct Supabase URL
     // This handles cases where image is just a filename like "product-123.jpg"
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     if (supabaseUrl && image) {

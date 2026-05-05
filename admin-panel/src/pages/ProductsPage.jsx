@@ -351,8 +351,7 @@ export default function ProductsPage() {
         
         if (result.success) {
           return {
-            url: result.url,
-            fullUrl: result.fullUrl,
+            url: result.url, // This is the full Supabase public URL
             name: file.name,
             filename: result.filename,
             size: result.size

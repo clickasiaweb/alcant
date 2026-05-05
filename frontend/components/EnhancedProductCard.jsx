@@ -10,6 +10,41 @@ const EnhancedProductCard = ({ product, index = 0 }) => {
   const router = useRouter();
   const { addToCart } = useCart();
 
+  const getImageUrl = (image) => {
+    if (!image) {
+      return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
+    }
+    
+    // Handle full URLs (including Supabase storage URLs)
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return image;
+    }
+    
+    // Handle blob URLs (for admin panel preview)
+    if (image.startsWith('blob:')) {
+      return image;
+    }
+    
+    // Handle data URLs (base64 images)
+    if (image.startsWith('data:')) {
+      return image;
+    }
+    
+    // Handle relative paths that start with /uploads/ (legacy local storage)
+    if (image.startsWith('/uploads/')) {
+      return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}${image}`;
+    }
+    
+    // Default fallback - assume it's a filename and construct Supabase URL
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    if (supabaseUrl && image) {
+      return `${supabaseUrl}/storage/v1/object/public/products/${image}`;
+    }
+    
+    // Final fallback
+    return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
+  };
+
   const handleQuickView = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -81,7 +116,7 @@ const EnhancedProductCard = ({ product, index = 0 }) => {
           <div className="w-full h-64 flex items-center justify-center bg-gray-50">
             {product.image ? (
               <img 
-                src={product.image} 
+                src={getImageUrl(product.image)} 
                 alt={product.name}
                 className="w-full h-full object-contain p-3"
               />
