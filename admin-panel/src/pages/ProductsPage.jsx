@@ -486,50 +486,59 @@ export default function ProductsPage() {
       let mainImage = '';
       let hasImageErrors = false;
 
-      // Collect images from all sources: uploaded files + individual URL fields
-      const allImages = [];
+      // Collect images from different sources with proper prioritization
+      let allImages = [];
 
-      // First, add uploaded files
+      // Priority 1: Manual file uploads (highest priority)
       if (formData.images && formData.images.length > 0) {
-        console.log('🔄 Processing uploaded files...');
+        console.log('🔄 Processing uploaded files (Priority 1)...');
         console.log('📸 Form images:', formData.images);
         
         try {
           // Upload blob URLs and get final URLs
           const uploadedImages = await uploadBlobImages(formData.images);
-          allImages.push(...uploadedImages);
-          console.log('✅ Uploaded images processed:', uploadedImages);
+          if (uploadedImages.length > 0) {
+            allImages = uploadedImages; // Replace any existing images
+            console.log('✅ Manual uploads processed and set as primary:', uploadedImages);
+          }
           
           // Check if any images failed to upload
           if (uploadedImages.length === 0 && formData.images.length > 0) {
             hasImageErrors = true;
-            toast.warning('Some uploaded images failed. Product will be saved without them.');
+            toast.warning('Manual image uploads failed. Will try URL-based images.');
           }
         } catch (imageError) {
-          console.error('❌ Image processing error:', imageError);
+          console.error('❌ Manual upload processing error:', imageError);
           hasImageErrors = true;
-          toast.warning('Image processing failed. Product will be saved without uploaded images.');
+          toast.warning('Manual upload failed. Will try URL-based images.');
         }
       }
 
-      // Second, add individual image URLs (Google Drive, external URLs, etc.)
-      const imageUrls = [
-        formData.imageUrl1,
-        formData.imageUrl2,
-        formData.imageUrl3,
-        formData.imageUrl4
-      ].filter(url => url && url.trim() !== '');
+      // Priority 2: Individual image URLs (Google Drive, external URLs) - only if no manual uploads
+      if (allImages.length === 0) {
+        const imageUrls = [
+          formData.imageUrl1,
+          formData.imageUrl2,
+          formData.imageUrl3,
+          formData.imageUrl4
+        ].filter(url => url && url.trim() !== '');
 
-      if (imageUrls.length > 0) {
-        console.log('🔗 Processing image URLs:', imageUrls);
-        allImages.push(...imageUrls);
+        if (imageUrls.length > 0) {
+          console.log('🔗 Processing image URLs (Priority 2):', imageUrls);
+          // Convert Google Drive URLs to direct URLs
+          const convertedUrls = imageUrls.map(url => convertGoogleDriveURL(url));
+          allImages.push(...convertedUrls);
+          console.log('✅ URL-based images processed:', convertedUrls);
+        }
       }
 
-      // Third, process imageUrls field as fallback (for backward compatibility)
-      if (formData.imageUrls && formData.imageUrls.trim()) {
+      // Priority 3: Legacy imageUrls field (backward compatibility) - only if no other images
+      if (allImages.length === 0 && formData.imageUrls && formData.imageUrls.trim()) {
         const urls = formData.imageUrls.split('\n').filter(url => url.trim());
-        console.log('📸 Processing legacy image URLs:', urls);
-        allImages.push(...urls);
+        console.log('📸 Processing legacy image URLs (Priority 3):', urls);
+        const convertedUrls = urls.map(url => convertGoogleDriveURL(url));
+        allImages.push(...convertedUrls);
+        console.log('✅ Legacy URLs processed:', convertedUrls);
       }
 
       // Set final processed images

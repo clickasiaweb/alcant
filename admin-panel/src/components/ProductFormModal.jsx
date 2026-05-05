@@ -89,6 +89,16 @@ const ProductFormModal = ({
     }
   };
 
+  // Helper function to check if URL inputs are used
+  const hasImageUrls = () => {
+    return [
+      formData.imageUrl1,
+      formData.imageUrl2,
+      formData.imageUrl3,
+      formData.imageUrl4
+    ].some(url => url && url.trim() !== '');
+  };
+
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleSubmit(e);
@@ -330,9 +340,14 @@ const ProductFormModal = ({
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Images
-                  <span className="text-gray-500 font-normal ml-2">(JPEG, PNG, GIF, WebP - Max 5MB each)</span>
+                  📁 Upload Images (Recommended)
+                  <span className="text-gray-500 font-normal ml-2 block text-xs">JPEG, PNG, GIF, WebP - Max 5MB each</span>
                 </label>
+                <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                  <p className="text-xs text-blue-800">
+                    <strong>💡 Tip:</strong> Manual uploads are prioritized over URL inputs. Use this method for best performance.
+                  </p>
+                </div>
                 <div className="relative">
                   <input
                     type="file"
@@ -349,9 +364,14 @@ const ProductFormModal = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  OR Add Image URLs
-                  <span className="text-gray-500 font-normal ml-2">(Google Drive, external URLs, etc.)</span>
+                  🔗 OR Add Image URLs (Fallback)
+                  <span className="text-gray-500 font-normal ml-2 block text-xs">Google Drive, external URLs, etc.</span>
                 </label>
+                <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
+                  <p className="text-xs text-yellow-800">
+                    <strong>⚠️ Note:</strong> URL inputs are only used if no manual uploads are provided. Manual uploads take priority.
+                  </p>
+                </div>
                 <div className="space-y-3">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
@@ -412,6 +432,13 @@ const ProductFormModal = ({
                   <p className="text-sm text-gray-600 mb-2">
                     Current Images ({formData.images.length})
                   </p>
+                  {hasImageUrls() && (
+                    <div className="mb-3 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                      <p className="text-sm text-orange-800">
+                        <strong>⚠️ Mixed Input Detected:</strong> You have both uploaded files and URL inputs. Only the uploaded files will be used.
+                      </p>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {formData.images.map((image, index) => (
                       <div key={index} className="relative group">
