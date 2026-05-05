@@ -120,8 +120,29 @@ const SubSubCategoryPage = () => {
           firstProduct: items?.[0]?.name
         });
         
-        setProducts(items || []);
-        setPagination((prev) => ({ ...prev, ...p }));
+        // WORKAROUND: Filter products client-side if backend returns all products
+        let filteredProducts = items || [];
+        if (subSubCategoryId && items && items.length > 3) {
+          // Backend is returning all products, filter client-side
+          filteredProducts = items.filter(product => 
+            product.sub_subcategory_id === subSubCategoryId
+          );
+          console.log('🔧 CLIENT-SIDE FILTER APPLIED:', {
+            originalCount: items.length,
+            filteredCount: filteredProducts.length,
+            subSubCategoryId
+          });
+        }
+        
+        setProducts(filteredProducts);
+        
+        // Update pagination to reflect filtered count
+        const updatedPagination = {
+          ...p,
+          total: filteredProducts.length,
+          hasMore: false
+        };
+        setPagination(updatedPagination);
       } catch (e) {
         console.error('❌ DEBUG: Error fetching products:', e);
         setProducts([]);
