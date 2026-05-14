@@ -11,7 +11,7 @@ const ProductAccordionSections = ({ product }) => {
       icon: Package,
       content: (
         <div className="space-y-4">
-          <p className="text-gray-600 leading-relaxed">
+          <p className="text-gray-900 leading-relaxed font-extrabold">
             {product?.description || product?.short_description || 
              "Experience premium quality and innovative design with this exceptional product. " +
              "Crafted with attention to detail and using only the finest materials, this product " +
