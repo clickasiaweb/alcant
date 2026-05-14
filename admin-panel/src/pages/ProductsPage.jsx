@@ -508,9 +508,14 @@ export default function ProductsPage() {
             .filter(Boolean)
         : [];
       const mainImage = getProductImageUrl(processedImages[0]);
+      const primaryImageField = mainImage && mainImage.startsWith("data:")
+        ? null
+        : mainImage;
 
-      console.log("Final product images:", processedImages);
-      console.log("Main image:", mainImage);
+      console.log("Final product images:", processedImages.map((image) =>
+        typeof image === "string" ? `${image.slice(0, 40)}... (${image.length} chars)` : image,
+      ));
+      console.log("Main image:", primaryImageField || "stored in images array");
 
       // ✅ ENHANCED: Generate unique slug if not provided
       const generateUniqueSlug = (name, existingSlug = null) => {
@@ -539,7 +544,7 @@ export default function ProductsPage() {
         sub_subcategory_id: formData.subSubcategoryId || null, // ✅ Add sub-subcategory ID field (UUID)
         brand: formData.brand?.trim() || "Unknown Brand", // ✅ Add brand field with default
         images: processedImages,
-        image: mainImage,
+        image: primaryImageField,
         stock: parseInt(formData.stock) || 0,
         is_active: formData.isActive !== false,
         is_new: formData.isNew || false,
@@ -552,13 +557,15 @@ export default function ProductsPage() {
         // short_description, seo_meta_title, seo_meta_description, keywords
       };
 
-      console.log(
-        "🚀 Product data being sent:",
-        JSON.stringify(productData, null, 2),
-      );
+      console.log("Product data being sent:", {
+        ...productData,
+        images: productData.images.map((image) =>
+          typeof image === "string" ? `${image.slice(0, 40)}... (${image.length} chars)` : image,
+        ),
+      });
       console.log("🎯 Editing product ID:", productId);
-      console.log("📸 Final images:", processedImages);
-      console.log("🖼️ Main image:", mainImage);
+      console.log("Final image count:", processedImages.length);
+      console.log("Main image field:", primaryImageField || "stored in images array");
 
       // ✅ ENHANCED: Show loading state
       const loadingMessage = editingProduct

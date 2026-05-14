@@ -29,7 +29,14 @@ export const createProduct = async (productData) => {
 export const updateProduct = async (id, productData) => {
   try {
     console.log('🔄 API Service: Updating product with ID:', id);
-    console.log('📦 API Service: Product data:', JSON.stringify(productData, null, 2));
+    console.log('API Service: Product data summary:', {
+      ...productData,
+      images: Array.isArray(productData.images)
+        ? productData.images.map((image) =>
+            typeof image === 'string' ? `${image.slice(0, 40)}... (${image.length} chars)` : image,
+          )
+        : [],
+    });
     
     const response = await apiClient.put(`/admin/products/${id}`, productData);
     console.log('✅ API Service: Response status:', response.status);
