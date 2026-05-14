@@ -257,8 +257,9 @@ exports.createOrder = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
   try {
     const { status, note, trackingId } = req.body;
+    const normalizedStatus = (status || '').toString().trim().toLowerCase();
 
-    if (!status) {
+    if (!normalizedStatus) {
       return res.status(400).json({
         success: false,
         message: 'Status is required'
@@ -283,21 +284,21 @@ exports.updateOrderStatus = async (req, res) => {
     }
 
     // Check if status can be updated
-    if (currentOrder.order_status === 'Cancelled') {
+    if ((currentOrder.order_status || '').toString().toLowerCase() === 'cancelled') {
       return res.status(400).json({
         success: false,
         message: 'Cancelled orders cannot be updated'
       });
     }
 
-    if (currentOrder.order_status === 'Delivered' && status !== 'Delivered' && status !== 'Cancelled') {
+    if ((currentOrder.order_status || '').toString().toLowerCase() === 'delivered' && normalizedStatus !== 'delivered' && normalizedStatus !== 'cancelled') {
       return res.status(400).json({
         success: false,
         message: 'Delivered orders can only be cancelled'
       });
     }
 
-    if (currentOrder.payment_status !== 'Paid' && status !== 'Cancelled' && status !== 'Pending') {
+    if ((currentOrder.payment_status || '').toString().toLowerCase() !== 'paid' && normalizedStatus !== 'cancelled' && normalizedStatus !== 'pending') {
       return res.status(400).json({
         success: false,
         message: 'Order must be paid to update status'
@@ -306,7 +307,7 @@ exports.updateOrderStatus = async (req, res) => {
 
     // Prepare update data
     const updateData = {
-      order_status: status,
+      order_status: normalizedStatus,
       updated_at: new Date().toISOString()
     };
 
@@ -317,22 +318,12 @@ exports.updateOrderStatus = async (req, res) => {
     // Add status to history
     const statusHistory = currentOrder.status_history || [];
     statusHistory.push({
-      status,
+      status: normalizedStatus,
       timestamp: new Date().toISOString(),
-      note: note || `Status updated to ${status}`,
+      note: note || `Status updated to ${normalizedStatus}`,
       updatedBy: 'admin-user' // Use default when authentication is disabled
     });
     updateData.status_history = statusHistory;
-
-    // Set specific timestamps based on status
-    if (status === 'Delivered') {
-      updateData.actual_delivery = new Date().toISOString();
-    } else if (status === 'Cancelled') {
-      updateData.cancelled_at = new Date().toISOString();
-      if (note) {
-        updateData.cancellation_reason = note;
-      }
-    }
 
     const { data: order, error } = await supabaseService
       .from('orders')
@@ -348,7 +339,7 @@ exports.updateOrderStatus = async (req, res) => {
     res.status(200).json({
       success: true,
       data: order,
-      message: `Order status updated to ${status}`
+      message: `Order status updated to ${normalizedStatus}`
     });
   } catch (error) {
     console.error('Error updating order status:', error);
