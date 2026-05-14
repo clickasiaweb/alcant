@@ -1,23 +1,34 @@
 export const getPrimaryProductImage = (product) => {
   if (!product) return "";
 
-  if (typeof product.image === "string" && product.image.trim()) {
-    return product.image.trim();
-  }
-  if (product.image && typeof product.image.url === "string" && product.image.url.trim()) {
-    return product.image.url.trim();
-  }
+  const normalizedValue = (value) => (typeof value === "string" ? value.trim() : "");
+  const isUsable = (value) =>
+    typeof value === "string" &&
+    value.length > 0 &&
+    value !== "null" &&
+    value !== "undefined";
+  const pickString = (value) => {
+    const cleaned = normalizedValue(value);
+    return isUsable(cleaned) ? cleaned : "";
+  };
+  const pickFromEntry = (entry) => {
+    if (typeof entry === "string") return pickString(entry);
+    if (entry && typeof entry.url === "string") return pickString(entry.url);
+    return "";
+  };
+
+  const directImage = pickFromEntry(product.image);
+  if (directImage) return directImage;
 
   if (Array.isArray(product.images) && product.images.length > 0) {
-    const first = product.images[0];
-    if (typeof first === "string" && first.trim()) return first.trim();
-    if (first && typeof first.url === "string" && first.url.trim()) return first.url.trim();
+    for (const entry of product.images) {
+      const candidate = pickFromEntry(entry);
+      if (candidate) return candidate;
+    }
   }
 
-  if (typeof product.images === "string" && product.images.trim()) {
-    return product.images.trim();
-  }
+  const flatImages = pickString(product.images);
+  if (flatImages) return flatImages;
 
   return "";
 };
-
