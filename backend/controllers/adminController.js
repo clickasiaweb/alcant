@@ -491,11 +491,18 @@ exports.updateProduct = async (req, res) => {
       product
     });
   } catch (error) {
+    // Log full error for debugging
     console.error("Update product error:", error);
-    if (error.code === '23505') {
-      return res.status(400).json({ error: "Product with this slug already exists" });
+    // If Supabase provides structured error info, include it in the response for debugging
+    const errorMessage = error && error.message ? error.message : 'Failed to update product';
+    const errorDetails = error && (error.details || error.hint || error.code) ? { details: error.details || error.hint, code: error.code } : null;
+
+    if (error && error.code === '23505') {
+      return res.status(400).json({ error: "Product with this slug already exists", meta: errorDetails });
     }
-    res.status(500).json({ error: "Failed to update product" });
+
+    // Return detailed error for admin debugging (remove in production)
+    return res.status(500).json({ error: errorMessage, meta: errorDetails });
   }
 };
 
