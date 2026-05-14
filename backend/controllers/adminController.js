@@ -441,13 +441,43 @@ exports.updateProduct = async (req, res) => {
       const firstImage = updateData.images[0];
       if (firstImage && typeof firstImage === 'string') {
         updateData.image = firstImage;
-        console.log('✅ Setting main image to:', firstImage);
+        console.log('✅ Setting main image to: (trimmed for log)', typeof firstImage === 'string' ? firstImage.slice(0, 120) + (firstImage.length > 120 ? '...[truncated]' : '') : firstImage);
       }
     }
     
     // If image field is provided and no images array, use it
     if (!updateData.image && (!updateData.images || updateData.images.length === 0)) {
       console.log('⚠️ No image field or images array provided');
+    }
+
+    // Safety: Supabase may reject very large base64 strings if DB column limits exist.
+    // If incoming images contain data URLs that are very large, remove them to avoid a 500.
+    const MAX_IMAGE_PAYLOAD = 200 * 1024; // 200KB
+    let omittedImages = false;
+
+    function isDataUrl(str) {
+      return typeof str === 'string' && str.startsWith('data:');
+    }
+
+    try {
+      if (updateData.images && Array.isArray(updateData.images)) {
+        const filtered = updateData.images.filter(img => {
+          if (!isDataUrl(img)) return true;
+          if (img.length > MAX_IMAGE_PAYLOAD) {
+            omittedImages = true;
+            return false;
+          }
+          return true;
+        });
+        updateData.images = filtered;
+      }
+
+      if (updateData.image && isDataUrl(updateData.image) && updateData.image.length > MAX_IMAGE_PAYLOAD) {
+        omittedImages = true;
+        delete updateData.image;
+      }
+    } catch (err) {
+      console.warn('Image sanitization failed:', err);
     }
 
     const product = await SupabaseProduct.findByIdAndUpdate(id, updateData);
