@@ -541,7 +541,6 @@ export default function ProductsPage() {
         category: formData.category,
         subcategory: formData.subcategory || "uncategorized", // ✅ Required field, cannot be null
         sub_subcategory: formData.subSubcategory || null, // ✅ Add sub-subcategory field (text)
-        sub_subcategory_id: formData.subSubcategoryId || null, // ✅ Add sub-subcategory ID field (UUID)
         brand: formData.brand?.trim() || "Unknown Brand", // ✅ Add brand field with default
         images: processedImages,
         image: primaryImageField,
@@ -550,12 +549,15 @@ export default function ProductsPage() {
         is_new: formData.isNew || false,
         is_limited_edition: formData.isLimitedEdition || false,
         is_blue_monday_sale: formData.isBlueMondaySale || false,
-        featured: formData.featured || false,
         rating: parseFloat(formData.rating) || 0,
         reviews: parseInt(formData.reviews) || 0,
         // ❌ REMOVED: Fields not in Supabase schema
         // short_description, seo_meta_title, seo_meta_description, keywords
       };
+
+      if (formData.subSubcategoryId && formData.subSubcategoryId.trim()) {
+        productData.sub_subcategory_id = formData.subSubcategoryId.trim();
+      }
 
       console.log("Product data being sent:", {
         ...productData,
