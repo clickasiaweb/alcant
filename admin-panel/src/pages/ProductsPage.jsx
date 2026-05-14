@@ -499,19 +499,12 @@ export default function ProductsPage() {
           // Upload blob URLs and get final URLs
           const uploadedImages = await uploadBlobImages(formData.images);
           if (uploadedImages.length > 0) {
-            // Upload base64 images to backend which will store them in Supabase
+            // Use same method as ContentPage: keep base64 data URLs in product payload
             try {
-              const uploadResult = await uploadImages(uploadedImages);
-              // uploadResult.images should be an array of { url, filename, ... }
-              if (uploadResult && uploadResult.images && uploadResult.images.length > 0) {
-                allImages = uploadResult.images.map((img) => img.url || img.publicUrl || img);
-                console.log("✅ Manual uploads processed successfully:", uploadResult.images);
-              } else {
-                console.error('❌ Upload result missing images field', uploadResult);
-                hasImageErrors = true;
-              }
-            } catch (uploadErr) {
-              console.error('❌ Error uploading images to backend:', uploadErr);
+              allImages = uploadedImages; // base64 data URLs
+              console.log("✅ Manual uploads processed successfully (base64):", uploadedImages);
+            } catch (err) {
+              console.error('❌ Error processing base64 images:', err);
               hasImageErrors = true;
             }
           }
