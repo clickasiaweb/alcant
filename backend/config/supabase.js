@@ -7,7 +7,10 @@ class SupabaseClient {
   constructor() {
     this.supabaseUrl = process.env.SUPABASE_URL;
     this.supabaseKey = process.env.SUPABASE_ANON_KEY;
-    this.supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+    this.supabaseServiceKey =
+      process.env.SUPABASE_SERVICE_KEY ||
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.SERVICE_ROLE_KEY;
 
     if (!this.supabaseUrl || !this.supabaseKey) {
       throw new Error(
@@ -22,6 +25,12 @@ class SupabaseClient {
     this.serviceClient = this.supabaseServiceKey
       ? createClient(this.supabaseUrl, this.supabaseServiceKey)
       : this.client; // Fallback to regular client if service key not available
+
+    if (!this.supabaseServiceKey) {
+      console.warn(
+        "Supabase service key is missing. Admin write operations may fail due to RLS.",
+      );
+    }
   }
 
   /**

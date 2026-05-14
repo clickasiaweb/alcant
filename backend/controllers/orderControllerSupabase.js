@@ -358,12 +358,12 @@ exports.updateOrderStatus = async (req, res) => {
       updatePayload.tracking_id = trackingValue || null;
     }
 
-    let { data: order, error } = await supabaseService
-      .from('orders')
-      .update(updatePayload)
-      .eq('id', req.params.id)
-      .select()
-      .single();
+      let { data: order, error } = await supabaseService
+        .from('orders')
+        .update(updatePayload)
+        .eq('id', req.params.id)
+        .select()
+        .maybeSingle();
 
     // Production schema fallback: if optional columns fail, retry with core fields only
     if (error) {
@@ -374,18 +374,25 @@ exports.updateOrderStatus = async (req, res) => {
         updated_at: new Date().toISOString()
       };
 
-      const retry = await supabaseService
-        .from('orders')
-        .update(corePayload)
-        .eq('id', req.params.id)
-        .select()
-        .single();
+        const retry = await supabaseService
+          .from('orders')
+          .update(corePayload)
+          .eq('id', req.params.id)
+          .select()
+          .maybeSingle();
 
-      order = retry.data;
-      error = retry.error;
-    }
+        order = retry.data;
+        error = retry.error;
+      }
 
-    if (error) {
+      if (!error && !order) {
+        return res.status(403).json({
+          success: false,
+          message: 'Status update blocked (likely RLS). Configure SUPABASE_SERVICE_ROLE_KEY on backend.'
+        });
+      }
+
+      if (error) {
       if (error.code === 'PGRST116') {
         return res.status(404).json({
           success: false,
