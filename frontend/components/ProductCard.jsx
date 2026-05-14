@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Heart, ShoppingBag, Star, Eye } from 'lucide-react';
 import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 import WishlistButton from './WishlistButton';
-import { getPrimaryProductImage } from '../lib/productImage';
+import { getPrimaryProductImage, getProductImageCandidates } from '../lib/productImage';
 
 const ProductCard = ({ product, index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
   const router = useRouter();
   const { addToCart } = useSupabaseCart();
 
@@ -16,7 +17,8 @@ const ProductCard = ({ product, index = 0 }) => {
     if (image && image.url) return image.url;
     return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
   };
-  const primaryImage = getPrimaryProductImage(product);
+  const imageCandidates = useMemo(() => getProductImageCandidates(product), [product]);
+  const primaryImage = imageCandidates[imageIndex] || getPrimaryProductImage(product);
 
   const handleQuickView = (e) => {
     e.preventDefault();
@@ -79,6 +81,10 @@ const ProductCard = ({ product, index = 0 }) => {
                 alt={product.name}
                 className="w-full h-full object-contain p-3"
                 onError={(e) => {
+                  if (imageIndex < imageCandidates.length - 1) {
+                    setImageIndex((prev) => prev + 1);
+                    return;
+                  }
                   e.target.src = `https://picsum.photos/seed/${product.name}/300/300.jpg`;
                 }}
               />

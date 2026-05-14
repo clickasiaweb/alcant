@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Heart, ShoppingBag, Star, Plus, Grid } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import WishlistButton from './WishlistButton';
-import { getPrimaryProductImage } from '../lib/productImage';
+import { getPrimaryProductImage, getProductImageCandidates } from '../lib/productImage';
 
 const EnhancedProductCard = ({ product, index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
   const router = useRouter();
   const { addToCart } = useCart();
 
@@ -16,7 +17,8 @@ const EnhancedProductCard = ({ product, index = 0 }) => {
     if (image && image.url) return image.url;
     return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
   };
-  const primaryImage = getPrimaryProductImage(product);
+  const imageCandidates = useMemo(() => getProductImageCandidates(product), [product]);
+  const primaryImage = imageCandidates[imageIndex] || getPrimaryProductImage(product);
 
   const handleQuickView = (e) => {
     e.preventDefault();
@@ -92,6 +94,11 @@ const EnhancedProductCard = ({ product, index = 0 }) => {
                 src={getImageUrl(primaryImage)} 
                 alt={product.name}
                 className="w-full h-full object-contain p-3"
+                onError={() => {
+                  if (imageIndex < imageCandidates.length - 1) {
+                    setImageIndex((prev) => prev + 1);
+                  }
+                }}
               />
             ) : (
               <div className="w-32 h-40 bg-gray-200 rounded-lg flex items-center justify-center">

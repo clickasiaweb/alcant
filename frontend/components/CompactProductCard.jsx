@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Star, ShoppingCart, Plus } from 'lucide-react';
 import { useSupabaseCart } from '../contexts/SupabaseCartContext';
-import { getPrimaryProductImage } from '../lib/productImage';
+import { getPrimaryProductImage, getProductImageCandidates } from '../lib/productImage';
 
 const CompactProductCard = ({ product, index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const { addToCart } = useSupabaseCart();
+  const [imageIndex, setImageIndex] = useState(0);
 
   const getImageUrl = (image) => {
     if (typeof image === 'string') return image;
@@ -14,7 +15,8 @@ const CompactProductCard = ({ product, index = 0 }) => {
     return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
   };
 
-  const primaryImage = getPrimaryProductImage(product);
+  const imageCandidates = useMemo(() => getProductImageCandidates(product), [product]);
+  const primaryImage = imageCandidates[imageIndex] || getPrimaryProductImage(product);
 
   const handleQuickAdd = (e) => {
     e.preventDefault();
@@ -95,6 +97,11 @@ const CompactProductCard = ({ product, index = 0 }) => {
             src={getImageUrl(primaryImage)}
             alt={product.name}
             className="w-full h-full object-contain p-2 sm:p-3"
+            onError={() => {
+              if (imageIndex < imageCandidates.length - 1) {
+                setImageIndex((prev) => prev + 1);
+              }
+            }}
           />
         ) : (
           <div className="w-24 h-32 sm:w-32 sm:h-40 bg-gray-200 rounded-lg sm:rounded-xl flex items-center justify-center">
