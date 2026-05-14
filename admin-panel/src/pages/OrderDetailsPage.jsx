@@ -49,6 +49,53 @@ const paymentStatusColors = {
   'Refunded': 'bg-gray-100 text-gray-800 border-gray-200'
 };
 
+const normalizeLabelCase = (value, fallback) => {
+  if (!value || typeof value !== "string") return fallback;
+  return value
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+};
+
+const safeParse = (value, fallback) => {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === "object") return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return fallback;
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return fallback;
+    }
+  }
+  return fallback;
+};
+
+const normalizeOrder = (rawOrder) => {
+  const products = safeParse(rawOrder?.products, []);
+  const shippingAddress = safeParse(rawOrder?.shipping_address, {});
+  const billingAddress = safeParse(rawOrder?.billing_address, shippingAddress);
+  const statusHistory = safeParse(rawOrder?.status_history, []);
+  const paymentDetails = safeParse(rawOrder?.payment_details, {});
+
+  const normalizedProducts = Array.isArray(products) ? products : [];
+  const normalizedStatus = normalizeLabelCase(rawOrder?.order_status || rawOrder?.status, "Pending");
+  const normalizedPayment = normalizeLabelCase(rawOrder?.payment_status, "Pending");
+
+  return {
+    ...rawOrder,
+    products: normalizedProducts,
+    shipping_address: shippingAddress || {},
+    billing_address: billingAddress || {},
+    status_history: Array.isArray(statusHistory) ? statusHistory : [],
+    payment_details: paymentDetails || {},
+    order_status: normalizedStatus,
+    payment_status: normalizedPayment
+  };
+};
+
 export default function OrderDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -81,9 +128,10 @@ export default function OrderDetailsPage() {
       const data = await response.json();
       
       if (data.success) {
-        setOrder(data.data);
-        setNewStatus(data.data.order_status);
-        setNewTrackingId(data.data.tracking_id || '');
+        const normalizedOrder = normalizeOrder(data.data);
+        setOrder(normalizedOrder);
+        setNewStatus(normalizedOrder.order_status);
+        setNewTrackingId(normalizedOrder.tracking_id || '');
       } else {
         throw new Error(data.message || 'Failed to fetch order');
       }
@@ -109,7 +157,7 @@ export default function OrderDetailsPage() {
         body: JSON.stringify({ 
           status: newStatus,
           note: statusNote,
-          trackingId: newTrackingId
+          tracking_id: newTrackingId
         }),
       });
 
@@ -121,7 +169,10 @@ export default function OrderDetailsPage() {
       
       if (data.success) {
         toast.success(`Order status updated to ${newStatus}`);
-        setOrder(data.data);
+        const normalizedOrder = normalizeOrder(data.data);
+        setOrder(normalizedOrder);
+        setNewStatus(normalizedOrder.order_status);
+        setNewTrackingId(normalizedOrder.tracking_id || '');
         setEditingStatus(false);
         setStatusNote('');
       } else {
@@ -141,7 +192,7 @@ export default function OrderDetailsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          status: newPaymentStatus,
+          paymentStatus: newPaymentStatus,
           paymentDetails: {
             paidAt: newPaymentStatus === 'Paid' ? new Date().toISOString() : null
           }
@@ -156,7 +207,7 @@ export default function OrderDetailsPage() {
       
       if (data.success) {
         toast.success(`Payment status updated to ${newPaymentStatus}`);
-        setOrder(data.data);
+        setOrder((prev) => normalizeOrder({ ...(prev || {}), ...data.data }));
       } else {
         throw new Error(data.message || 'Failed to update payment status');
       }
@@ -167,6 +218,7 @@ export default function OrderDetailsPage() {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString('en-IN', {
       day: '2-digit',
       month: 'short',
@@ -177,13 +229,14 @@ export default function OrderDetailsPage() {
   };
 
   const formatCurrency = (amount) => {
+    const numeric = Number(amount || 0);
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR'
-    }).format(amount);
+    }).format(numeric);
   };
 
-  const StatusIcon = order?.order_status ? statusIcons[order.order_status] : FiClock;
+  const StatusIcon = (order?.order_status && statusIcons[order.order_status]) || FiClock;
 
   if (loading) {
     return (
@@ -223,7 +276,7 @@ export default function OrderDetailsPage() {
   return (
     <div className="flex">
       <SidebarNoAuth />
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-8 bg-gray-50 min-h-screen">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
@@ -235,12 +288,15 @@ export default function OrderDetailsPage() {
               Back to Orders
             </button>
           </div>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Order Details</h1>
               <p className="text-gray-600">Order ID: {order.order_id}</p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <span className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-full border ${paymentStatusColors[order.payment_status] || paymentStatusColors.Pending}`}>
+                Payment: {order.payment_status || "Pending"}
+              </span>
               <span className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full border ${statusColors[order.order_status]}`}>
                 <StatusIcon className="h-4 w-4" />
                 {order.order_status}
@@ -253,7 +309,7 @@ export default function OrderDetailsPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Order Status Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Order Status</h2>
                 {!editingStatus && (
@@ -378,10 +434,15 @@ export default function OrderDetailsPage() {
             </div>
 
             {/* Products Card */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Products</h2>
               <div className="space-y-4">
-                {order.products.map((product, index) => (
+                {(order.products || []).length === 0 && (
+                  <div className="text-sm text-gray-500 border border-dashed rounded-lg p-4">
+                    No products found in this order.
+                  </div>
+                )}
+                {(order.products || []).map((product, index) => (
                   <div key={index} className="flex items-center gap-4 pb-4 border-b last:border-b-0">
                     <img
                       src={product.image || '/placeholder-product.jpg'}
@@ -395,6 +456,7 @@ export default function OrderDetailsPage() {
                         {product.variant?.size && <span className="ml-2">Size: {product.variant.size}</span>}
                       </div>
                       <div className="text-sm text-gray-500">Qty: {product.quantity}</div>
+                      {product.sku && <div className="text-xs text-gray-400">SKU: {product.sku}</div>}
                     </div>
                     <div className="text-right">
                       <div className="font-medium text-gray-900">
@@ -410,7 +472,7 @@ export default function OrderDetailsPage() {
             </div>
 
             {/* Order Timeline */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Order Timeline</h2>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
@@ -460,7 +522,7 @@ export default function OrderDetailsPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Customer Info */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-2 mb-4">
                 <FiUser className="h-5 w-5 text-gray-400" />
                 <h2 className="text-lg font-semibold text-gray-900">Customer Info</h2>
@@ -469,22 +531,26 @@ export default function OrderDetailsPage() {
                 <div>
                   <div className="text-sm text-gray-500">Name</div>
                   <div className="font-medium text-gray-900">
-                    {order.shipping_address?.firstName} {order.shipping_address?.lastName}
+                    {order.shipping_address?.firstName || "-"} {order.shipping_address?.lastName || ""}
                   </div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Email</div>
-                  <div className="font-medium text-gray-900">{order.shipping_address?.email}</div>
+                  <div className="font-medium text-gray-900">{order.shipping_address?.email || "-"}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-500">Phone</div>
-                  <div className="font-medium text-gray-900">{order.shipping_address?.phone}</div>
+                  <div className="font-medium text-gray-900">{order.shipping_address?.phone || "-"}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Order Date</div>
+                  <div className="font-medium text-gray-900">{formatDate(order.created_at)}</div>
                 </div>
               </div>
             </div>
 
             {/* Shipping Address */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-2 mb-4">
                 <FiMapPin className="h-5 w-5 text-gray-400" />
                 <h2 className="text-lg font-semibold text-gray-900">Shipping Address</h2>
@@ -496,7 +562,7 @@ export default function OrderDetailsPage() {
                 {order.shipping_address?.company && (
                   <div className="text-gray-600">{order.shipping_address.company}</div>
                 )}
-                <div className="text-gray-600">{order.shipping_address?.address}</div>
+                <div className="text-gray-600">{order.shipping_address?.address || "-"}</div>
                 {order.shipping_address?.apartment && (
                   <div className="text-gray-600">{order.shipping_address.apartment}</div>
                 )}
@@ -509,7 +575,7 @@ export default function OrderDetailsPage() {
             </div>
 
             {/* Payment Info */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-2 mb-4">
                 <FiCreditCard className="h-5 w-5 text-gray-400" />
                 <h2 className="text-lg font-semibold text-gray-900">Payment Info</h2>
@@ -517,14 +583,14 @@ export default function OrderDetailsPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Method</span>
-                  <span className="font-medium text-gray-900">{order.payment_method}</span>
+                  <span className="font-medium text-gray-900">{order.payment_method || "-"}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">Status</span>
                   <select
                     value={order.payment_status}
                     onChange={(e) => handlePaymentStatusUpdate(e.target.value)}
-                    className={`text-xs font-medium rounded-full border px-2 py-1 cursor-pointer ${paymentStatusColors[order.payment_status]}`}
+                    className={`text-xs font-medium rounded-full border px-2 py-1 cursor-pointer ${paymentStatusColors[order.payment_status] || paymentStatusColors.Pending}`}
                   >
                     <option value="Paid">Paid</option>
                     <option value="Pending">Pending</option>
@@ -532,23 +598,23 @@ export default function OrderDetailsPage() {
                     <option value="Refunded">Refunded</option>
                   </select>
                 </div>
-                {order.paymentDetails?.transactionId && (
+                {order.payment_details?.transactionId && (
                   <div>
                     <div className="text-sm text-gray-500">Transaction ID</div>
-                    <div className="font-medium text-gray-900">{order.paymentDetails.transactionId}</div>
+                    <div className="font-medium text-gray-900">{order.payment_details.transactionId}</div>
                   </div>
                 )}
-                {order.paymentDetails?.paidAt && (
+                {order.payment_details?.paidAt && (
                   <div>
                     <div className="text-sm text-gray-500">Paid At</div>
-                    <div className="font-medium text-gray-900">{formatDate(order.paymentDetails.paidAt)}</div>
+                    <div className="font-medium text-gray-900">{formatDate(order.payment_details.paidAt)}</div>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Order Summary */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <div className="flex items-center gap-2 mb-4">
                 <FiDollarSign className="h-5 w-5 text-gray-400" />
                 <h2 className="text-lg font-semibold text-gray-900">Order Summary</h2>
@@ -576,6 +642,25 @@ export default function OrderDetailsPage() {
                   <span className="font-medium text-gray-900">Total</span>
                   <span className="font-bold text-lg text-gray-900">{formatCurrency(order.total_amount)}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Billing Address */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <FiMapPin className="h-5 w-5 text-gray-400" />
+                <h2 className="text-lg font-semibold text-gray-900">Billing Address</h2>
+              </div>
+              <div className="space-y-1 text-sm">
+                <div className="font-medium text-gray-900">
+                  {order.billing_address?.firstName || "-"} {order.billing_address?.lastName || ""}
+                </div>
+                <div className="text-gray-600">{order.billing_address?.address || "-"}</div>
+                <div className="text-gray-600">
+                  {order.billing_address?.city || "-"}, {order.billing_address?.state || "-"} {order.billing_address?.postalCode || "-"}
+                </div>
+                <div className="text-gray-600">{order.billing_address?.country || "-"}</div>
+                <div className="text-gray-600">{order.billing_address?.phone || "-"}</div>
               </div>
             </div>
           </div>
