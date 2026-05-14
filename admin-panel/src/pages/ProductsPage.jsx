@@ -24,6 +24,7 @@ import {
   deleteProduct,
   updateProductStatus,
   bulkDeleteProducts,
+  uploadImages,
 } from "../services/api-services";
 import { toast } from "react-toastify";
 
@@ -498,11 +499,21 @@ export default function ProductsPage() {
           // Upload blob URLs and get final URLs
           const uploadedImages = await uploadBlobImages(formData.images);
           if (uploadedImages.length > 0) {
-            allImages = uploadedImages;
-            console.log(
-              "✅ Manual uploads processed successfully:",
-              uploadedImages,
-            );
+            // Upload base64 images to backend which will store them in Supabase
+            try {
+              const uploadResult = await uploadImages(uploadedImages);
+              // uploadResult.images should be an array of { url, filename, ... }
+              if (uploadResult && uploadResult.images && uploadResult.images.length > 0) {
+                allImages = uploadResult.images.map((img) => img.url || img.publicUrl || img);
+                console.log("✅ Manual uploads processed successfully:", uploadResult.images);
+              } else {
+                console.error('❌ Upload result missing images field', uploadResult);
+                hasImageErrors = true;
+              }
+            } catch (uploadErr) {
+              console.error('❌ Error uploading images to backend:', uploadErr);
+              hasImageErrors = true;
+            }
           }
 
           // Check if any images failed to upload
