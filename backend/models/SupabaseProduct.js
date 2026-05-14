@@ -199,7 +199,6 @@ class SupabaseProduct {
       name: productData.name,
       slug: productData.slug,
       description: productData.description || null,
-      short_description: productData.short_description || null,
       price: productData.price || 0,
       old_price: productData.old_price || productData.oldPrice || null,
       final_price: productData.final_price || productData.finalPrice || productData.price || 0,
@@ -211,12 +210,9 @@ class SupabaseProduct {
       image: productData.image || null,
       rating: productData.rating || 0,
       reviews: productData.reviews || 0,
-      average_rating: productData.average_rating || 0,
-      review_count: productData.review_count || 0,
       stock: productData.stock || 0,
       is_new: productData.is_new || productData.isNew || false,
       is_limited_edition: productData.is_limited_edition || productData.isLimitedEdition || false,
-      is_blue_monday_sale: productData.is_blue_monday_sale || productData.isBlueMondaySale || false,
       is_active: productData.is_active !== undefined ? productData.is_active : (productData.isActive !== undefined ? productData.isActive : true),
       brand: productData.brand || null,
       weight: productData.weight || null
@@ -272,8 +268,17 @@ class SupabaseProduct {
     if (updateData.subcategory !== undefined) dbData.subcategory = updateData.subcategory;
     if (updateData.sub_subcategory !== undefined) dbData.sub_subcategory = updateData.sub_subcategory;
     if (updateData.sub_subcategory_id !== undefined) dbData.sub_subcategory_id = updateData.sub_subcategory_id;
-    if (updateData.subcategory_id !== undefined) dbData.subcategory_id = updateData.subcategory_id;
-    if (updateData.images !== undefined) dbData.images = updateData.images;
+    if (updateData.images !== undefined) {
+      dbData.images = Array.isArray(updateData.images)
+        ? updateData.images
+            .map((image) => {
+              if (typeof image === 'string') return image.trim();
+              if (image && typeof image.url === 'string') return image.url.trim();
+              return '';
+            })
+            .filter(Boolean)
+        : [];
+    }
     if (updateData.image !== undefined) dbData.image = updateData.image;
     if (updateData.rating !== undefined) dbData.rating = updateData.rating;
     if (updateData.reviews !== undefined) dbData.reviews = updateData.reviews;
@@ -284,17 +289,12 @@ class SupabaseProduct {
     if (updateData.isNew !== undefined) dbData.is_new = updateData.isNew;
     if (updateData.is_limited_edition !== undefined) dbData.is_limited_edition = updateData.is_limited_edition;
     if (updateData.isLimitedEdition !== undefined) dbData.is_limited_edition = updateData.isLimitedEdition;
-    if (updateData.is_blue_monday_sale !== undefined) dbData.is_blue_monday_sale = updateData.is_blue_monday_sale;
-    if (updateData.isBlueMondaySale !== undefined) dbData.is_blue_monday_sale = updateData.isBlueMondaySale;
     if (updateData.is_active !== undefined) dbData.is_active = updateData.is_active;
     if (updateData.isActive !== undefined) dbData.is_active = updateData.isActive;
     
     // Handle additional fields that exist in Supabase schema
     if (updateData.brand !== undefined) dbData.brand = updateData.brand;
-    if (updateData.short_description !== undefined) dbData.short_description = updateData.short_description;
     if (updateData.weight !== undefined) dbData.weight = updateData.weight;
-    if (updateData.average_rating !== undefined) dbData.average_rating = updateData.average_rating;
-    if (updateData.review_count !== undefined) dbData.review_count = updateData.review_count;
     
     // ❌ REMOVED: Fields that don't exist in Supabase schema
     // seo_meta_title, seo_meta_description, keywords

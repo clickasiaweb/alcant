@@ -235,6 +235,16 @@ export default function ProductsPage() {
         console.log("📸 Existing images:", product.images);
         console.log("🖼️ Main image:", product.image);
         setEditingProduct(product);
+        const safeImages = Array.isArray(product.images)
+          ? product.images
+              .map((image) => {
+                if (typeof image === "string") return image.trim();
+                if (image && typeof image.url === "string") return image.url.trim();
+                return "";
+              })
+              .filter(Boolean)
+          : [];
+
         setFormData({
           name: product.name || "",
           slug: product.slug || "",
@@ -246,7 +256,7 @@ export default function ProductsPage() {
           subSubcategory: product.sub_subcategory || "",
           price: product.price || product.final_price || "",
           oldPrice: product.old_price || "",
-          images: product.images || [],
+          images: safeImages,
           stock: product.stock || "",
           isActive: product.is_active !== undefined ? product.is_active : true,
           isNew: product.is_new || false,
@@ -262,7 +272,7 @@ export default function ProductsPage() {
           featured: product.featured || false,
           status: product.status || "active",
         });
-        console.log("📝 Form data set with images:", product.images || []);
+        console.log("📝 Form data set with images:", safeImages);
         setShowForm(true);
       }
     } catch (error) {
@@ -548,7 +558,6 @@ export default function ProductsPage() {
         is_active: formData.isActive !== false,
         is_new: formData.isNew || false,
         is_limited_edition: formData.isLimitedEdition || false,
-        is_blue_monday_sale: formData.isBlueMondaySale || false,
         rating: parseFloat(formData.rating) || 0,
         reviews: parseInt(formData.reviews) || 0,
         // ❌ REMOVED: Fields not in Supabase schema
