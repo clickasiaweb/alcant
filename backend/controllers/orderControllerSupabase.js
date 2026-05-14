@@ -315,30 +315,30 @@ exports.updateOrderStatus = async (req, res) => {
       });
     }
 
-    // Get existing order for history merge
-    const { data: existingOrder, error: existingError } = await supabaseService
-      .from('orders')
-      .select('status_history')
-      .eq('id', req.params.id)
-      .single();
+    // Try to read existing status_history. If blocked by RLS/policies, continue without it.
+    let statusHistory = [];
+    try {
+      const { data: existingOrder, error: existingError } = await supabaseService
+        .from('orders')
+        .select('status_history')
+        .eq('id', req.params.id)
+        .maybeSingle();
 
-    if (existingError) {
-      if (existingError.code === 'PGRST116') {
-        return res.status(404).json({
-          success: false,
-          message: 'Order not found'
-        });
+      if (existingError) {
+        console.warn('Could not read existing status_history, continuing with fresh history entry:', existingError.message);
+      } else {
+        statusHistory = existingOrder?.status_history;
+        if (!Array.isArray(statusHistory)) {
+          try {
+            statusHistory = JSON.parse(statusHistory || '[]');
+          } catch {
+            statusHistory = [];
+          }
+        }
       }
-      throw existingError;
-    }
-
-    let statusHistory = existingOrder?.status_history;
-    if (!Array.isArray(statusHistory)) {
-      try {
-        statusHistory = JSON.parse(statusHistory || '[]');
-      } catch {
-        statusHistory = [];
-      }
+    } catch (readError) {
+      console.warn('Status history read threw error, continuing:', readError.message);
+      statusHistory = [];
     }
     statusHistory.push({
       status: labelStatus,
@@ -366,12 +366,12 @@ exports.updateOrderStatus = async (req, res) => {
         .maybeSingle();
 
     // Production schema fallback: if optional columns fail, retry with core fields only
-    if (error) {
-      console.error('Primary status update failed, retrying with core fields:', error.message);
-      const corePayload = {
-        order_status: dbStatus,
-        notes: note || `Status updated to ${labelStatus}`,
-        updated_at: new Date().toISOString()
+      if (error) {
+        console.error('Primary status update failed, retrying with core fields:', error.message);
+        const corePayload = {
+          order_status: dbStatus,
+          notes: note || `Status updated to ${labelStatus}`,
+          updated_at: new Date().toISOString()
       };
 
         const retry = await supabaseService
@@ -393,14 +393,20 @@ exports.updateOrderStatus = async (req, res) => {
       }
 
       if (error) {
-      if (error.code === 'PGRST116') {
-        return res.status(404).json({
-          success: false,
-          message: 'Order not found'
+        if (error.code === 'PGRST116') {
+          return res.status(404).json({
+            success: false,
+            message: 'Order not found'
+          });
+        }
+        console.error('Final status update failure details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
         });
+        throw error;
       }
-      throw error;
-    }
 
     res.status(200).json({
       success: true,
