@@ -387,7 +387,14 @@ exports.updateContent = async (req, res) => {
 // POST /api/admin/products
 exports.createProduct = async (req, res) => {
   try {
-    console.log('🔍 Admin createProduct request body:', JSON.stringify(req.body, null, 2));
+    console.log('Admin createProduct payload summary:', {
+      name: req.body?.name,
+      slug: req.body?.slug,
+      imageCount: Array.isArray(req.body?.images) ? req.body.images.length : 0,
+      imageSizes: Array.isArray(req.body?.images)
+        ? req.body.images.map((image) => typeof image === 'string' ? image.length : 0)
+        : []
+    });
     
     // ✅ FIX: Process image field properly
     let productData = {
@@ -400,7 +407,7 @@ exports.createProduct = async (req, res) => {
       const firstImage = productData.images[0];
       if (firstImage && typeof firstImage === 'string') {
         productData.image = firstImage;
-        console.log('✅ Setting main image to:', firstImage);
+        console.log('Setting main image from first product image');
       }
     }
     
@@ -428,7 +435,15 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('🔍 Admin updateProduct request body:', JSON.stringify(req.body, null, 2));
+    console.log('Admin updateProduct payload summary:', {
+      id,
+      name: req.body?.name,
+      slug: req.body?.slug,
+      imageCount: Array.isArray(req.body?.images) ? req.body.images.length : 0,
+      imageSizes: Array.isArray(req.body?.images)
+        ? req.body.images.map((image) => typeof image === 'string' ? image.length : 0)
+        : []
+    });
     
     // ✅ FIX: Process image field properly
     let updateData = {
@@ -441,43 +456,13 @@ exports.updateProduct = async (req, res) => {
       const firstImage = updateData.images[0];
       if (firstImage && typeof firstImage === 'string') {
         updateData.image = firstImage;
-        console.log('✅ Setting main image to: (trimmed for log)', typeof firstImage === 'string' ? firstImage.slice(0, 120) + (firstImage.length > 120 ? '...[truncated]' : '') : firstImage);
+        console.log('Setting main image from first product image');
       }
     }
     
     // If image field is provided and no images array, use it
     if (!updateData.image && (!updateData.images || updateData.images.length === 0)) {
       console.log('⚠️ No image field or images array provided');
-    }
-
-    // Safety: Supabase may reject very large base64 strings if DB column limits exist.
-    // If incoming images contain data URLs that are very large, remove them to avoid a 500.
-    const MAX_IMAGE_PAYLOAD = 200 * 1024; // 200KB
-    let omittedImages = false;
-
-    function isDataUrl(str) {
-      return typeof str === 'string' && str.startsWith('data:');
-    }
-
-    try {
-      if (updateData.images && Array.isArray(updateData.images)) {
-        const filtered = updateData.images.filter(img => {
-          if (!isDataUrl(img)) return true;
-          if (img.length > MAX_IMAGE_PAYLOAD) {
-            omittedImages = true;
-            return false;
-          }
-          return true;
-        });
-        updateData.images = filtered;
-      }
-
-      if (updateData.image && isDataUrl(updateData.image) && updateData.image.length > MAX_IMAGE_PAYLOAD) {
-        omittedImages = true;
-        delete updateData.image;
-      }
-    } catch (err) {
-      console.warn('Image sanitization failed:', err);
     }
 
     const product = await SupabaseProduct.findByIdAndUpdate(id, updateData);
