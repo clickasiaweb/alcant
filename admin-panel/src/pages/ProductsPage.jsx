@@ -552,7 +552,6 @@ export default function ProductsPage() {
         sub_subcategory: formData.subSubcategory || null, // ✅ Add sub-subcategory field (text)
         brand: formData.brand?.trim() || "Unknown Brand", // ✅ Add brand field with default
         images: processedImages,
-        image: primaryImageField,
         stock: parseInt(formData.stock) || 0,
         is_active: formData.isActive !== false,
         is_new: formData.isNew || false,
@@ -565,6 +564,16 @@ export default function ProductsPage() {
 
       if (formData.subSubcategoryId && formData.subSubcategoryId.trim()) {
         productData.sub_subcategory_id = formData.subSubcategoryId.trim();
+      }
+
+      // Important: for update with base64 images, do not force image=null,
+      // keep existing DB image field untouched to avoid DB constraint failures.
+      if (editingProduct) {
+        if (primaryImageField) {
+          productData.image = primaryImageField;
+        }
+      } else {
+        productData.image = primaryImageField || "";
       }
 
       console.log("Product data being sent:", {
@@ -663,7 +672,15 @@ export default function ProductsPage() {
     setEditingProduct(product);
 
     // ✅ FIX: Properly handle existing images
-    const existingImages = product.images || [];
+    const existingImages = Array.isArray(product.images)
+      ? product.images
+          .map((image) => {
+            if (typeof image === "string") return image.trim();
+            if (image && typeof image.url === "string") return image.url.trim();
+            return "";
+          })
+          .filter(Boolean)
+      : [];
     console.log("📸 Loading existing images for edit:", existingImages);
 
     setFormData({
@@ -679,11 +696,6 @@ export default function ProductsPage() {
       price: product.price || product.final_price || "",
       oldPrice: product.old_price || "",
       images: existingImages, // ✅ Load existing images properly
-      imageUrls: existingImages.join("\n") || "", // ✅ Also populate image URLs field
-      imageUrl1: existingImages[0] || "", // ✅ Populate individual URL fields
-      imageUrl2: existingImages[1] || "",
-      imageUrl3: existingImages[2] || "",
-      imageUrl4: existingImages[3] || "",
       stock: product.stock || 0,
       isActive: product.is_active !== false,
       isNew: product.is_new || false,
