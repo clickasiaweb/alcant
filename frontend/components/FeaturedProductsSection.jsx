@@ -179,6 +179,19 @@ const FeaturedProductsSection = () => {
                 className="flex-none w-72 md:w-80"
                 style={{ minWidth: '288px' }}
               >
+                {(() => {
+                  const primaryFromImages =
+                    Array.isArray(product.images) && product.images.length > 0
+                      ? product.images[0]
+                      : "";
+                  const normalizedImage =
+                    (typeof primaryFromImages === "string" && primaryFromImages.trim()) ||
+                    (primaryFromImages && typeof primaryFromImages.url === "string" && primaryFromImages.url.trim()) ||
+                    (typeof product.image === "string" && product.image.trim()) ||
+                    (product.image && typeof product.image.url === "string" && product.image.url.trim()) ||
+                    "";
+
+                  return (
                 <CompactProductCard
                   product={{
                     id: product.id,
@@ -191,11 +204,14 @@ const FeaturedProductsSection = () => {
                     discount: product.discount,
                     isLimited: product.is_limited_edition,
                     slug: product.slug,
-                    image: product.image || (product.images && product.images[0]),
+                    image: normalizedImage,
+                    images: product.images,
                     colorCount: product.color_count || 0
                   }}
                   index={index}
                 />
+                  );
+                })()}
               </div>
             ))}
           </div>
