@@ -11,53 +11,9 @@ const ProductCard = ({ product, index = 0 }) => {
   const { addToCart } = useSupabaseCart();
 
   const getImageUrl = (image) => {
-    if (!image) {
-      return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
-    }
-    
-    // Handle full URLs
-    if (image.startsWith('http://') || image.startsWith('https://')) {
-      return image;
-    }
-    
-    // Handle blob URLs (for admin panel preview)
-    if (image.startsWith('blob:')) {
-      return image;
-    }
-    
-    // Handle data URLs
-    if (image.startsWith('data:')) {
-      return image;
-    }
-    
-    // Handle relative paths starting with /
-    if (image.startsWith('/')) {
-      // If it's already a full path to uploads, use as is
-      if (image.startsWith('/uploads/')) {
-        return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}${image}`;
-      }
-      // Otherwise treat as absolute path
-      return image;
-    }
-    
-    // Handle relative paths without leading slash - assume uploads
-    if (image.includes('uploads/') || image.includes('product-')) {
-      return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/uploads/images/${image}`;
-    }
-    
-    // Handle test/placeholder images
-    if (image.includes('test-image') || image.includes('placeholder')) {
-      return `https://picsum.photos/seed/${product.name}/300/300.jpg`;
-    }
-    
-    // Default fallback - assume it's a filename and construct Supabase URL
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    if (supabaseUrl && image) {
-      return `${supabaseUrl}/storage/v1/object/public/products/${image}`;
-    }
-    
-    // Final fallback
-    return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/uploads/images/${image}`;
+    if (typeof image === 'string') return image;
+    if (image && image.url) return image.url;
+    return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
   };
 
   const handleQuickView = (e) => {

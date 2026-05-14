@@ -55,38 +55,6 @@ export const updateProduct = async (id, productData) => {
   }
 };
 
-// Upload base64 images (browser) to backend upload endpoint
-export const uploadImages = async (base64Images) => {
-  if (!Array.isArray(base64Images) || base64Images.length === 0) return { images: [] };
-
-  // Convert base64 data URLs to File objects and append to FormData
-  const formData = new FormData();
-  base64Images.forEach((dataUrl, idx) => {
-    try {
-      const parts = dataUrl.split(',');
-      const matches = parts[0].match(/:(.*?);/);
-      const mime = matches ? matches[1] : 'image/jpeg';
-      const bstr = atob(parts[1]);
-      let n = bstr.length;
-      const u8arr = new Uint8Array(n);
-      while (n--) u8arr[n] = bstr.charCodeAt(n);
-      const ext = mime.split('/')[1] || 'jpg';
-      const fileName = `upload-${Date.now()}-${idx}.${ext}`;
-      const file = new File([u8arr], fileName, { type: mime });
-      formData.append('images', file);
-    } catch (err) {
-      console.warn('Failed to convert base64 image to file', err);
-    }
-  });
-
-  const response = await apiClient.post('/upload/images', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    timeout: 60000,
-  });
-
-  return response.data;
-};
-
 export const deleteProduct = async (id) => {
   const { data } = await apiClient.delete(`/admin/products/${id}`);
   return data;

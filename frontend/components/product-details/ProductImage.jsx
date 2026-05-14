@@ -3,56 +3,9 @@ import WishlistButton from '../WishlistButton';
 
 const ProductImage = ({ product, displayName, mainImage, selectedImage, images, hasMultipleImages, handleImageChange }) => {
   const getImageUrl = (image) => {
-    if (!image) {
-      return `https://picsum.photos/seed/${product?.name || 'product'}/600/600.jpg`;
-    }
-    
-    // Handle Google Drive URLs - use proxy to avoid CORS issues
-    if (image.includes('drive.google.com')) {
-      // Extract file ID from Google Drive URL
-      const match = image.match(/id=([a-zA-Z0-9_-]+)/);
-      if (match) {
-        const fileId = match[1];
-        return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/proxy/drive/${fileId}`;
-      }
-      // Fallback to generic proxy
-      return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}/api/proxy/image?imageUrl=${encodeURIComponent(image)}`;
-    }
-    
-    // Handle full URLs (including Supabase storage URLs) - return as is
-    if (image.startsWith('http://') || image.startsWith('https://')) {
-      return image;
-    }
-    
-    // Handle blob URLs (for admin panel preview)
-    if (image.startsWith('blob:')) {
-      return image;
-    }
-    
-    // Handle data URLs (base64 images)
-    if (image.startsWith('data:')) {
-      return image;
-    }
-    
-    // Handle test/placeholder images
-    if (image.includes('test-image') || image.includes('placeholder')) {
-      return `https://picsum.photos/seed/${product.name}/600/600.jpg`;
-    }
-    
-    // Handle relative paths that start with /uploads/ (legacy local storage)
-    if (image.startsWith('/uploads/')) {
-      return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'}${image}`;
-    }
-    
-    // Default fallback - assume it's a filename and construct Supabase URL
-    // This handles cases where image is just a filename like "product-123.jpg"
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    if (supabaseUrl && image) {
-      return `${supabaseUrl}/storage/v1/object/public/products/${image}`;
-    }
-    
-    // Final fallback
-    return `https://picsum.photos/seed/${product.name}/600/600.jpg`;
+    if (typeof image === 'string') return image;
+    if (image && image.url) return image.url;
+    return `https://picsum.photos/seed/${product?.name || 'product'}/600/600.jpg`;
   };
 
   const currentPrice = product.price || product.final_price || 0;

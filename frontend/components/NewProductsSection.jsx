@@ -139,48 +139,15 @@ const NewProductsSection = () => {
   };
 
   const getProductImageUrl = (product) => {
-    // Handle different image formats
-    if (product.images && product.images.length > 0) {
+    if (Array.isArray(product.images) && product.images.length > 0) {
       const firstImage = product.images[0];
-      if (typeof firstImage === 'string') {
-        if (firstImage.startsWith('http') || firstImage.startsWith('blob:')) {
-          return firstImage;
-        }
-        if (firstImage.includes('test-image') || firstImage.includes('placeholder')) {
-          return `https://picsum.photos/seed/${product.name}/300/400.jpg`;
-        }
-        return firstImage;
-      }
-      if (firstImage?.url) {
-        return getProductImageUrl({ ...product, images: [firstImage.url] });
-      }
+      if (typeof firstImage === 'string') return firstImage;
+      if (firstImage && firstImage.url) return firstImage.url;
     }
-    
-    // Handle case where images is stored as JSON string
-    if (product.images && typeof product.images === 'string') {
-      try {
-        const parsed = JSON.parse(product.images);
-        const imageArray = Array.isArray(parsed) ? parsed : [parsed];
-        if (imageArray.length > 0 && imageArray[0].url) {
-          return imageArray[0].url;
-        }
-      } catch (e) {
-        console.error('Error parsing product images:', e);
-      }
-    }
-    
-    // Fallback to main image field
-    if (product.image) {
-      if (product.image.startsWith('http') || product.image.startsWith('blob:')) {
-        return product.image;
-      }
-      if (product.image.includes('test-image') || product.image.includes('placeholder')) {
-        return `https://picsum.photos/seed/${product.name}/300/400.jpg`;
-      }
-      return product.image;
-    }
-    
-    // Final fallback
+
+    if (typeof product.image === 'string') return product.image;
+    if (product.image && product.image.url) return product.image.url;
+
     return `https://picsum.photos/seed/${product.name}/300/400.jpg`;
   };
 

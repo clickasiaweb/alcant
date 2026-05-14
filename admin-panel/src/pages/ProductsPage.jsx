@@ -24,7 +24,6 @@ import {
   deleteProduct,
   updateProductStatus,
   bulkDeleteProducts,
-  uploadImages,
 } from "../services/api-services";
 import { toast } from "react-toastify";
 
@@ -313,22 +312,26 @@ export default function ProductsPage() {
   }, []);
 
   // Helper function to get correct image URL for products
-  const getProductImageUrl = (imageUrl) => {
-    if (!imageUrl) return "";
-    // If it's already a full URL, return as is
-    if (imageUrl.startsWith("http")) {
-      return imageUrl;
-    }
-    // If it's a relative URL, add the backend URL
-    return `${process.env.REACT_APP_API_URL || "http://localhost:5001"}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;
+  const getProductImageUrl = (image) => {
+    if (!image) return "";
+    if (typeof image === "string") return image;
+    if (image.url) return image.url;
+    return "";
   };
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     console.log("Starting image upload for", files.length, "files");
 
+    const allowedImageTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+    ];
+
     const compressImage = (file) => {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         console.log(
           "Starting compression for file:",
           file.name,
@@ -339,6 +342,15 @@ export default function ProductsPage() {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
         const img = new Image();
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+          img.src = event.target.result;
+        };
+
+        reader.onerror = () => {
+          reject(new Error("Unable to read image file"));
+        };
 
         img.onload = () => {
           let { width, height } = img;
@@ -359,7 +371,11 @@ export default function ProductsPage() {
 
           canvas.toBlob(
             (blob) => {
-              resolve(blob || file);
+              if (!blob) {
+                reject(new Error("Unable to compress image"));
+                return;
+              }
+              resolve(blob);
             },
             "image/jpeg",
             0.85,
@@ -367,10 +383,10 @@ export default function ProductsPage() {
         };
 
         img.onerror = () => {
-          resolve(file);
+          reject(new Error("Unable to load image for compression"));
         };
 
-        img.src = URL.createObjectURL(file);
+        reader.readAsDataURL(file);
       });
     };
 
@@ -379,6 +395,11 @@ export default function ProductsPage() {
 
       for (const file of files) {
         if (!file) continue;
+
+        if (!allowedImageTypes.includes(file.type)) {
+          toast.error(`${file.name} must be a JPEG, PNG, GIF, or WebP image`);
+          continue;
+        }
 
         // Match ContentPage behavior: reject very large uploads before compression
         if (file.size > 10 * 1024 * 1024) {
@@ -420,9 +441,11 @@ export default function ProductsPage() {
         }));
         toast.success(`${base64Images.length} image(s) added successfully!`);
       }
+      e.target.value = "";
     } catch (error) {
       console.error("Image upload error:", error);
       toast.error("Error uploading images");
+      e.target.value = "";
     }
   };
 
@@ -431,14 +454,6 @@ export default function ProductsPage() {
       ...prev,
       images: prev.images.filter((_, i) => i !== index),
     }));
-  };
-
-  // Product images are now stored as base64 data URLs in formData.images.
-  // Keep this helper for backward compatibility with the existing submit logic.
-  const uploadBlobImages = async (images) => {
-    if (!Array.isArray(images)) return [];
-    // Accept base64 strings directly; ignore legacy preview objects.
-    return images.filter((img) => typeof img === "string");
   };
 
   const handleSubmit = async (e) => {
@@ -483,65 +498,19 @@ export default function ProductsPage() {
         }
       }
 
-      // ✅ ENHANCED: Process images with better error handling
-      let processedImages = [];
-      let mainImage = "";
-      let hasImageErrors = false;
+      const processedImages = Array.isArray(formData.images)
+        ? formData.images
+            .map((image) => {
+              if (typeof image === "string") return image;
+              if (image && typeof image.url === "string") return image.url;
+              return "";
+            })
+            .filter(Boolean)
+        : [];
+      const mainImage = getProductImageUrl(processedImages[0]);
 
-      // Process only manual file uploads
-      let allImages = [];
-
-      if (formData.images && formData.images.length > 0) {
-        console.log("🔄 Processing uploaded files...");
-        console.log("📸 Form images:", formData.images);
-
-        try {
-          // Upload blob URLs and get final URLs
-          const uploadedImages = await uploadBlobImages(formData.images);
-          if (uploadedImages.length > 0) {
-            // Use same method as ContentPage: keep base64 data URLs in product payload
-            try {
-              allImages = uploadedImages; // base64 data URLs
-              console.log("✅ Manual uploads processed successfully (base64):", uploadedImages);
-            } catch (err) {
-              console.error('❌ Error processing base64 images:', err);
-              hasImageErrors = true;
-            }
-          }
-
-          // Check if any images failed to upload
-          if (uploadedImages.length === 0 && formData.images.length > 0) {
-            hasImageErrors = true;
-            toast.error("Manual image uploads failed. Please try again.");
-          }
-        } catch (imageError) {
-          console.error("❌ Manual upload processing error:", imageError);
-          hasImageErrors = true;
-          toast.error("Image upload failed. Please try again.");
-        }
-      }
-
-      // Set final processed images
-      if (allImages.length > 0) {
-        processedImages = allImages;
-        mainImage = allImages[0] || "";
-        console.log("✅ Final processed images:", processedImages);
-        console.log("🖼️ Main image:", mainImage);
-      }
-      // Only fallback to existing images if this is creating a new product (not editing)
-      // For editing, if no images are provided, it means user wants to remove them
-      else if (!editingProduct) {
-        // This case shouldn't happen for new products, but handle it gracefully
-        console.log("� No images provided for new product");
-        processedImages = [];
-        mainImage = "";
-      }
-      // For editing products with no images, it means images were intentionally removed
-      else if (editingProduct) {
-        processedImages = [];
-        mainImage = "";
-        console.log("🗑️ Images intentionally removed from existing product");
-      }
+      console.log("Final product images:", processedImages);
+      console.log("Main image:", mainImage);
 
       // ✅ ENHANCED: Generate unique slug if not provided
       const generateUniqueSlug = (name, existingSlug = null) => {
@@ -617,11 +586,7 @@ export default function ProductsPage() {
         loadData();
 
         // ✅ Additional success message with image status
-        if (hasImageErrors) {
-          toast.info(
-            "Product saved but some images had issues. You can add images later.",
-          );
-        } else if (processedImages.length > 0) {
+        if (processedImages.length > 0) {
           toast.success(
             `Product saved with ${processedImages.length} image(s)`,
           );

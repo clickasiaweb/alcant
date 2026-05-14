@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 
 const ProductFormModal = ({ 
@@ -54,8 +54,7 @@ const ProductFormModal = ({
         console.log(`  Image ${index + 1}:`, {
           type: typeof img === 'string' ? 'string' : 'object',
           url: imgUrl,
-          isBlob: img.isBlob,
-          name: img.name || img.filename || 'N/A'
+          name: img.name || 'N/A'
         });
       });
     }
@@ -63,97 +62,19 @@ const ProductFormModal = ({
 
   // Helper function to get correct image URL
   const getImageUrl = (image) => {
-    if (!image) {
-      return '';
-    }
-    
-    if (typeof image === 'string') {
-      // Handle corrupted JSON string data (fix for database corruption)
-      if (image.startsWith('{') && image.includes('"url"')) {
-        try {
-          const parsed = JSON.parse(image);
-          console.log('🔧 Fixed corrupted image data:', parsed);
-          if (parsed.url) {
-            return parsed.url;
-          }
-        } catch (parseError) {
-          console.log('❌ Failed to parse corrupted image data:', image);
-        }
-        return ''; // Return empty for corrupted data
-      }
-      
-      // Handle blob URLs (for admin panel preview)
-      if (image.startsWith('blob:')) {
-        return image;
-      }
-      
-      // Handle data URLs (base64 images)
-      if (image.startsWith('data:')) {
-        return image;
-      }
-      
-      // Handle full URLs (including Supabase storage URLs)
-      if (image.startsWith('http://') || image.startsWith('https://')) {
-        return image;
-      }
-      
-      // Handle relative paths that start with /uploads/ (legacy local storage)
-      if (image.startsWith('/uploads/')) {
-        return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${image}`;
-      }
-      
-      // Default fallback - assume it's a relative path and construct backend URL
-      return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${image.startsWith('/') ? '' : '/'}${image}`;
-    } else if (image && image.url) {
-      // Handle object with url property
-      const imageUrl = image.url;
-      
-      // Handle blob URLs (for admin panel preview)
-      if (imageUrl.startsWith('blob:')) {
-        return imageUrl;
-      }
-      
-      // Handle data URLs (base64 images)
-      if (imageUrl.startsWith('data:')) {
-        return imageUrl;
-      }
-      
-      // Handle full URLs (including Supabase storage URLs)
-      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
-        return imageUrl;
-      }
-      
-      // Handle relative paths that start with /uploads/ (legacy local storage)
-      if (imageUrl.startsWith('/uploads/')) {
-        return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${imageUrl}`;
-      }
-      
-      // Default fallback - assume it's a relative path and construct backend URL
-      return `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
-    }
-    
+    if (typeof image === 'string') return image;
+    if (image && image.url) return image.url;
     return '';
   };
 
   // Helper function to get image display name
   const getImageDisplayName = (image, index) => {
-    if (typeof image === 'string') {
-      return `Image ${index + 1}`;
-    } else if (image && image.name) {
+    if (image && typeof image !== 'string' && image.name) {
       return image.name;
-    } else if (image && image.filename) {
-      return image.filename;
     }
     return `Image ${index + 1}`;
   };
 
-  // Helper function to check if image is a blob/preview
-  const isBlobImage = (image) => {
-    return image && image.isBlob;
-  };
-
-  
-  
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleSubmit(e);
@@ -396,11 +317,11 @@ const ProductFormModal = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   📁 Upload Product Images
-                  <span className="text-gray-500 font-normal ml-2 block text-xs">JPEG, PNG, GIF, WebP - Max 5MB each</span>
+                  <span className="text-gray-500 font-normal ml-2 block text-xs">JPEG, PNG, GIF, WebP - Max 10MB before compression</span>
                 </label>
                 <div className="mb-3 p-2 bg-green-50 border border-green-200 rounded-md">
                   <p className="text-xs text-green-800">
-                    <strong>✅ Simple & Reliable:</strong> Upload images directly to our secure storage. Fast loading and automatic optimization.
+                    <strong>Base64 Image Storage:</strong> Images are compressed, converted to base64, and saved directly with the product.
                   </p>
                 </div>
                 <div className="relative">
@@ -412,7 +333,7 @@ const ProductFormModal = ({
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
                   <div className="mt-2 text-xs text-gray-500">
-                    You can select multiple images at once. Images will be uploaded immediately or shown as preview.
+                    You can select multiple images at once. Previews appear immediately after compression.
                   </div>
                 </div>
               </div>
@@ -431,30 +352,12 @@ const ProductFormModal = ({
                           alt={getImageDisplayName(image, index)}
                           className="w-full h-32 object-cover rounded-md transition-opacity group-hover:opacity-90"
                           onError={(e) => {
-                            const imageUrl = getImageUrl(image);
-                            console.log('❌ Image failed to load:', {
-                              imageUrl,
+                            console.log('Image failed to load:', {
+                              imageUrl: getImageUrl(image),
                               imageType: typeof image === 'string' ? 'string' : 'object',
                               imageIndex: index,
-                              error: e.target.error
                             });
-                            
-                            // Try to fix blob URLs
-                            if (imageUrl && imageUrl.startsWith('blob:')) {
-                              console.log('🔄 Attempting to fix blob URL...');
-                              if (image && image.file) {
-                                try {
-                                  const newBlobUrl = URL.createObjectURL(image.file);
-                                  console.log('✅ Created new blob URL');
-                                  e.target.src = newBlobUrl;
-                                  return;
-                                } catch (blobError) {
-                                  console.log('❌ Failed to create blob URL:', blobError);
-                                }
-                              }
-                            }
-                            
-                            // For all other errors, show a helpful placeholder
+
                             const placeholderSvg = `
                               <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
                                 <rect width="100%" height="100%" fill="#f3f4f6"/>
@@ -466,8 +369,8 @@ const ProductFormModal = ({
                                 </text>
                               </svg>
                             `;
-                            
-                            e.target.src = `data:image/svg+xml;base64,${Buffer.from(placeholderSvg).toString('base64')}`;
+
+                            e.target.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(placeholderSvg)}`;
                           }}
                         />
                         <button
@@ -481,22 +384,10 @@ const ProductFormModal = ({
                         <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded">
                           {index + 1}
                         </div>
-                        {isBlobImage(image) && (
-                          <div className="absolute top-2 left-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
-                            Preview
-                          </div>
-                        )}
                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity rounded-md pointer-events-none"></div>
                       </div>
                     ))}
                   </div>
-                  {formData.images.some(img => isBlobImage(img)) && (
-                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                      <p className="text-sm text-yellow-800">
-                        <strong>Note:</strong> Some images are previews and will be uploaded when you save the product.
-                      </p>
-                    </div>
-                  )}
                 </div>
               )}
 

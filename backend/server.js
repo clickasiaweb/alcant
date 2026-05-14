@@ -114,9 +114,9 @@ app.use(
   }),
 );
 
-app.use(express.json({ limit: '100mb' })); // Increased payload limit for videos
+app.use(express.json({ limit: '50mb' })); // Supports base64 product image payloads
 
-app.use(express.urlencoded({ extended: true, limit: '100mb' })); // Increased payload limit for videos
+app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Supports base64 product image payloads
 
 
 
