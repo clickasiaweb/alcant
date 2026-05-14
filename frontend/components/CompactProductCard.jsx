@@ -7,11 +7,34 @@ const CompactProductCard = ({ product, index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const { addToCart } = useSupabaseCart();
 
+  const getPrimaryImage = (productData) => {
+    if (typeof productData?.image === 'string' && productData.image.trim()) {
+      return productData.image.trim();
+    }
+    if (productData?.image && typeof productData.image.url === 'string') {
+      return productData.image.url.trim();
+    }
+
+    if (Array.isArray(productData?.images) && productData.images.length > 0) {
+      const firstImage = productData.images[0];
+      if (typeof firstImage === 'string' && firstImage.trim()) return firstImage.trim();
+      if (firstImage && typeof firstImage.url === 'string') return firstImage.url.trim();
+    }
+
+    if (typeof productData?.images === 'string' && productData.images.trim()) {
+      return productData.images.trim();
+    }
+
+    return '';
+  };
+
   const getImageUrl = (image) => {
     if (typeof image === 'string') return image;
     if (image && image.url) return image.url;
     return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
   };
+
+  const primaryImage = getPrimaryImage(product);
 
   const handleQuickAdd = (e) => {
     e.preventDefault();
@@ -28,7 +51,8 @@ const CompactProductCard = ({ product, index = 0 }) => {
         name: product.name || 'Unknown Product',
         price: product.price || product.final_price || 0,
         slug: product.slug,
-        image: product.image,
+        images: product.images,
+        image: primaryImage,
         originalPrice: product.originalPrice || product.old_price,
         category: product.category,
         brand: product.brand
@@ -86,9 +110,9 @@ const CompactProductCard = ({ product, index = 0 }) => {
       >
       {/* Image Container */}
       <div className="relative bg-gray-50 h-48 sm:h-56 md:h-64 overflow-hidden flex items-center justify-center">
-        {product.image ? (
+        {primaryImage ? (
           <img
-            src={getImageUrl(product.image)}
+            src={getImageUrl(primaryImage)}
             alt={product.name}
             className="w-full h-full object-contain p-2 sm:p-3"
           />
