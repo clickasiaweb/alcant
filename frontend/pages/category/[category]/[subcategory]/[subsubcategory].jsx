@@ -9,6 +9,7 @@ import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
 import CompactProductCard from '../../../../components/CompactProductCard';
 import FilterSidebar from '../../../../components/FilterSidebar';
 import { fetchCategories, fetchProducts, fetchRecommendedProducts } from '../../../../lib/services';
+import { getPrimaryProductImage } from '../../../../lib/productImage';
 
 const SubSubCategoryPage = () => {
   const router = useRouter();
@@ -382,7 +383,8 @@ const SubSubCategoryPage = () => {
                         isLimited: index === 2, // Third product is limited edition
                         isNew: product.isNew,
                         slug: product.slug,
-                        image: product.images && product.images.length > 0 ? product.images[0].url : null,
+                        image: getPrimaryProductImage(product),
+                        images: product.images,
                         colorCount: product.colors ? product.colors.length : 8
                       }}
                       index={index}
@@ -411,7 +413,8 @@ const SubSubCategoryPage = () => {
                           isLimited: index === 2,
                           isNew: product.isNew,
                           slug: product.slug,
-                          image: product.images && product.images.length > 0 ? product.images[0].url : null,
+                          image: getPrimaryProductImage(product),
+                          images: product.images,
                           colorCount: product.colors ? product.colors.length : 8
                         }}
                         index={index}

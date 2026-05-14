@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import CompactProductCard from "./CompactProductCard";
 import { useCart } from '../contexts/CartContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getPrimaryProductImage } from '../lib/productImage';
 
 const FeaturedProductsSection = () => {
   const [mounted, setMounted] = useState(false);
@@ -180,16 +181,7 @@ const FeaturedProductsSection = () => {
                 style={{ minWidth: '288px' }}
               >
                 {(() => {
-                  const primaryFromImages =
-                    Array.isArray(product.images) && product.images.length > 0
-                      ? product.images[0]
-                      : "";
-                  const normalizedImage =
-                    (typeof primaryFromImages === "string" && primaryFromImages.trim()) ||
-                    (primaryFromImages && typeof primaryFromImages.url === "string" && primaryFromImages.url.trim()) ||
-                    (typeof product.image === "string" && product.image.trim()) ||
-                    (product.image && typeof product.image.url === "string" && product.image.url.trim()) ||
-                    "";
+                  const normalizedImage = getPrimaryProductImage(product);
 
                   return (
                 <CompactProductCard

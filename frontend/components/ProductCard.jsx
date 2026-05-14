@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { Heart, ShoppingBag, Star, Eye } from 'lucide-react';
 import { useSupabaseCart } from '../contexts/SupabaseCartContext';
 import WishlistButton from './WishlistButton';
+import { getPrimaryProductImage } from '../lib/productImage';
 
 const ProductCard = ({ product, index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -15,6 +16,7 @@ const ProductCard = ({ product, index = 0 }) => {
     if (image && image.url) return image.url;
     return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
   };
+  const primaryImage = getPrimaryProductImage(product);
 
   const handleQuickView = (e) => {
     e.preventDefault();
@@ -71,9 +73,9 @@ const ProductCard = ({ product, index = 0 }) => {
       <div className="relative bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
         {/* Product Image */}
         <div className="relative bg-gray-50 h-64 overflow-hidden flex items-center justify-center">
-            {product.image ? (
+            {primaryImage ? (
               <img
-                src={getImageUrl(product.image)}
+                src={getImageUrl(primaryImage)}
                 alt={product.name}
                 className="w-full h-full object-contain p-3"
                 onError={(e) => {
@@ -104,7 +106,7 @@ const ProductCard = ({ product, index = 0 }) => {
                   name: product.name,
                   price: product.price,
                   originalPrice: product.originalPrice,
-                  image: product.image,
+                  image: primaryImage,
                   category: product.category,
                   variant: product.variant || 'Standard',
                   slug: product.slug
@@ -137,7 +139,7 @@ const ProductCard = ({ product, index = 0 }) => {
                 name: product.name,
                 price: product.price,
                 originalPrice: product.originalPrice,
-                image: product.image,
+                image: primaryImage,
                 category: product.category,
                 variant: product.variant || 'Standard',
                 slug: product.slug

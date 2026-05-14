@@ -2,31 +2,11 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Star, ShoppingCart, Plus } from 'lucide-react';
 import { useSupabaseCart } from '../contexts/SupabaseCartContext';
+import { getPrimaryProductImage } from '../lib/productImage';
 
 const CompactProductCard = ({ product, index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const { addToCart } = useSupabaseCart();
-
-  const getPrimaryImage = (productData) => {
-    if (typeof productData?.image === 'string' && productData.image.trim()) {
-      return productData.image.trim();
-    }
-    if (productData?.image && typeof productData.image.url === 'string') {
-      return productData.image.url.trim();
-    }
-
-    if (Array.isArray(productData?.images) && productData.images.length > 0) {
-      const firstImage = productData.images[0];
-      if (typeof firstImage === 'string' && firstImage.trim()) return firstImage.trim();
-      if (firstImage && typeof firstImage.url === 'string') return firstImage.url.trim();
-    }
-
-    if (typeof productData?.images === 'string' && productData.images.trim()) {
-      return productData.images.trim();
-    }
-
-    return '';
-  };
 
   const getImageUrl = (image) => {
     if (typeof image === 'string') return image;
@@ -34,7 +14,7 @@ const CompactProductCard = ({ product, index = 0 }) => {
     return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
   };
 
-  const primaryImage = getPrimaryImage(product);
+  const primaryImage = getPrimaryProductImage(product);
 
   const handleQuickAdd = (e) => {
     e.preventDefault();

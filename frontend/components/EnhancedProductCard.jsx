@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { Heart, ShoppingBag, Star, Plus, Grid } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import WishlistButton from './WishlistButton';
+import { getPrimaryProductImage } from '../lib/productImage';
 
 const EnhancedProductCard = ({ product, index = 0 }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -15,6 +16,7 @@ const EnhancedProductCard = ({ product, index = 0 }) => {
     if (image && image.url) return image.url;
     return `https://picsum.photos/seed/${product?.name || 'product'}/300/300.jpg`;
   };
+  const primaryImage = getPrimaryProductImage(product);
 
   const handleQuickView = (e) => {
     e.preventDefault();
@@ -85,9 +87,9 @@ const EnhancedProductCard = ({ product, index = 0 }) => {
         {/* Product Image */}
         <div className="relative bg-gray-50 h-64 overflow-hidden flex items-center justify-center">
           <div className="w-full h-64 flex items-center justify-center bg-gray-50">
-            {product.image ? (
+            {primaryImage ? (
               <img 
-                src={getImageUrl(product.image)} 
+                src={getImageUrl(primaryImage)} 
                 alt={product.name}
                 className="w-full h-full object-contain p-3"
               />

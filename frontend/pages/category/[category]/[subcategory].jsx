@@ -7,6 +7,7 @@ import Star from 'lucide-react/dist/esm/icons/star';
 import Filter from 'lucide-react/dist/esm/icons/filter';
 import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
 import { fetchCategories, fetchProducts, fetchRecommendedProducts } from '../../../lib/services';
+import { getPrimaryProductImage } from '../../../lib/productImage';
 
 const CategoryPage = () => {
   const router = useRouter();
@@ -248,7 +249,7 @@ const CategoryPage = () => {
                   <div className="relative">
                     <div className="aspect-square bg-gray-100 flex items-center justify-center">
                       <img
-                        src={product.images?.[0]?.url || '/api/placeholder/300/300'}
+                        src={getPrimaryProductImage(product) || '/api/placeholder/300/300'}
                         alt={product.name}
                         className="w-full h-full object-cover"
                         loading="lazy"
@@ -291,7 +292,7 @@ const CategoryPage = () => {
                   <div className="bg-white rounded-lg overflow-hidden border border-gray-200 hover:border-primary-300 transition-colors">
                     <div className="aspect-square bg-gray-100 flex items-center justify-center">
                       <img
-                        src={product.images?.[0]?.url || '/api/placeholder/300/300'}
+                        src={getPrimaryProductImage(product) || '/api/placeholder/300/300'}
                         alt={product.name}
                         className="w-full h-full object-cover"
                         loading="lazy"

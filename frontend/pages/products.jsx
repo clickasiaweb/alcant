@@ -6,6 +6,7 @@ import FilterSidebar from "../components/FilterSidebar";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import apiClient from "../lib/api";
+import { getPrimaryProductImage } from "../lib/productImage";
 
 const ProductsPage = () => {
   const router = useRouter();
@@ -332,7 +333,8 @@ const ProductsPage = () => {
                         isLimited: index === 2, // Third product is limited edition
                         isNew: product.isNew,
                         slug: product.slug,
-                        image: product.images && product.images.length > 0 ? product.images[0].url : null,
+                        image: getPrimaryProductImage(product),
+                        images: product.images,
                         colorCount: product.colors ? product.colors.length : 8
                       }}
                       index={index}
