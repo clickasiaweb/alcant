@@ -402,14 +402,12 @@ exports.createProduct = async (req, res) => {
       // Remove createdAt/updatedAt as they're handled by database
     };
     
-    const isDataUrl = (value) => typeof value === 'string' && value.startsWith('data:');
-
-    // If images array is provided, set main image to first non-base64 image
+    // If images array is provided, set main image to first valid image
     if (productData.images && Array.isArray(productData.images) && productData.images.length > 0) {
       const firstImage = productData.images[0];
       if (firstImage && typeof firstImage === 'string') {
-        productData.image = isDataUrl(firstImage) ? null : firstImage;
-        console.log(isDataUrl(firstImage) ? 'Primary image stored in images array' : 'Setting main image from first product image');
+        productData.image = firstImage;
+        console.log('Setting main image from first product image');
       }
     }
     
@@ -453,19 +451,13 @@ exports.updateProduct = async (req, res) => {
       // Remove createdAt/updatedAt as they're handled by database
     };
     
-    const isDataUrl = (value) => typeof value === 'string' && value.startsWith('data:');
-
-    // If images array is provided, set main image to first non-base64 image
+    // If images array is provided, set main image to first valid image
     if (updateData.images && Array.isArray(updateData.images) && updateData.images.length > 0) {
       const firstImage = updateData.images[0];
       if (firstImage && typeof firstImage === 'string') {
-        updateData.image = isDataUrl(firstImage) ? null : firstImage;
-        console.log(isDataUrl(firstImage) ? 'Primary image stored in images array' : 'Setting main image from first product image');
+        updateData.image = firstImage;
+        console.log('Setting main image from first product image');
       }
-    }
-
-    if (isDataUrl(updateData.image)) {
-      updateData.image = null;
     }
     
     // If image field is provided and no images array, use it

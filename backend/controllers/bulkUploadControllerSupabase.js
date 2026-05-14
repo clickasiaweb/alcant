@@ -30,6 +30,13 @@ function convertGoogleDriveURL(url) {
   return url; // Return original if no match found
 }
 
+function sanitizeImageList(values = []) {
+  return values
+    .map((value) => (typeof value === 'string' ? value.trim() : ''))
+    .filter((value) => value.length > 0)
+    .map((value) => convertGoogleDriveURL(value));
+}
+
 // Create direct service client to bypass RLS
 let supabaseService;
 try {
@@ -705,6 +712,8 @@ const importProducts = async (req, res) => {
             images.push(productData[imageField].toString().trim());
           }
         }
+        const sanitizedImages = sanitizeImageList(images);
+        const primaryImage = sanitizedImages[0] || null;
 
         // Create product payload matching actual database schema
         const productPayload = {
@@ -724,8 +733,8 @@ const importProducts = async (req, res) => {
           short_description: productData.short_description || null,
           sku: productData.sku,
           weight: productData.weight || null,
-          images: images.length > 0 ? images : [convertGoogleDriveURL(productData.image_1) || ''],
-          image: convertGoogleDriveURL(productData.image_1) || '',
+          images: sanitizedImages,
+          image: primaryImage,
           stock: productData.stock,
           rating: 0,
           reviews: 0,
@@ -772,8 +781,8 @@ const importProducts = async (req, res) => {
         console.log(`✅ Successfully inserted product: ${productData.product_name} (ID: ${newProduct.id})`);
 
         // Create product images if needed (if you have a separate product_images table)
-        if (images.length > 0) {
-          const imageRecords = images.map((imageUrl, index) => ({
+        if (sanitizedImages.length > 0) {
+          const imageRecords = sanitizedImages.map((imageUrl, index) => ({
             product_id: newProduct.id,
             image_url: imageUrl,
             alt_text: `${productData.product_name} - Image ${index + 1}`,
@@ -788,7 +797,7 @@ const importProducts = async (req, res) => {
             await supabase
               .from('product_images')
               .insert(imageRecords);
-            console.log(`✅ Added ${images.length} images for ${productData.product_name}`);
+            console.log(`✅ Added ${sanitizedImages.length} images for ${productData.product_name}`);
           } catch (imageError) {
             console.log('Product images table may not exist, skipping image records:', imageError.message);
           }
