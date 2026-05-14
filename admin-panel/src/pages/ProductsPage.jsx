@@ -518,7 +518,8 @@ export default function ProductsPage() {
             .filter(Boolean)
         : [];
       const mainImage = getProductImageUrl(processedImages[0]);
-      const primaryImageField = mainImage || null;
+      const primaryImageField =
+        mainImage && mainImage.startsWith("data:") ? null : mainImage;
 
       console.log("Final product images:", processedImages.map((image) =>
         typeof image === "string" ? `${image.slice(0, 40)}... (${image.length} chars)` : image,

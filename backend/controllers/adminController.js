@@ -402,12 +402,14 @@ exports.createProduct = async (req, res) => {
       // Remove createdAt/updatedAt as they're handled by database
     };
     
-    // If images array is provided, set main image to first valid image
+    const isDataUrl = (value) => typeof value === 'string' && value.startsWith('data:');
+
+    // If images array is provided, set main image to first valid non-base64 image
     if (productData.images && Array.isArray(productData.images) && productData.images.length > 0) {
       const firstImage = productData.images[0];
       if (firstImage && typeof firstImage === 'string') {
-        productData.image = firstImage;
-        console.log('Setting main image from first product image');
+        productData.image = isDataUrl(firstImage) ? null : firstImage;
+        console.log(isDataUrl(firstImage) ? 'Primary image stored in images array' : 'Setting main image from first product image');
       }
     }
     
@@ -451,13 +453,19 @@ exports.updateProduct = async (req, res) => {
       // Remove createdAt/updatedAt as they're handled by database
     };
     
-    // If images array is provided, set main image to first valid image
+    const isDataUrl = (value) => typeof value === 'string' && value.startsWith('data:');
+
+    // If images array is provided, set main image to first valid non-base64 image
     if (updateData.images && Array.isArray(updateData.images) && updateData.images.length > 0) {
       const firstImage = updateData.images[0];
       if (firstImage && typeof firstImage === 'string') {
-        updateData.image = firstImage;
-        console.log('Setting main image from first product image');
+        updateData.image = isDataUrl(firstImage) ? null : firstImage;
+        console.log(isDataUrl(firstImage) ? 'Primary image stored in images array' : 'Setting main image from first product image');
       }
+    }
+
+    if (isDataUrl(updateData.image)) {
+      updateData.image = null;
     }
     
     // If image field is provided and no images array, use it
@@ -484,6 +492,13 @@ exports.updateProduct = async (req, res) => {
 
     if (error && error.code === '23505') {
       return res.status(400).json({ error: "Product with this slug already exists", meta: errorDetails });
+    }
+
+    if (error && error.code === 'NO_ROWS_UPDATED') {
+      return res.status(500).json({
+        error: "Product was not updated. It may be blocked by Supabase RLS or missing service role key.",
+        meta: { code: error.code }
+      });
     }
 
     // Return detailed error for admin debugging (remove in production)

@@ -308,16 +308,21 @@ class SupabaseProduct {
       .from('products')
       .update(dbData)
       .eq('id', id)
-      .select()
-      .single();
+      .select();
     
     if (error) {
       console.error('❌ Supabase update error:', error);
       throw error;
     }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      const noRowError = new Error(`No product row updated for id ${id}`);
+      noRowError.code = 'NO_ROWS_UPDATED';
+      throw noRowError;
+    }
     
-    console.log('✅ Supabase update successful:', data);
-    return data;
+    console.log('✅ Supabase update successful:', data[0]);
+    return data[0];
   }
   
   static async countDocuments(query = {}) {
