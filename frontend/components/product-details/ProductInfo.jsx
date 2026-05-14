@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ShoppingCart, Share2, Plus, Minus, Truck, Shield, RotateCcw, Package, Clock, Award, Heart, MessageSquare } from 'lucide-react';
+import { ShoppingCart, Share2, Plus, Minus, Truck, Shield, RotateCcw, Package, Clock, Award, Heart, MessageSquare, CreditCard } from 'lucide-react';
+import { useRouter } from 'next/router';
 import { useSupabaseCart } from '../../contexts/SupabaseCartContext';
 import { useWishlist } from '../../contexts/WishlistContext';
 import InquiryModal from '../InquiryModal';
@@ -17,9 +18,10 @@ const ProductInfo = ({
   onColorChange,
   images = []
 }) => {
+  const router = useRouter();
   const [selectedColor, setSelectedColor] = useState(null);
   const [showInquiryModal, setShowInquiryModal] = useState(false);
-  const { addToCart } = useSupabaseCart();
+  const { addToCart, closeCart } = useSupabaseCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   
   const discountPercentage = oldPrice && oldPrice > currentPrice ? 
@@ -74,8 +76,7 @@ const ProductInfo = ({
     }
   };
 
-  const handleAddToCartClick = () => {
-    const cartProduct = {
+  const getCartProduct = () => ({
       ...product,
       name: displayName,
       price: currentPrice,
@@ -83,10 +84,25 @@ const ProductInfo = ({
       image: images[0] || product.image,
       variant: selectedColor?.name || 'Standard',
       quantity: quantity
-    };
+  });
+
+  const handleAddToCartClick = () => {
+    const cartProduct = getCartProduct();
     
     addToCart(cartProduct, quantity);
     console.log('Added to cart:', cartProduct.name, 'Quantity:', quantity, 'Color:', selectedColor?.name);
+  };
+
+  const handleBuyNowClick = async () => {
+    const cartProduct = getCartProduct();
+
+    try {
+      await addToCart(cartProduct, quantity);
+      closeCart();
+      router.push('/checkout');
+    } catch (error) {
+      console.error('Error starting checkout:', error);
+    }
   };
 
   const handleWishlistClick = () => {
@@ -212,42 +228,56 @@ const ProductInfo = ({
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0">
-          <button
-            onClick={handleAddToCartClick}
-            className="flex-1 bg-primary-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center text-sm sm:text-base"
-          >
-            <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-            Add to Cart
-          </button>
-          
-          <button
-            onClick={() => setShowInquiryModal(true)}
-            className="flex-1 bg-gray-100 text-gray-700 py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center text-sm sm:text-base"
-          >
-            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-            Ask Question
-          </button>
-          
-          <button
-            onClick={handleShare}
-            className="p-2.5 sm:p-3 border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
-          </button>
-          
-          <button
-            onClick={handleWishlistClick}
-            className={`p-2.5 sm:p-3 border rounded-lg transition-colors ${
-              isInWishlist(product.id)
-                ? 'bg-red-50 border-red-300 text-red-600 hover:bg-red-100'
-                : 'border-gray-300 hover:bg-gray-50'
-            }`}
-          >
-            <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${
-              isInWishlist(product.id) ? 'fill-current' : ''
-            }`} />
-          </button>
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              onClick={handleAddToCartClick}
+              className="w-full bg-primary-600 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold hover:bg-primary-700 transition-colors flex items-center justify-center text-sm sm:text-base"
+            >
+              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              Add to Cart
+            </button>
+
+            <button
+              onClick={handleBuyNowClick}
+              className="w-full bg-gray-900 text-white py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold hover:bg-gray-800 transition-colors flex items-center justify-center text-sm sm:text-base"
+            >
+              <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              Buy Now
+            </button>
+          </div>
+
+          <div className="grid grid-cols-[1fr_auto_auto] gap-3">
+            <button
+              onClick={() => setShowInquiryModal(true)}
+              className="w-full bg-gray-100 text-gray-700 py-2.5 sm:py-3 px-4 sm:px-6 rounded-lg font-semibold hover:bg-gray-200 transition-colors flex items-center justify-center text-sm sm:text-base"
+            >
+              <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+              Ask Question
+            </button>
+            
+            <button
+              onClick={handleShare}
+              className="p-2.5 sm:p-3 border border-gray-300 rounded-lg hover:bg-gray-50"
+              aria-label="Share product"
+            >
+              <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+            </button>
+            
+            <button
+              onClick={handleWishlistClick}
+              className={`p-2.5 sm:p-3 border rounded-lg transition-colors ${
+                isInWishlist(product.id)
+                  ? 'bg-red-50 border-red-300 text-red-600 hover:bg-red-100'
+                  : 'border-gray-300 hover:bg-gray-50'
+              }`}
+              aria-label="Add to wishlist"
+            >
+              <Heart className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                isInWishlist(product.id) ? 'fill-current' : ''
+              }`} />
+            </button>
+          </div>
         </div>
       </div>
 
