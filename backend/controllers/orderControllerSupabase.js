@@ -1,6 +1,20 @@
 const OrderService = require('../models/SupabaseOrder');
 const { supabaseService } = require('../config/supabase');
 
+const normalizeStatusToDb = (status) => {
+  if (!status || typeof status !== 'string') return null;
+  return status.trim().toLowerCase();
+};
+
+const titleCaseStatus = (status) => {
+  if (!status || typeof status !== 'string') return 'Pending';
+  return status
+    .split(' ')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+};
+
 // @desc    Get all orders (Admin only)
 // @route   GET /api/orders
 // @access  Private/Admin
@@ -291,6 +305,15 @@ exports.updateOrderStatus = async (req, res) => {
     }
 
     const trackingValue = tracking_id !== undefined ? tracking_id : trackingId;
+    const dbStatus = normalizeStatusToDb(status);
+    const labelStatus = titleCaseStatus(status);
+
+    if (!dbStatus) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status'
+      });
+    }
 
     // Get existing order for history merge
     const { data: existingOrder, error: existingError } = await supabaseService
@@ -318,15 +341,15 @@ exports.updateOrderStatus = async (req, res) => {
       }
     }
     statusHistory.push({
-      status,
+      status: labelStatus,
       timestamp: new Date().toISOString(),
-      note: note || `Status updated to ${status}`,
+      note: note || `Status updated to ${labelStatus}`,
       updatedBy: 'admin'
     });
 
     const updatePayload = {
-      order_status: status,
-      notes: note || `Status updated to ${status}`,
+      order_status: dbStatus,
+      notes: note || `Status updated to ${labelStatus}`,
       status_history: statusHistory,
       updated_at: new Date().toISOString()
     };
@@ -346,8 +369,8 @@ exports.updateOrderStatus = async (req, res) => {
     if (error) {
       console.error('Primary status update failed, retrying with core fields:', error.message);
       const corePayload = {
-        order_status: status,
-        notes: note || `Status updated to ${status}`,
+        order_status: dbStatus,
+        notes: note || `Status updated to ${labelStatus}`,
         updated_at: new Date().toISOString()
       };
 
@@ -446,7 +469,7 @@ exports.cancelOrder = async (req, res) => {
     const { data: order, error } = await supabaseService
       .from('orders')
       .update({
-        order_status: 'Cancelled',
+        order_status: 'cancelled',
         notes: reason || 'Order cancelled',
         updated_at: new Date().toISOString()
       })
