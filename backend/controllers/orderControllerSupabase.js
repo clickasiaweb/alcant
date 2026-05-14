@@ -281,7 +281,7 @@ exports.createOrder = async (req, res) => {
 // @access  Public (authentication disabled)
 exports.updateOrderStatus = async (req, res) => {
   try {
-    const { status, note } = req.body;
+    const { status, note, tracking_id, trackingId } = req.body;
 
     if (!status) {
       return res.status(400).json({
@@ -290,16 +290,77 @@ exports.updateOrderStatus = async (req, res) => {
       });
     }
 
-    const { data: order, error } = await supabaseService
+    const trackingValue = tracking_id !== undefined ? tracking_id : trackingId;
+
+    // Get existing order for history merge
+    const { data: existingOrder, error: existingError } = await supabaseService
       .from('orders')
-      .update({
-        status,
-        notes: note || `Status updated to ${status}`,
-        updated_at: new Date().toISOString()
-      })
+      .select('status_history')
+      .eq('id', req.params.id)
+      .single();
+
+    if (existingError) {
+      if (existingError.code === 'PGRST116') {
+        return res.status(404).json({
+          success: false,
+          message: 'Order not found'
+        });
+      }
+      throw existingError;
+    }
+
+    let statusHistory = existingOrder?.status_history;
+    if (!Array.isArray(statusHistory)) {
+      try {
+        statusHistory = JSON.parse(statusHistory || '[]');
+      } catch {
+        statusHistory = [];
+      }
+    }
+    statusHistory.push({
+      status,
+      timestamp: new Date().toISOString(),
+      note: note || `Status updated to ${status}`,
+      updatedBy: 'admin'
+    });
+
+    const updatePayload = {
+      order_status: status,
+      notes: note || `Status updated to ${status}`,
+      status_history: statusHistory,
+      updated_at: new Date().toISOString()
+    };
+
+    if (trackingValue !== undefined) {
+      updatePayload.tracking_id = trackingValue || null;
+    }
+
+    let { data: order, error } = await supabaseService
+      .from('orders')
+      .update(updatePayload)
       .eq('id', req.params.id)
       .select()
       .single();
+
+    // Production schema fallback: if optional columns fail, retry with core fields only
+    if (error) {
+      console.error('Primary status update failed, retrying with core fields:', error.message);
+      const corePayload = {
+        order_status: status,
+        notes: note || `Status updated to ${status}`,
+        updated_at: new Date().toISOString()
+      };
+
+      const retry = await supabaseService
+        .from('orders')
+        .update(corePayload)
+        .eq('id', req.params.id)
+        .select()
+        .single();
+
+      order = retry.data;
+      error = retry.error;
+    }
 
     if (error) {
       if (error.code === 'PGRST116') {
@@ -331,7 +392,7 @@ exports.updateOrderStatus = async (req, res) => {
 // @access  Public (authentication disabled)
 exports.updatePaymentStatus = async (req, res) => {
   try {
-    const { paymentStatus } = req.body;
+    const paymentStatus = req.body.paymentStatus || req.body.status;
 
     if (!paymentStatus) {
       return res.status(400).json({
@@ -385,7 +446,7 @@ exports.cancelOrder = async (req, res) => {
     const { data: order, error } = await supabaseService
       .from('orders')
       .update({
-        status: 'cancelled',
+        order_status: 'Cancelled',
         notes: reason || 'Order cancelled',
         updated_at: new Date().toISOString()
       })
@@ -433,14 +494,15 @@ exports.getOrderStats = async (req, res) => {
     // Get orders by status
     const { data: ordersByStatus, error: statusError } = await supabaseService
       .from('orders')
-      .select('status');
+      .select('order_status');
 
     if (statusError) throw statusError;
 
     const stats = {
       totalOrders: totalOrders.length,
       ordersByStatus: ordersByStatus.reduce((acc, order) => {
-        acc[order.status] = (acc[order.status] || 0) + 1;
+        const key = order.order_status || 'Unknown';
+        acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {}),
       totalRevenue: 0 // Calculate if needed
