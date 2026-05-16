@@ -186,7 +186,9 @@ exports.createOrder = async (req, res) => {
     // Generate order number
     const orderNumber = `ORD-${timestamp}`;
 
-    // Authentication disabled - skip user_id for now
+    // Allow frontend to pass `user_id` when available (keeps compatibility for guest orders)
+    const providedUserId = req.body.user_id || null;
+
     console.log('Creating order with data:', {
       order_id: orderId,
       order_number: orderNumber,
@@ -195,28 +197,29 @@ exports.createOrder = async (req, res) => {
       tax,
       shipping,
       total_amount: totalAmount,
-      payment_method: paymentMethod
+      payment_method: paymentMethod,
+      providedUserId
     });
 
-    // Create order with EXISTING SCHEMA ONLY (explicitly set user_id to null)
+    // Create order payload following schema; if no user id provided, use system fallback
     const orderData = {
-      user_id: '00000000-0000-0000-0000-000000000000', // System UUID for orders without user
-      order_id: orderId, // Use order_id instead of order_number
-      order_number: orderNumber, // Include order_number as well
-      products: orderProducts, // Include products array
-      subtotal: parseFloat(subtotal), // Include subtotal
-      tax: parseFloat(tax), // Include tax
-      shipping: parseFloat(shipping), // Include shipping
-      discount: parseFloat(discountAmount), // Include discount as explicit number
+      user_id: providedUserId || '00000000-0000-0000-0000-000000000000',
+      order_id: orderId,
+      order_number: orderNumber,
+      products: orderProducts,
+      subtotal: parseFloat(subtotal),
+      tax: parseFloat(tax),
+      shipping: parseFloat(shipping),
+      discount: parseFloat(discountAmount),
       total_amount: parseFloat(totalAmount),
       shipping_address: shippingAddress,
       billing_address: billingAddress || shippingAddress,
       notes: notes || `Order created with products: ${orderProducts.length} items. Subtotal: ${subtotal}, Tax: ${tax}, Shipping: ${shipping}, Discount: ${discountAmount}`,
-      payment_status: paymentDetails?.paidAt ? 'Paid' : 'Pending', // Use lowercase to match check constraint
-      payment_method: paymentMethod, // Include payment_method
+      payment_status: paymentDetails?.paidAt ? 'Paid' : 'Pending',
+      payment_method: paymentMethod,
       payment_details: paymentDetails || {},
-      order_status: 'Pending', // Use lowercase to match check constraint
-      status_history: [{ // Include status history
+      order_status: 'pending',
+      status_history: [{
         status: 'Pending',
         timestamp: new Date().toISOString(),
         note: 'Order placed',
@@ -244,21 +247,58 @@ exports.createOrder = async (req, res) => {
       throw error;
     }
 
+    // Also insert order items into `order_items` table so frontend `my-orders` queries show items
+    const orderItemsPayload = orderProducts.map(p => ({
+      order_id: order.id,
+      product_id: p.id,
+      product_name: p.name,
+      quantity: p.quantity,
+      price: p.price,
+      selected_color: p.variant?.color || null,
+      selected_size: p.variant?.size || null,
+      image: p.image || null
+    }));
+
+    try {
+      const { data: items, error: itemsError } = await supabaseService
+        .from('order_items')
+        .insert(orderItemsPayload)
+        .select();
+
+      if (itemsError) {
+        console.warn('Failed to insert order_items:', itemsError.message);
+      } else {
+        order.order_items = items;
+      }
+    } catch (e) {
+      console.warn('Error inserting order_items:', e.message || e);
+    }
+
+    // Ensure there's at least one status history row in the dedicated table
+    try {
+      const { error: statusErr } = await supabaseService
+        .from('order_status_history')
+        .insert({ order_id: order.id, status: 'Pending', notes: 'Order created' });
+      if (statusErr) console.warn('Failed to insert status history:', statusErr.message);
+    } catch (e) {
+      console.warn('Error inserting status history:', e.message || e);
+    }
+
     // Create a response with the extended order data
     const responseOrder = {
       ...order,
-      order_id: order.order_id || orderId, // Use database order_id or generated one
-      order_number: order.order_number || orderNumber, // For frontend compatibility
+      order_id: order.order_id || orderId,
+      order_number: order.order_number || orderNumber,
       products: orderProducts,
       subtotal,
       tax,
       shipping,
-      discount: discountAmount, // Use actual discount amount
+      discount: discountAmount,
       payment_method: paymentMethod,
       payment_details: paymentDetails || {},
       estimated_delivery: estimatedDelivery,
       payment_status: order.payment_status || (paymentDetails?.paidAt ? 'Paid' : 'Pending'),
-      status: order.order_status || 'pending', // Map order_status to status for frontend
+      status: order.order_status || 'pending',
       status_history: order.status_history || [{
         status: 'Pending',
         timestamp: new Date().toISOString(),

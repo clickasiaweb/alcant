@@ -363,6 +363,7 @@ const CheckoutPage = () => {
 
       // Prepare order data using final cart items
       const orderData = {
+        user_id: user?.id,
         products: (finalCartItems || []).map(item => ({
           productId: item.product_id || item.id,
           name: item.name || `Product ${item.product_id}`,
