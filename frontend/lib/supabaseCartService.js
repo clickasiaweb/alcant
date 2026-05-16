@@ -183,16 +183,17 @@ class SupabaseCartService {
             insertData.product_name = this._sanitizeString(productData.name, 500);
             insertData.product_price = productData.price;
             insertData.product_original_price = productData.originalPrice || productData.old_price;
-            // Prefer first image URL and sanitize length
+            // Prefer first image URL and sanitize length. Do NOT store base64/data URIs or full arrays
             const firstImage = Array.isArray(productData.images) && productData.images.length > 0
               ? productData.images[0]
               : (productData.image || null);
-            insertData.product_image = this._sanitizeString(firstImage, 500);
+            // If image is a data URI (base64), skip storing it in DB to avoid large payloads and array literal issues
+            const safeImage = (typeof firstImage === 'string' && firstImage.startsWith('data:')) ? null : firstImage;
+            insertData.product_image = this._sanitizeString(safeImage, 500);
             insertData.product_category = this._sanitizeString(productData.category, 200);
             insertData.product_slug = this._sanitizeString(productData.slug, 200);
             insertData.product_description = this._sanitizeString(productData.description, 500);
-            // Store images as JSON string but truncated to fit column
-            insertData.product_images = this._sanitizeString(productData.images ? JSON.stringify(productData.images) : null, 500);
+            // Avoid inserting `product_images` arrays directly (can map to Postgres array type); skip to prevent malformed array literal errors
             insertData.product_variant = this._sanitizeString(options.selected_color || productData.variant || productData.selected_color || 'Standard', 200);
           }
           
@@ -225,11 +226,11 @@ class SupabaseCartService {
               product_name: this._sanitizeString(productData?.name || 'Unknown Product', 500),
               product_price: productData?.price || 0,
               product_original_price: productData?.originalPrice || productData?.old_price || 0,
-              product_image: this._sanitizeString(Array.isArray(productData?.images) ? productData.images[0] : productData?.image, 500) || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
+              // Avoid storing base64/data URIs or arrays; pick first image if it's a safe URL
+              product_image: (this._sanitizeString(Array.isArray(productData?.images) ? productData.images[0] : productData?.image, 500) || null) || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
               product_category: this._sanitizeString(productData?.category || 'Unknown', 200),
               product_slug: this._sanitizeString(productData?.slug, 200),
               product_description: this._sanitizeString(productData?.description, 500),
-              product_images: this._sanitizeString(productData?.images ? JSON.stringify(productData.images) : null, 500),
               product_variant: this._sanitizeString(options.selected_color || productData?.variant || 'Standard', 200),
               created_at: new Date().toISOString()
             };
