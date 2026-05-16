@@ -485,11 +485,9 @@ const AlcantaraHeader = () => {
         <div className="container px-3 sm:px-4">
           <div className="flex items-center justify-between py-3 sm:py-4">
             {/* Logo */}
-            {router.pathname !== "/" && (
-              <Link href="/" className="flex items-center space-x-2">
-                <Logo size="default" className="group-hover:scale-105" />
-              </Link>
-            )}
+            <Link href="/" className="flex items-center space-x-2">
+              <Logo size="default" className="group-hover:scale-105" />
+            </Link>
 
             {/* Navigation */}
             <nav className="hidden lg:flex items-center space-x-1 mega-menu-container">
