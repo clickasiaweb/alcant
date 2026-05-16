@@ -6,6 +6,25 @@ class SupabaseCartService {
     this.tableName = 'cart_items';
   }
 
+  // Helper to sanitize strings before inserting to DB (respect varchar limits)
+  _sanitizeString(value, max = 500) {
+    try {
+      if (value === null || value === undefined) return null;
+      let s = value;
+      if (typeof value === 'object') {
+        s = JSON.stringify(value);
+      } else {
+        s = String(value);
+      }
+      if (s.length > max) {
+        return s.slice(0, max - 3) + '...';
+      }
+      return s;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Get cart items for a user
   async getCartItems(userId) {
     try {
@@ -75,14 +94,15 @@ class SupabaseCartService {
       let existingItem, checkError;
       
       try {
-        const result = await supabase
-          .from(this.tableName)
-          .select('*')
-          .eq('user_id', userId)
-          .eq('product_id', productId)
-          .eq('selected_color', options.selected_color || null)
-          .eq('selected_size', options.selected_size || null)
-          .single();
+        // Build query conditionally to avoid eq.null which can cause 406 responses
+        let checkQuery = supabase.from(this.tableName).select('*').eq('user_id', userId).eq('product_id', productId);
+        if (options.selected_color !== undefined && options.selected_color !== null) {
+          checkQuery = checkQuery.eq('selected_color', options.selected_color);
+        }
+        if (options.selected_size !== undefined && options.selected_size !== null) {
+          checkQuery = checkQuery.eq('selected_size', options.selected_size);
+        }
+        const result = await checkQuery.single();
         
         existingItem = result.data;
         checkError = result.error;
@@ -159,18 +179,21 @@ class SupabaseCartService {
           
           // Add product data if provided (use only snake_case columns that exist in database)
           if (productData) {
-            // Snake_case columns (PostgreSQL convention) - these exist in database
-            insertData.product_name = productData.name;
+            // Snake_case columns (PostgreSQL convention) - sanitize to avoid exceeding varchar limits
+            insertData.product_name = this._sanitizeString(productData.name, 500);
             insertData.product_price = productData.price;
             insertData.product_original_price = productData.originalPrice || productData.old_price;
-            insertData.product_image = productData.image;
-            insertData.product_category = productData.category;
-            insertData.product_slug = productData.slug;
-            insertData.product_description = productData.description;
-            insertData.product_images = productData.images;
-            insertData.product_variant = productData.variant || productData.selected_color;
-            
-            // Don't use camelCase columns - they don't exist in the database schema cache
+            // Prefer first image URL and sanitize length
+            const firstImage = Array.isArray(productData.images) && productData.images.length > 0
+              ? productData.images[0]
+              : (productData.image || null);
+            insertData.product_image = this._sanitizeString(firstImage, 500);
+            insertData.product_category = this._sanitizeString(productData.category, 200);
+            insertData.product_slug = this._sanitizeString(productData.slug, 200);
+            insertData.product_description = this._sanitizeString(productData.description, 500);
+            // Store images as JSON string but truncated to fit column
+            insertData.product_images = this._sanitizeString(productData.images ? JSON.stringify(productData.images) : null, 500);
+            insertData.product_variant = this._sanitizeString(options.selected_color || productData.variant || productData.selected_color || 'Standard', 200);
           }
           
           const result = await supabase
@@ -185,10 +208,10 @@ class SupabaseCartService {
           error = insertError;
         }
 
-        if (error) {
+          if (error) {
           console.error('Cart insert error:', error);
           
-          // If table doesn't exist or permission error, return fallback with product data
+          // If table doesn't exist or permission error, return fallback with sanitized product data
           if (error.code === '400' || error.message?.includes('400') || error.message?.includes('permission')) {
             console.log('Using fallback with product data');
             return {
@@ -198,16 +221,16 @@ class SupabaseCartService {
               quantity,
               selected_color: options.selected_color,
               selected_size: options.selected_size,
-              // Include product data in fallback (use snake_case)
-              product_name: productData?.name || 'Unknown Product',
+              // Include sanitized product data in fallback (use snake_case)
+              product_name: this._sanitizeString(productData?.name || 'Unknown Product', 500),
               product_price: productData?.price || 0,
               product_original_price: productData?.originalPrice || productData?.old_price || 0,
-              product_image: productData?.image || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
-              product_category: productData?.category || 'Unknown',
-              product_slug: productData?.slug,
-              product_description: productData?.description,
-              product_images: productData?.images,
-              product_variant: options.selected_color || productData?.variant || 'Standard',
+              product_image: this._sanitizeString(Array.isArray(productData?.images) ? productData.images[0] : productData?.image, 500) || 'https://via.placeholder.com/80x80/1a365d/ffffff?text=Product',
+              product_category: this._sanitizeString(productData?.category || 'Unknown', 200),
+              product_slug: this._sanitizeString(productData?.slug, 200),
+              product_description: this._sanitizeString(productData?.description, 500),
+              product_images: this._sanitizeString(productData?.images ? JSON.stringify(productData.images) : null, 500),
+              product_variant: this._sanitizeString(options.selected_color || productData?.variant || 'Standard', 200),
               created_at: new Date().toISOString()
             };
           }
