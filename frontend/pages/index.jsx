@@ -111,7 +111,7 @@ const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
     >
       {/* Promotional Banner Section */}
       <section 
-        className="relative w-full h-64 sm:h-80 md:h-96 bg-gradient-to-r from-blue-600 to-blue-800 flex items-center overflow-hidden"
+        className="relative w-full h-[520px] sm:h-[560px] md:h-[620px] bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center overflow-hidden"
         style={{
           backgroundImage: homeContent.hero?.backgroundImage ? `url(${homeContent.hero.backgroundImage})` : undefined,
           backgroundSize: 'cover',
@@ -128,14 +128,14 @@ const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
         </div>
         
         {/* Content */}
-        <div className="relative z-10 text-left space-y-3 sm:space-y-4 px-4 sm:px-6 md:px-12 max-w-xl sm:max-w-2xl">
+        <div className="relative z-10 text-center space-y-3 sm:space-y-4 px-4 sm:px-6 md:px-12 max-w-3xl mx-auto">
           <p className="font-semibold text-white uppercase tracking-wider drop-shadow-lg text-lg sm:text-2xl">
             {homeContent.hero?.subtitle}
           </p>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight text-white drop-shadow-2xl">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight text-white drop-shadow-2xl">
             {homeContent.hero?.title}
           </h2>
-          <p className="text-sm sm:text-base text-white drop-shadow-lg max-w-xs sm:max-w-lg">
+          <p className="text-sm sm:text-base text-white drop-shadow-lg mx-auto max-w-2xl">
             {homeContent.hero?.content}
           </p>
           <div className="pt-2 sm:pt-4">

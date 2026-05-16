@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { 
-  Search, 
   ShoppingCart, 
   User, 
   Heart, 
@@ -17,8 +16,6 @@ export default function DynamicHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState(null);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [cartCount, setCartCount] = useState(0);
   const [wishlistCount, setWishlistCount] = useState(0);
   const [categories, setCategories] = useState([]);
@@ -27,7 +24,6 @@ export default function DynamicHeader() {
   const [lastUpdated, setLastUpdated] = useState(Date.now());
   const router = useRouter();
   const megaMenuRef = useRef(null);
-  const searchRef = useRef(null);
 
   // Refresh data function
   const refreshHeaderData = useCallback(async () => {
@@ -237,23 +233,11 @@ export default function DynamicHeader() {
         setIsMegaMenuOpen(false);
         setActiveMegaMenu(null);
       }
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setIsSearchOpen(false);
-      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
-      setIsSearchOpen(false);
-      setSearchQuery("");
-    }
-  };
 
   const handleMegaMenuToggle = (itemName) => {
     const item = navigationItems.find(nav => nav.name === itemName);
@@ -454,71 +438,6 @@ export default function DynamicHeader() {
 
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4">
-            {/* Search */}
-            <div className="relative" ref={searchRef}>
-              <button
-                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                className="p-2 text-gray-600 hover:text-primary-600 transition-colors"
-                aria-label="Search"
-              >
-                <Search className="w-5 h-5" />
-              </button>
-              
-              {isSearchOpen && (
-                <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
-                  <form onSubmit={handleSearch}>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search products..."
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        autoFocus
-                      />
-                    </div>
-                    <button
-                      type="submit"
-                      className="w-full mt-2 bg-primary-600 text-white py-2 rounded-lg hover:bg-primary-700 transition-colors"
-                    >
-                      Search
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
-
-            {/* Wishlist */}
-            <Link href="/wishlist" className="relative p-2 text-gray-600 hover:text-primary-600 transition-colors">
-              <Heart className="w-5 h-5" />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                  {wishlistCount}
-                </span>
-              )}
-            </Link>
-
-            {/* Cart */}
-            <Link href="/cart" className="relative p-2 text-gray-600 hover:text-primary-600 transition-colors">
-              <ShoppingCart className="w-5 h-5" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary-600 text-white text-xs rounded-full flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </Link>
-
-            {/* Account */}
-            <Link href="/account" className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
-              <User className="w-5 h-5" />
-            </Link>
-
-            {/* CTA Button */}
-            <Link href="/contact" className="hidden md:inline bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors">
-              Shop Now
-            </Link>
-
             {/* Mobile Menu Toggle */}
             <button
               className="lg:hidden p-2 text-gray-600 hover:text-primary-600 transition-colors"
@@ -609,36 +528,6 @@ export default function DynamicHeader() {
               </div>
             ))}
             
-            {/* Mobile Actions */}
-            <div className="border-t border-gray-200 px-4 py-4 space-y-3">
-              <Link
-                href="/wishlist"
-                className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors"
-              >
-                <Heart className="w-4 h-4" />
-                <span>Wishlist ({wishlistCount})</span>
-              </Link>
-              <Link
-                href="/cart"
-                className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors"
-              >
-                <ShoppingCart className="w-4 h-4" />
-                <span>Cart ({cartCount})</span>
-              </Link>
-              <Link
-                href="/account"
-                className="flex items-center space-x-3 text-gray-700 hover:text-primary-600 transition-colors"
-              >
-                <User className="w-4 h-4" />
-                <span>Account</span>
-              </Link>
-              <Link
-                href="/products"
-                className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors text-center"
-              >
-                Shop Now
-              </Link>
-            </div>
           </nav>
         </div>
       )}
