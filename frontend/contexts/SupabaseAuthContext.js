@@ -122,6 +122,22 @@ export const SupabaseAuthProvider = ({ children }) => {
     }
   };
 
+  // Backwards-compatible alias used across components
+  const logout = async () => {
+    // Clear legacy localStorage tokens used by older AuthProvider implementations
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('legacy_token');
+      localStorage.removeItem('legacy_user');
+    } catch (e) {
+      // ignore in non-browser environments
+    }
+
+    // Call the main signOut implementation
+    return signOut();
+  };
+
   // Update profile function
   const updateProfile = async (profileData) => {
     if (!user) {
@@ -197,6 +213,8 @@ export const SupabaseAuthProvider = ({ children }) => {
     isAuthenticated,
     isAdmin,
     getFullName,
+    // Backwards compatibility
+    logout,
   };
 
   return (
