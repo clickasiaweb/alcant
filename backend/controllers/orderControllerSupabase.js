@@ -99,6 +99,31 @@ exports.getOrderByOrderId = async (req, res) => {
   }
 };
 
+// @desc    Get order by order_number
+// @route   GET /api/orders/number/:orderNumber
+// @access  Public
+exports.getOrderByNumber = async (req, res) => {
+  try {
+    const { data: order, error } = await supabaseService
+      .from('orders')
+      .select('*')
+      .eq('order_number', req.params.orderNumber)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+      throw error;
+    }
+
+    res.status(200).json({ success: true, data: order });
+  } catch (error) {
+    console.error('Error fetching order by number:', error);
+    res.status(500).json({ success: false, message: 'Error fetching order', error: error.message });
+  }
+};
+
 // @desc    Get user orders
 // @route   GET /api/orders/my-orders
 // @access  Public (authentication disabled)

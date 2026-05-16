@@ -19,6 +19,7 @@ const {
 router.get('/', getAllOrders);
 router.get('/stats', getOrderStats);
 router.get('/order/:orderId', getOrderByOrderId);
+router.get('/number/:orderNumber', getOrderByNumber);
 
 // User routes (authentication disabled)
 router.get('/my-orders', getUserOrders);
