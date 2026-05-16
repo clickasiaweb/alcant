@@ -197,8 +197,18 @@ export const SupabaseCartProvider = ({ children }) => {
     try {
       // console.log('Cart sync - Loading cart from database for user:', user.id);
       const items = await cartService.getCartItems(user.id);
-      // console.log('Cart sync - Loaded items from database:', items);
-      setCartItems(items);
+      // If DB returned an empty array due to transient errors, avoid wiping optimistic/local cart
+      if (Array.isArray(items) && items.length === 0) {
+        if (cartItems && cartItems.length > 0) {
+          // Keep existing cartItems (likely optimistic entries) and retry later
+          console.warn('Cart sync - DB returned no items; preserving local/optimistic cart items until next successful sync.');
+        } else {
+          setCartItems([]);
+        }
+      } else {
+        // console.log('Cart sync - Loaded items from database:', items);
+        setCartItems(items || []);
+      }
     } catch (error) {
       console.error('Cart sync - Error loading from database, using local cart:', error);
       // Fallback to local cart on error
