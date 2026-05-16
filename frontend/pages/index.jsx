@@ -111,7 +111,7 @@ const ΛʟcΛɴᴛHome = ({ homeContent = {} }) => {
     >
       {/* Promotional Banner Section */}
       <section 
-        className="relative w-full h-[520px] sm:h-[560px] md:h-[620px] bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center overflow-hidden"
+        className="relative w-full h-[520px] sm:h-[560px] md:h-[620px] mb-10 sm:mb-16 bg-gradient-to-r from-blue-600 to-blue-800 flex items-center justify-center overflow-hidden"
         style={{
           backgroundImage: homeContent.hero?.backgroundImage ? `url(${homeContent.hero.backgroundImage})` : undefined,
           backgroundSize: 'cover',

@@ -820,23 +820,6 @@ const AlcantaraHeader = () => {
                   <span className="text-lg font-bold text-gray-900">ΛʟcΛɴᴛ</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
-                    <Search className="w-5 h-5" />
-                  </button>
-                  <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors">
-                    <Heart className="w-5 h-5" />
-                  </button>
-                  <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors relative">
-                    <ShoppingCart className="w-5 h-5" />
-                    {cartItemCount > 0 && (
-                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary-600 text-white text-xs rounded-full flex items-center justify-center">
-                        {cartItemCount}
-                      </span>
-                    )}
-                  </button>
-                  <button className="p-2 text-gray-600 hover:text-primary-600 transition-colors" onClick={handleUserMenuClick}>
-                    <User className="w-5 h-5" />
-                  </button>
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
