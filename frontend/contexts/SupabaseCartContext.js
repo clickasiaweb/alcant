@@ -243,28 +243,95 @@ export const SupabaseCartProvider = ({ children }) => {
       console.log('User ID:', user?.id);
 
       if (isAuthenticated() && user) {
-        // Add to database cart with product data
-        const cartItem = await cartService.addToCart(
-          user.id,
-          product.id,
-          quantity,
-          {
+          // Optimistic UI: update local state immediately to avoid perceived slowness
+          const optimisticItem = {
+            id: product.id,
+            product_id: product.id,
+            name: product.name || product.displayName || `Product ${product.id}`,
+            displayName: product.displayName || product.name,
+            price: typeof product.price === 'number' ? product.price : parseFloat(product.price) || 0,
+            originalPrice: typeof product.originalPrice === 'number' ? product.originalPrice : parseFloat(product.originalPrice) || parseFloat(product.old_price) || parseFloat(product.price) || 0,
+            quantity,
+            image: product.image || (product.images && product.images[0]),
+            category: product.category,
+            variant: options.selected_color || product.variant || 'Standard',
             selected_color: options.selected_color || product.variant,
-            selected_size: options.selected_size
-          },
-          product // Pass complete product data
-        );
-        
-        console.log('Cart item added to database:', cartItem);
-        
-        
-        // Reload cart from database
-        await loadCartFromDatabase();
-        
-        // Open cart drawer when item is added
-        setIsCartOpen(true);
-        
-        return cartItem;
+            selected_size: options.selected_size,
+            inStock: product.inStock !== false,
+            _optimistic: true,
+            created_at: new Date().toISOString()
+          };
+
+          // Apply optimistic update
+          setCartItems(prev => {
+            const existingIndex = prev.findIndex(item => (
+              (item.product_id || item.id) === product.id &&
+              item.selected_color === optimisticItem.selected_color &&
+              item.selected_size === optimisticItem.selected_size
+            ));
+
+            if (existingIndex >= 0) {
+              const newCart = [...prev];
+              newCart[existingIndex] = {
+                ...newCart[existingIndex],
+                quantity: (parseInt(newCart[existingIndex].quantity) || 0) + quantity,
+                _optimistic: true
+              };
+              return newCart;
+            }
+
+            return [...prev, optimisticItem];
+          });
+
+          // Open cart drawer immediately
+          setIsCartOpen(true);
+
+          // Perform server call and sync afterwards
+          try {
+            const cartItem = await cartService.addToCart(
+              user.id,
+              product.id,
+              quantity,
+              {
+                selected_color: options.selected_color || product.variant,
+                selected_size: options.selected_size
+              },
+              product // Pass complete product data
+            );
+
+            console.log('Cart item added to database:', cartItem);
+
+            // Reload authoritative cart from database
+            await loadCartFromDatabase();
+
+            return cartItem;
+          } catch (serviceError) {
+            console.error('Failed to add cart item on server, reverting optimistic update:', serviceError);
+
+            // Revert optimistic update
+            setCartItems(prev => {
+              const existingIndex = prev.findIndex(item => (
+                (item.product_id || item.id) === product.id &&
+                item.selected_color === optimisticItem.selected_color &&
+                item.selected_size === optimisticItem.selected_size
+              ));
+
+              if (existingIndex >= 0) {
+                const updated = [...prev];
+                const existing = updated[existingIndex];
+                if ((existing.quantity || 0) > quantity) {
+                  updated[existingIndex] = { ...existing, quantity: existing.quantity - quantity };
+                } else {
+                  updated.splice(existingIndex, 1);
+                }
+                return updated;
+              }
+
+              return prev;
+            });
+
+            throw serviceError;
+          }
       } else {
         console.log('Adding to local cart (user not authenticated)');
         // Add to local cart - store all product data directly
