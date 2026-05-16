@@ -817,7 +817,6 @@ const AlcantaraHeader = () => {
                     </button>
                   )}
                   <Logo size="small" />
-                  <span className="text-lg font-bold text-gray-900">ΛʟcΛɴᴛ</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <button
