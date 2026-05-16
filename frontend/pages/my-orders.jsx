@@ -101,12 +101,15 @@ export default function MyOrdersPage({ user: serverUser, isAuthenticated: server
         router.push('/login');
         return;
       }
-
-      const userOrders = await orderService.getUserOrders(user.id, {
-        limit: pagination.limit,
-        offset: (pagination.page - 1) * pagination.limit
+      // Fetch user orders from backend API to avoid RLS/permission issues
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/orders/my-orders?user_id=${user.id}`;
+      const resp = await fetch(apiUrl, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
       });
-      
+      const payload = await resp.json();
+      const userOrders = payload.success ? (payload.data || []) : [];
+
       setOrders(userOrders);
       setPagination(prev => ({
         ...prev,

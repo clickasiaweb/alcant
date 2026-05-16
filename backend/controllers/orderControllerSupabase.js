@@ -104,11 +104,19 @@ exports.getOrderByOrderId = async (req, res) => {
 // @access  Public (authentication disabled)
 exports.getUserOrders = async (req, res) => {
   try {
-    // Authentication disabled - return all orders for testing
-    const { data: orders, error } = await supabaseService
+    // If frontend provides a user_id query param, filter by it.
+    const userId = req.query.user_id || null;
+
+    let query = supabaseService
       .from('orders')
       .select('*')
       .order('created_at', { ascending: false });
+
+    if (userId) {
+      query = query.eq('user_id', userId);
+    }
+
+    const { data: orders, error } = await query;
 
     if (error) {
       throw error;
