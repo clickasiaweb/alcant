@@ -12,44 +12,30 @@ class SupabaseAuthService {
       const payload = {
         email,
         password,
-        options: {
-          data: {
-            name: options.name || '',
-            phone: options.phone || ''
-          }
-        }
+        name: options.name || '',
+        phone: options.phone || ''
       };
 
-      console.debug('Supabase signup payload:', payload);
-      const { data, error } = await this.auth.signUp(payload);
+      console.debug('Server signup payload:', payload);
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
 
-      if (error) {
-        console.error('Supabase signup error:', error, { payload, data });
-        throw new Error(error.message || JSON.stringify(error));
-      }
+      const data = await response.json();
 
-      if (data.user && !data.session) {
-        try {
-          const signInResult = await this.signIn(email, password);
-          return {
-            user: signInResult.user || data.user,
-            session: signInResult.session,
-            message: 'Account created and logged in successfully!'
-          };
-        } catch (signInError) {
-          console.warn('Supabase signup succeeded but login pending confirmation:', signInError);
-          return {
-            user: data.user,
-            session: null,
-            message: 'Account created successfully! Please check your email to verify your account.'
-          };
-        }
+      if (!response.ok) {
+        console.error('Server signup error:', data, { payload });
+        throw new Error(data.error || data.message || 'Signup failed');
       }
 
       return {
         user: data.user,
-        session: data.session,
-        message: 'Account created successfully! You are now logged in.'
+        session: data.session || null,
+        message: data.message || 'Account created successfully!'
       };
     } catch (error) {
       console.error('Signup exception:', error);
