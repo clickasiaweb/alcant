@@ -9,7 +9,7 @@ class SupabaseAuthService {
   // Sign up new user
   async signUp(email, password, options = {}) {
     try {
-      const { data, error } = await this.auth.signUp({
+      const payload = {
         email,
         password,
         options: {
@@ -18,14 +18,16 @@ class SupabaseAuthService {
             phone: options.phone || ''
           }
         }
-      });
+      };
+
+      console.debug('Supabase signup payload:', payload);
+      const { data, error } = await this.auth.signUp(payload);
 
       if (error) {
-        throw new Error(error.message);
+        console.error('Supabase signup error:', error, { payload, data });
+        throw new Error(error.message || JSON.stringify(error));
       }
 
-      // If signup succeeds, Supabase auth will create the profile automatically via the backend trigger.
-      // If there is no session yet, preserve the created user and return the result.
       if (data.user && !data.session) {
         try {
           const signInResult = await this.signIn(email, password);
@@ -35,6 +37,7 @@ class SupabaseAuthService {
             message: 'Account created and logged in successfully!'
           };
         } catch (signInError) {
+          console.warn('Supabase signup succeeded but login pending confirmation:', signInError);
           return {
             user: data.user,
             session: null,
@@ -49,6 +52,7 @@ class SupabaseAuthService {
         message: 'Account created successfully! You are now logged in.'
       };
     } catch (error) {
+      console.error('Signup exception:', error);
       throw error;
     }
   }
