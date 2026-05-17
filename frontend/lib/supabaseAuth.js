@@ -15,11 +15,8 @@ class SupabaseAuthService {
         options: {
           data: {
             name: options.name || '',
-            phone: options.phone || '',
-            address: options.address || {},
-            ...options.metadata
-          },
-          emailRedirectTo: undefined // Disable email confirmation
+            phone: options.phone || ''
+          }
         }
       });
 
@@ -27,31 +24,9 @@ class SupabaseAuthService {
         throw new Error(error.message);
       }
 
-      // If signup successful but no session (email confirmation required), bypass it
+      // If signup succeeds, Supabase auth will create the profile automatically via the backend trigger.
+      // If there is no session yet, preserve the created user and return the result.
       if (data.user && !data.session) {
-        
-        // Ensure profile is created in database
-        try {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({
-              id: data.user.id,
-              email: data.user.email,
-              name: options.name || data.user.user_metadata?.name || data.user.email.split('@')[0],
-              phone: options.phone || data.user.user_metadata?.phone || '',
-              address: options.address || data.user.user_metadata?.address || {},
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'id'
-            });
-
-          if (profileError) {
-          } else {
-          }
-        } catch (profileErr) {
-        }
-
-        // Try to sign in immediately (bypassing email confirmation)
         try {
           const signInResult = await this.signIn(email, password);
           return {
@@ -60,11 +35,10 @@ class SupabaseAuthService {
             message: 'Account created and logged in successfully!'
           };
         } catch (signInError) {
-          // If sign in fails, still return successful signup
           return {
             user: data.user,
             session: null,
-            message: 'Account created successfully! Please try logging in.'
+            message: 'Account created successfully! Please check your email to verify your account.'
           };
         }
       }
