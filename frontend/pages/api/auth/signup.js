@@ -1,14 +1,41 @@
-// Server-side signup handler using a Supabase service key.
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey =
-  process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+// Vercel serverless function for signup
+import { supabase } from "lib/supabase";
 
 export default async function handler(req, res) {
-  // Disabled sign up (temporary)
-  return res
-    .status(503)
-    .json({ error: "Signup is temporarily disabled. Please try again later." });
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const { email, password, name, phone } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: name || "",
+          phone: phone || "",
+        },
+      },
+    });
+
+    if (error) {
+      return res.status(400).json({ error: error.message });
+    }
+
+    return res.status(201).json({
+      user: data.user,
+      session: data.session,
+      message:
+        "Account created successfully! Please check your email to verify your account.",
+    });
+  } catch (error) {
+    console.error("Signup error:", error);
+    return res.status(500).json({ error: "Signup failed" });
+  }
 }
