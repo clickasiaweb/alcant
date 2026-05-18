@@ -124,70 +124,70 @@ const CheckoutPage = () => {
   }, []);
 
   
-  // Client-side authentication check - with debugging
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      console.log('Checkout page - Authentication check');
-      console.log('isAuthenticated function available:', typeof isAuthenticated);
+  // // Client-side authentication check - with debugging
+  // useEffect(() => {
+  //   if (typeof window !== 'undefined') {
+  //     console.log('Checkout page - Authentication check');
+  //     console.log('isAuthenticated function available:', typeof isAuthenticated);
       
-      // Add a small delay to ensure auth context is fully loaded
-      const timer = setTimeout(() => {
-        try {
-          const authenticated = isAuthenticated();
-          console.log('User authenticated:', authenticated);
-          console.log('User email:', user?.email);
-          console.log('User object:', user);
+  //     // Add a small delay to ensure auth context is fully loaded
+  //     const timer = setTimeout(() => {
+  //       try {
+  //         const authenticated = isAuthenticated();
+  //         console.log('User authenticated:', authenticated);
+  //         console.log('User email:', user?.email);
+  //         console.log('User object:', user);
           
-          // Set auth loading to false after check
-          setAuthLoading(false);
+  //         // Set auth loading to false after check
+  //         setAuthLoading(false);
           
-          // More robust authentication check
-          const isLoggedIn = authenticated && user;
-          console.log('Is user logged in:', isLoggedIn);
+  //         // More robust authentication check
+  //         const isLoggedIn = authenticated && user;
+  //         console.log('Is user logged in:', isLoggedIn);
           
-          if (!isLoggedIn) {
-            console.log('User not authenticated, redirecting to login...');
-            router.push('/login?redirect=/checkout');
-          } else {
-            console.log('User is authenticated, showing checkout page');
-          }
-        } catch (error) {
-          console.error('Authentication check error:', error);
-          setError('Authentication check failed: ' + error.message);
-          setAuthLoading(false);
-        }
-      }, 100); // Small delay to ensure context is loaded
+  //         if (!isLoggedIn) {
+  //           console.log('User not authenticated, redirecting to login...');
+  //           router.push('/login?redirect=/checkout');
+  //         } else {
+  //           console.log('User is authenticated, showing checkout page');
+  //         }
+  //       } catch (error) {
+  //         console.error('Authentication check error:', error);
+  //         setError('Authentication check failed: ' + error.message);
+  //         setAuthLoading(false);
+  //       }
+  //     }, 100); // Small delay to ensure context is loaded
       
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated, user, router]);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [isAuthenticated, user, router]);
 
-  // Pre-fill shipping info from user when authenticated
-  useEffect(() => {
-    if (isAuthenticated() && user) {
-      setShippingInfo(prev => ({
-        ...prev,
-        firstName: user?.user_metadata?.name?.split(' ')[0] || '',
-        lastName: user?.user_metadata?.name?.split(' ')[1] || '',
-        email: user?.email || ''
-      }));
-    }
-  }, [isAuthenticated, user]);
+  // // Pre-fill shipping info from user when authenticated
+  // useEffect(() => {
+  //   if (isAuthenticated() && user) {
+  //     setShippingInfo(prev => ({
+  //       ...prev,
+  //       firstName: user?.user_metadata?.name?.split(' ')[0] || '',
+  //       lastName: user?.user_metadata?.name?.split(' ')[1] || '',
+  //       email: user?.email || ''
+  //     }));
+  //   }
+  // }, [isAuthenticated, user]);
 
-  const handleLoginSuccess = () => {
-    setShowLoginModal(false);
-    // Don't redirect, just close the modal and stay on checkout
-  };
+  // const handleLoginSuccess = () => {
+  //   setShowLoginModal(false);
+  //   // Don't redirect, just close the modal and stay on checkout
+  // };
 
-  const switchToSignup = () => {
-    setShowLoginModal(false);
-    setShowSignupModal(true);
-  };
+  // const switchToSignup = () => {
+  //   setShowLoginModal(false);
+  //   setShowSignupModal(true);
+  // };
 
-  const switchToLogin = () => {
-    setShowSignupModal(false);
-    setShowLoginModal(true);
-  };
+  // const switchToLogin = () => {
+  //   setShowSignupModal(false);
+  //   setShowLoginModal(true);
+  // };
 
   const [billingInfo, setBillingInfo] = useState({
     sameAsShipping: true,
