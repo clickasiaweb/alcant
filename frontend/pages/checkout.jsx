@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
+//import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { useSupabaseCart } from '../contexts/SupabaseCartContext';
-import InquiryForm from '../components/InquiryForm';
-import LoginModal from '../components/auth/LoginModal';
-import SignupModal from '../components/auth/SignupModal';
+// import InquiryForm from '../components/InquiryForm';
+// import LoginModal from '../components/auth/LoginModal';
+// import SignupModal from '../components/auth/SignupModal';
 import { 
   CreditCard, 
   Truck, 
@@ -30,26 +30,26 @@ const CheckoutPage = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
-  const [showInquiryModal, setShowInquiryModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showSignupModal, setShowSignupModal] = useState(false);
+  // const [showInquiryModal, setShowInquiryModal] = useState(false);
+  // const [showLoginModal, setShowLoginModal] = useState(false);
+  // const [showSignupModal, setShowSignupModal] = useState(false);
   const [error, setError] = useState(null);
   const isMounted = useRef(true);
   
   // Handle auth context with fallback
-  let authContext;
-  try {
-    authContext = useSupabaseAuth();
-  } catch (error) {
-    console.error('Auth context error:', error);
-    setError('Authentication context error');
-    authContext = {
-      isAuthenticated: () => false,
-      user: null,
-      getFullName: () => 'Guest'
-    };
-  }
-  const { isAuthenticated, user, getFullName } = authContext;
+  // let authContext;
+  // try {
+  //   authContext = useSupabaseAuth();
+  // } catch (error) {
+  //   console.error('Auth context error:', error);
+  //   setError('Authentication context error');
+  //   authContext = {
+  //     isAuthenticated: () => false,
+  //     user: null,
+  //     getFullName: () => 'Guest'
+  //   };
+  // }
+  // const { isAuthenticated, user, getFullName } = authContext;
   
   // Handle cart context with fallback
   let cartContext;
