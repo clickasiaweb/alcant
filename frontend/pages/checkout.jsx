@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../components/Layout';
-//import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
+import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 import { useSupabaseCart } from '../contexts/SupabaseCartContext';
-// import InquiryForm from '../components/InquiryForm';
-// import LoginModal from '../components/auth/LoginModal';
-// import SignupModal from '../components/auth/SignupModal';
+import InquiryForm from '../components/InquiryForm';
+import LoginModal from '../components/auth/LoginModal';
+import SignupModal from '../components/auth/SignupModal';
 import { 
   CreditCard, 
   Truck, 
@@ -30,26 +30,26 @@ const CheckoutPage = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
-  // const [showInquiryModal, setShowInquiryModal] = useState(false);
-  // const [showLoginModal, setShowLoginModal] = useState(false);
-  // const [showSignupModal, setShowSignupModal] = useState(false);
+  const [showInquiryModal, setShowInquiryModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
   const [error, setError] = useState(null);
   const isMounted = useRef(true);
   
   // Handle auth context with fallback
-  // let authContext;
-  // try {
-  //   authContext = useSupabaseAuth();
-  // } catch (error) {
-  //   console.error('Auth context error:', error);
-  //   setError('Authentication context error');
-  //   authContext = {
-  //     isAuthenticated: () => false,
-  //     user: null,
-  //     getFullName: () => 'Guest'
-  //   };
-  // }
-  // const { isAuthenticated, user, getFullName } = authContext;
+  let authContext;
+  try {
+    authContext = useSupabaseAuth();
+  } catch (error) {
+    console.error('Auth context error:', error);
+    setError('Authentication context error');
+    authContext = {
+      isAuthenticated: () => false,
+      user: null,
+      getFullName: () => 'Guest'
+    };
+  }
+  const { isAuthenticated, user, getFullName } = authContext;
   
   // Handle cart context with fallback
   let cartContext;
@@ -124,70 +124,70 @@ const CheckoutPage = () => {
   }, []);
 
   
-  // // Client-side authentication check - with debugging
-  // useEffect(() => {
-  //   if (typeof window !== 'undefined') {
-  //     console.log('Checkout page - Authentication check');
-  //     console.log('isAuthenticated function available:', typeof isAuthenticated);
+  // Client-side authentication check - with debugging
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      console.log('Checkout page - Authentication check');
+      console.log('isAuthenticated function available:', typeof isAuthenticated);
       
-  //     // Add a small delay to ensure auth context is fully loaded
-  //     const timer = setTimeout(() => {
-  //       try {
-  //         const authenticated = isAuthenticated();
-  //         console.log('User authenticated:', authenticated);
-  //         console.log('User email:', user?.email);
-  //         console.log('User object:', user);
+      // Add a small delay to ensure auth context is fully loaded
+      const timer = setTimeout(() => {
+        try {
+          const authenticated = isAuthenticated();
+          console.log('User authenticated:', authenticated);
+          console.log('User email:', user?.email);
+          console.log('User object:', user);
           
-  //         // Set auth loading to false after check
-  //         setAuthLoading(false);
+          // Set auth loading to false after check
+          setAuthLoading(false);
           
-  //         // More robust authentication check
-  //         const isLoggedIn = authenticated && user;
-  //         console.log('Is user logged in:', isLoggedIn);
+          // More robust authentication check
+          const isLoggedIn = authenticated && user;
+          console.log('Is user logged in:', isLoggedIn);
           
-  //         if (!isLoggedIn) {
-  //           console.log('User not authenticated, redirecting to login...');
-  //           router.push('/login?redirect=/checkout');
-  //         } else {
-  //           console.log('User is authenticated, showing checkout page');
-  //         }
-  //       } catch (error) {
-  //         console.error('Authentication check error:', error);
-  //         setError('Authentication check failed: ' + error.message);
-  //         setAuthLoading(false);
-  //       }
-  //     }, 100); // Small delay to ensure context is loaded
+          if (!isLoggedIn) {
+            console.log('User not authenticated, redirecting to login...');
+            router.push('/login?redirect=/checkout');
+          } else {
+            console.log('User is authenticated, showing checkout page');
+          }
+        } catch (error) {
+          console.error('Authentication check error:', error);
+          setError('Authentication check failed: ' + error.message);
+          setAuthLoading(false);
+        }
+      }, 100); // Small delay to ensure context is loaded
       
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [isAuthenticated, user, router]);
+      return () => clearTimeout(timer);
+    }
+  }, [isAuthenticated, user, router]);
 
-  // // Pre-fill shipping info from user when authenticated
-  // useEffect(() => {
-  //   if (isAuthenticated() && user) {
-  //     setShippingInfo(prev => ({
-  //       ...prev,
-  //       firstName: user?.user_metadata?.name?.split(' ')[0] || '',
-  //       lastName: user?.user_metadata?.name?.split(' ')[1] || '',
-  //       email: user?.email || ''
-  //     }));
-  //   }
-  // }, [isAuthenticated, user]);
+  // Pre-fill shipping info from user when authenticated
+  useEffect(() => {
+    if (isAuthenticated() && user) {
+      setShippingInfo(prev => ({
+        ...prev,
+        firstName: user?.user_metadata?.name?.split(' ')[0] || '',
+        lastName: user?.user_metadata?.name?.split(' ')[1] || '',
+        email: user?.email || ''
+      }));
+    }
+  }, [isAuthenticated, user]);
 
-  // const handleLoginSuccess = () => {
-  //   setShowLoginModal(false);
-  //   // Don't redirect, just close the modal and stay on checkout
-  // };
+  const handleLoginSuccess = () => {
+    setShowLoginModal(false);
+    // Don't redirect, just close the modal and stay on checkout
+  };
 
-  // const switchToSignup = () => {
-  //   setShowLoginModal(false);
-  //   setShowSignupModal(true);
-  // };
+  const switchToSignup = () => {
+    setShowLoginModal(false);
+    setShowSignupModal(true);
+  };
 
-  // const switchToLogin = () => {
-  //   setShowSignupModal(false);
-  //   setShowLoginModal(true);
-  // };
+  const switchToLogin = () => {
+    setShowSignupModal(false);
+    setShowLoginModal(true);
+  };
 
   const [billingInfo, setBillingInfo] = useState({
     sameAsShipping: true,
