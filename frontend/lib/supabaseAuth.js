@@ -29,7 +29,8 @@ class SupabaseAuthService {
 
       if (!response.ok) {
         console.error('Server signup error:', data, { payload });
-        throw new Error(data.error || data.message || 'Signup failed');
+        const debugMessage = [data.error, data.code, data.details, data.hint].filter(Boolean).join(' | ');
+        throw new Error(debugMessage || data.message || 'Signup failed');
       }
 
       return {

@@ -33,7 +33,12 @@ export default async function handler(req, res) {
 
     if (error) {
       console.error('Server signup error:', error);
-      return res.status(400).json({ error: error.message || 'Signup failed' });
+      return res.status(400).json({
+        error: error.message || 'Signup failed',
+        code: error.code || null,
+        details: error.details || null,
+        hint: error.hint || null
+      });
     }
 
     return res.status(201).json({
