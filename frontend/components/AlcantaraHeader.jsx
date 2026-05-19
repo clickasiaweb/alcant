@@ -36,6 +36,7 @@ import { useSupabaseCart } from "../contexts/SupabaseCartContext";
 import { useSearch } from "../contexts/SearchContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import { useSupabaseAuth } from "../contexts/SupabaseAuthContext";
+import OrderTrackingWidget from "./OrderTrackingWidget";
 
 // Logo component
 const Logo = ({ size = "default", className = "" }) => {
@@ -859,6 +860,8 @@ const AlcantaraHeader = () => {
                   </span>
                 )}
               </button>
+
+              <OrderTrackingWidget />
 
               {/* User Profile Icon */}
               <div className="relative user-menu-container">

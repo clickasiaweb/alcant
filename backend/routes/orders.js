@@ -9,7 +9,8 @@ const {
   updateOrderStatus,
   updatePaymentStatus,
   cancelOrder,
-  getOrderStats
+  getOrderStats,
+  getOrderByNumber
 } = require('../controllers/orderControllerSupabase');
 
 // Public routes - Authentication disabled for now
