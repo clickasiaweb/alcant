@@ -298,13 +298,6 @@ exports.updateOrderStatus = async (req, res) => {
       });
     }
 
-    if ((currentOrder.payment_status || '').toString().toLowerCase() !== 'paid' && normalizedStatus !== 'cancelled' && normalizedStatus !== 'pending') {
-      return res.status(400).json({
-        success: false,
-        message: 'Order must be paid to update status'
-      });
-    }
-
     // Prepare update data
     const updateData = {
       order_status: normalizedStatus,

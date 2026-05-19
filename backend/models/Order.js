@@ -327,11 +327,6 @@ orderSchema.methods.canUpdateStatus = function(newStatus) {
     }
   }
   
-  // Payment must be paid for most status updates (except cancellation)
-  if (this.paymentStatus !== "Paid" && newStatus !== "Cancelled" && newStatus !== "Pending") {
-    return { allowed: false, reason: "Order must be paid to update status" };
-  }
-  
   return { allowed: true };
 };
 

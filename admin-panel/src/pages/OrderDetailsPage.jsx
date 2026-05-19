@@ -130,11 +130,11 @@ export default function OrderDetailsPage() {
         },
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      }
       
       if (data.success) {
         const normalizedOrder = normalizeOrder(data.data);
