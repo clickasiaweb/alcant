@@ -36,6 +36,34 @@ const paymentStatusColors = {
   'Refunded': 'bg-gray-100 text-gray-800 border-gray-200'
 };
 
+const statusLabels = {
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  processing: 'Processing',
+  shipped: 'Shipped',
+  out_for_delivery: 'Out for Delivery',
+  delivered: 'Delivered',
+  cancelled: 'Cancelled'
+};
+
+const normalizeStatusLabel = (value, fallback = 'Pending') => {
+  if (!value || typeof value !== 'string') return fallback;
+  const key = value.trim().toLowerCase().replace(/[\s-]+/g, '_');
+  return statusLabels[key] || fallback;
+};
+
+const normalizePaymentStatus = (value, fallback = 'Pending') => {
+  if (!value || typeof value !== 'string') return fallback;
+  const key = value.trim().toLowerCase();
+  return key.charAt(0).toUpperCase() + key.slice(1);
+};
+
+const normalizeOrder = (order) => ({
+  ...order,
+  order_status: normalizeStatusLabel(order?.order_status || order?.status),
+  payment_status: normalizePaymentStatus(order?.payment_status)
+});
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -86,7 +114,7 @@ export default function OrdersPage() {
       const data = await response.json();
       
       if (data.success) {
-        setOrders(data.data);
+        setOrders((data.data || []).map(normalizeOrder));
         setPagination(data.pagination);
       } else {
         throw new Error(data.message || 'Failed to fetch orders');
@@ -136,6 +164,12 @@ export default function OrdersPage() {
       
       if (data.success) {
         toast.success(`Order status updated to ${newStatus}`);
+        const normalizedOrder = normalizeOrder(data.data);
+        setOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.id === orderId ? { ...order, ...normalizedOrder } : order
+          )
+        );
         fetchOrders();
       } else {
         throw new Error(data.message || 'Failed to update status');

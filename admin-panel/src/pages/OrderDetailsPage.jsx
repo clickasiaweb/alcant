@@ -51,11 +51,20 @@ const paymentStatusColors = {
 
 const normalizeLabelCase = (value, fallback) => {
   if (!value || typeof value !== "string") return fallback;
-  return value
-    .split(" ")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(" ");
+  const labels = {
+    pending: "Pending",
+    confirmed: "Confirmed",
+    processing: "Processing",
+    shipped: "Shipped",
+    out_for_delivery: "Out for Delivery",
+    delivered: "Delivered",
+    cancelled: "Cancelled",
+    paid: "Paid",
+    failed: "Failed",
+    refunded: "Refunded",
+  };
+  const key = value.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return labels[key] || fallback;
 };
 
 const safeParse = (value, fallback) => {

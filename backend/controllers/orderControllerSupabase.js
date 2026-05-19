@@ -1,18 +1,32 @@
 const OrderService = require("../models/SupabaseOrder");
 const { supabaseService } = require("../config/supabase");
 
-const normalizeStatusToDb = (status) => {
+const STATUS_LABELS = {
+  pending: "Pending",
+  confirmed: "Confirmed",
+  processing: "Processing",
+  shipped: "Shipped",
+  out_for_delivery: "Out for Delivery",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+};
+
+const normalizeStatusKey = (status) => {
   if (!status || typeof status !== "string") return null;
-  return status.trim().toLowerCase();
+  return status.trim().toLowerCase().replace(/[\s-]+/g, "_");
+};
+
+const getStatusStorageVariants = (status) => {
+  const key = normalizeStatusKey(status);
+  const label = STATUS_LABELS[key];
+  if (!key || !label) return [];
+
+  return Array.from(new Set([label, key, key.replace(/_/g, " ")]));
 };
 
 const titleCaseStatus = (status) => {
-  if (!status || typeof status !== "string") return "Pending";
-  return status
-    .split(" ")
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(" ");
+  const key = normalizeStatusKey(status);
+  return STATUS_LABELS[key] || "Pending";
 };
 
 // @desc    Get all orders (Admin only)
@@ -403,10 +417,10 @@ exports.updateOrderStatus = async (req, res) => {
     }
 
     const trackingValue = tracking_id !== undefined ? tracking_id : trackingId;
-    const dbStatus = normalizeStatusToDb(status);
+    const statusVariants = getStatusStorageVariants(status);
     const labelStatus = titleCaseStatus(status);
 
-    if (!dbStatus) {
+    if (statusVariants.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Invalid status",
@@ -452,45 +466,48 @@ exports.updateOrderStatus = async (req, res) => {
       updatedBy: "admin",
     });
 
-    const updatePayload = {
-      order_status: dbStatus,
+    const buildUpdatePayload = (storedStatus, includeOptionalFields = true) => ({
+      order_status: storedStatus,
       notes: note || `Status updated to ${labelStatus}`,
-      status_history: statusHistory,
       updated_at: new Date().toISOString(),
-    };
+      ...(includeOptionalFields ? { status_history: statusHistory } : {}),
+    });
 
-    if (trackingValue !== undefined) {
-      updatePayload.tracking_id = trackingValue || null;
-    }
+    const tryStatusUpdate = async (storedStatus, includeOptionalFields = true) => {
+      const updatePayload = buildUpdatePayload(storedStatus, includeOptionalFields);
 
-    let { data: order, error } = await supabaseService
-      .from("orders")
-      .update(updatePayload)
-      .eq("id", req.params.id)
-      .select()
-      .maybeSingle();
+      if (trackingValue !== undefined) {
+        updatePayload.tracking_id = trackingValue || null;
+      }
 
-    // Production schema fallback: if optional columns fail, retry with core fields only
-    if (error) {
-      console.error(
-        "Primary status update failed, retrying with core fields:",
-        error.message,
-      );
-      const corePayload = {
-        order_status: dbStatus,
-        notes: note || `Status updated to ${labelStatus}`,
-        updated_at: new Date().toISOString(),
-      };
-
-      const retry = await supabaseService
+      return supabaseService
         .from("orders")
-        .update(corePayload)
+        .update(updatePayload)
         .eq("id", req.params.id)
         .select()
         .maybeSingle();
+    };
 
+    let order = null;
+    let error = null;
+
+    for (const storedStatus of statusVariants) {
+      const result = await tryStatusUpdate(storedStatus, true);
+      order = result.data;
+      error = result.error;
+
+      if (!error) break;
+
+      console.warn(
+        `Status update failed for "${storedStatus}", retrying if possible:`,
+        error.message,
+      );
+
+      const retry = await tryStatusUpdate(storedStatus, false);
       order = retry.data;
       error = retry.error;
+
+      if (!error) break;
     }
 
     if (!error && !order) {
@@ -513,9 +530,13 @@ exports.updateOrderStatus = async (req, res) => {
         details: error.details,
         hint: error.hint,
         code: error.code,
+        attemptedStatuses: statusVariants,
       });
       throw error;
     }
+
+    order.order_status = labelStatus;
+    order.status = labelStatus;
 
     res.status(200).json({
       success: true,
