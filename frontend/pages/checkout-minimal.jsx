@@ -28,10 +28,8 @@ const MinimalCheckoutPage = () => {
         
         setLoading(false);
         
-        // If no user, redirect to login
         if (!token || !userStr) {
-          console.log('No authentication found, redirecting to login');
-          router.push('/login?redirect=/checkout');
+          console.log('No authentication found, continuing with guest checkout');
         }
         
       } catch (error) {

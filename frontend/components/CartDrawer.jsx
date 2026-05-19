@@ -12,22 +12,9 @@ import {
   CreditCard
 } from 'lucide-react';
 import { useSupabaseCart } from '../contexts/SupabaseCartContext';
-import { useSupabaseAuth } from '../contexts/SupabaseAuthContext';
 
 const CartDrawer = () => {
   const router = useRouter();
-  
-  // Handle auth context with fallback
-  let authContext;
-  try {
-    authContext = useSupabaseAuth();
-  } catch (error) {
-    authContext = {
-      isAuthenticated: () => false,
-      user: null
-    };
-  }
-  const { isAuthenticated } = authContext;
   
   const [reservationTime, setReservationTime] = useState(587); // 9:47 in seconds
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
@@ -160,31 +147,9 @@ const CartDrawer = () => {
     setIsCheckoutLoading(true);
     
     try {
-      
-      // Check if user is authenticated
-      let authenticated = false;
-      let userObj = null;
-      try {
-        authenticated = isAuthenticated();
-        userObj = authContext.user; // Get user object from context
-      } catch (error) {
-          // If authentication check fails, assume user is not authenticated
-        authenticated = false;
-      }
-      
-      // More robust authentication check
-      const isLoggedIn = authenticated && userObj;
-      
-      if (isLoggedIn) {
-        // User is logged in, go directly to checkout
-        await new Promise(resolve => setTimeout(resolve, 500)); // Reduced timeout
-        setIsCheckoutLoading(false);
-        router.push('/checkout');
-      } else {
-        // User is not logged in, redirect to login first
-        setIsCheckoutLoading(false);
-        router.push('/login?redirect=/checkout');
-      }
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setIsCheckoutLoading(false);
+      router.push('/checkout');
     } catch (error) {
       setIsCheckoutLoading(false);
       // Show error to user or fallback behavior

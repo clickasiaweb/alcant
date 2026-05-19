@@ -87,16 +87,7 @@ const CartPage = () => {
     console.log("isAuthenticated:", isAuthenticated());
     console.log("router exists:", !!router);
     
-    // Check if user is authenticated
-    if (isAuthenticated()) {
-      console.log("User is authenticated, going to checkout");
-      // User is logged in, go directly to checkout
-      router.push('/checkout');
-    } else {
-      console.log("User is not authenticated, going to login");
-      // User is not logged in, redirect to login first
-      router.push('/login?redirect=/checkout');
-    }
+    router.push('/checkout');
   };
 
   if (loading) {

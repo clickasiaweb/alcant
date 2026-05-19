@@ -124,7 +124,7 @@ const CheckoutPage = () => {
   }, []);
 
   
-  // Client-side authentication check - with debugging
+  // Client-side authentication check - checkout is open to guests
   useEffect(() => {
     if (typeof window !== 'undefined') {
       console.log('Checkout page - Authentication check');
@@ -140,17 +140,7 @@ const CheckoutPage = () => {
           
           // Set auth loading to false after check
           setAuthLoading(false);
-          
-          // More robust authentication check
-          const isLoggedIn = authenticated && user;
-          console.log('Is user logged in:', isLoggedIn);
-          
-          if (!isLoggedIn) {
-            console.log('User not authenticated, redirecting to login...');
-            router.push('/login?redirect=/checkout');
-          } else {
-            console.log('User is authenticated, showing checkout page');
-          }
+          console.log(authenticated && user ? 'User is authenticated, showing checkout page' : 'Guest checkout enabled, showing checkout page');
         } catch (error) {
           console.error('Authentication check error:', error);
           setError('Authentication check failed: ' + error.message);
@@ -211,24 +201,24 @@ const CheckoutPage = () => {
 
   // Calculate order totals from cart items
   const calculateLocalSubtotal = useCallback(() => {
-    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) return 0;
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  }, [cartItems]);
+    if (!finalCartItems || !Array.isArray(finalCartItems) || finalCartItems.length === 0) return 0;
+    return finalCartItems.reduce((total, item) => total + ((item.price || 0) * item.quantity), 0);
+  }, [finalCartItems]);
 
   const calculateTax = useCallback(() => {
-    const subtotal = isAuthenticated() ? calculateSubtotal() : calculateLocalSubtotal();
+    const subtotal = isAuthenticated() && currentCartItems.length > 0 ? calculateSubtotal() : calculateLocalSubtotal();
     return subtotal * 0.18; // 18% GST
-  }, [isAuthenticated, calculateSubtotal, calculateLocalSubtotal]);
+  }, [isAuthenticated, currentCartItems.length, calculateSubtotal, calculateLocalSubtotal]);
 
   const calculateShipping = useCallback(() => {
-    const subtotal = isAuthenticated() ? calculateSubtotal() : calculateLocalSubtotal();
+    const subtotal = isAuthenticated() && currentCartItems.length > 0 ? calculateSubtotal() : calculateLocalSubtotal();
     return subtotal > 1000 ? 0 : 50; // Free shipping above 1000
-  }, [isAuthenticated, calculateSubtotal, calculateLocalSubtotal]);
+  }, [isAuthenticated, currentCartItems.length, calculateSubtotal, calculateLocalSubtotal]);
 
   const calculateTotal = useCallback(() => {
-    const subtotal = isAuthenticated() ? calculateSubtotal() : calculateLocalSubtotal();
+    const subtotal = isAuthenticated() && currentCartItems.length > 0 ? calculateSubtotal() : calculateLocalSubtotal();
     return subtotal + calculateTax() + calculateShipping();
-  }, [isAuthenticated, calculateSubtotal, calculateLocalSubtotal, calculateTax, calculateShipping]);
+  }, [isAuthenticated, currentCartItems.length, calculateSubtotal, calculateLocalSubtotal, calculateTax, calculateShipping]);
 
   const validateShippingInfo = useCallback(() => {
     const required = ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'state', 'zipCode'];
@@ -540,8 +530,7 @@ const CheckoutPage = () => {
     );
   }
 
-  // If not authenticated, useEffect will redirect to login page
-  // No need for authentication gate here
+  // Checkout intentionally supports guest orders.
 
   return (
     <Layout title="Checkout">
