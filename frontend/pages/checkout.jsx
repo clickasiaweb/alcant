@@ -191,14 +191,6 @@ const CheckoutPage = () => {
     country: 'United States'
   });
 
-  const [paymentInfo, setPaymentInfo] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardName: '',
-    saveCard: false
-  });
-
   // Calculate order totals from cart items
   const calculateLocalSubtotal = useCallback(() => {
     if (!finalCartItems || !Array.isArray(finalCartItems) || finalCartItems.length === 0) return 0;
@@ -232,31 +224,8 @@ const CheckoutPage = () => {
   }, [billingInfo]);
 
   const validatePaymentInfo = useCallback(() => {
-    // Make payment validation less strict for testing
-    // Allow empty payment info for now since this is a test environment
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Checkout - Payment validation bypassed for development');
-      return true;
-    }
-
-    const required = ['cardNumber', 'expiryDate', 'cvv', 'cardName'];
-    const isValid = required.every(field => paymentInfo[field].trim() !== '');
-    
-    // Debug: Log payment validation
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Checkout - Payment validation:', {
-        paymentInfo,
-        isValid,
-        requiredFields: required.map(field => ({
-          field,
-          value: paymentInfo[field],
-          isEmpty: !paymentInfo[field].trim()
-        }))
-      });
-    }
-    
-    return isValid;
-  }, [paymentInfo]);
+    return true;
+  }, []);
 
   const handleNextStep = useCallback(() => {
     if (process.env.NODE_ENV === 'development') {
@@ -303,7 +272,7 @@ const CheckoutPage = () => {
           cartItems,
           shippingInfo,
           billingInfo,
-          paymentInfo,
+          paymentMethod: 'Cash on Delivery',
           currentStep: step
         });
       }
@@ -339,12 +308,11 @@ const CheckoutPage = () => {
         return;
       }
 
-      console.log('Checkout - Validating payment info...');
+      console.log('Checkout - Validating payment method...');
       const paymentValid = validatePaymentInfo();
       console.log('Checkout - Payment validation result:', paymentValid);
       if (!paymentValid) {
-        console.log('Checkout - Payment validation failed:', paymentInfo);
-        alert('Please fill in all required payment information');
+        alert('Please select a payment method');
         if (isMounted.current) setLoading(false);
         return;
       }
@@ -389,10 +357,10 @@ const CheckoutPage = () => {
           phone: shippingInfo.phone,
           email: shippingInfo.email
         },
-        paymentMethod: 'Credit Card',
+        paymentMethod: 'Cash on Delivery',
         paymentDetails: {
-          paidAt: new Date().toISOString(),
-          transactionId: 'TXN' + Date.now()
+          paymentStatus: 'pending',
+          collectionMethod: 'cash_on_delivery'
         },
         discount: 0.00, // Default discount - can be extended for coupon codes
         notes: 'Order placed from checkout'
@@ -463,7 +431,7 @@ const CheckoutPage = () => {
         setLoading(false);
       }
     }
-  }, [finalCartItems, shippingInfo, billingInfo, paymentInfo, step, validateShippingInfo, validateBillingInfo, validatePaymentInfo, clearCart, router]);
+  }, [finalCartItems, shippingInfo, billingInfo, step, validateShippingInfo, validateBillingInfo, validatePaymentInfo, clearCart, router, user]);
 
   const steps = [
     { id: 1, name: 'Shipping', icon: MapPin },
@@ -870,86 +838,28 @@ const CheckoutPage = () => {
                     <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Payment Information</h2>
                     
                     <div className="space-y-4">
-                      <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="bg-gray-50 rounded-lg p-4 border border-primary-200">
                         <h3 className="text-sm font-medium text-gray-700 mb-4">Payment Method</h3>
-                        <div className="space-y-3">
-                          <label className="flex items-center">
+                        <label className="flex items-start gap-3">
+                          <span className="mt-1">
                             <input
                               type="radio"
                               name="paymentMethod"
-                              value="credit-card"
+                              value="cash-on-delivery"
                               defaultChecked
                               className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
                             />
-                            <span className="ml-2 text-sm text-gray-700">Credit Card</span>
-                          </label>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Card Number <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={paymentInfo.cardNumber}
-                            onChange={(e) => setPaymentInfo({...paymentInfo, cardNumber: e.target.value})}
-                            placeholder="1234 5678 9012 3456"
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                          />
-                        </div>
-                        
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Expiry Date <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={paymentInfo.expiryDate}
-                              onChange={(e) => setPaymentInfo({...paymentInfo, expiryDate: e.target.value})}
-                              placeholder="MM/YY"
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus: ring-2 focus:ring-primary-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              CVV <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={paymentInfo.cvv}
-                              onChange={(e) => setPaymentInfo({...paymentInfo, cvv: e.target.value})}
-                              placeholder="123"
-                              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus: ring-2 focus:ring-primary-500"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Cardholder Name <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="text"
-                            value={paymentInfo.cardName}
-                            onChange={(e) => setPaymentInfo({...paymentInfo, cardName: e.target.value})}
-                            placeholder="John Doe"
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus: ring-2 focus:ring-primary-500"
-                          />
-                        </div>
-                        
-                        <div className="flex items-center">
-                          <input
-                            type="checkbox"
-                            id="saveCard"
-                            checked={paymentInfo.saveCard}
-                            onChange={(e) => setPaymentInfo({...paymentInfo, saveCard: e.target.checked})}
-                            className="h-4 w-4 text-primary-600 rounded border-gray-300 focus:ring-primary-500"
-                          />
-                          <label htmlFor="saveCard" className="ml-2 text-sm text-gray-700">Save card information for future purchases</label>
-                        </div>
+                          </span>
+                          <span>
+                            <span className="flex items-center gap-2 text-sm font-medium text-gray-900">
+                              <Truck className="w-4 h-4 text-primary-600" />
+                              Cash on Delivery
+                            </span>
+                            <span className="block text-sm text-gray-600 mt-1">
+                              Pay in cash when your order is delivered.
+                            </span>
+                          </span>
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -1044,8 +954,8 @@ const CheckoutPage = () => {
                       <div className="bg-gray-50 rounded-lg p-4">
                         <h3 className="text-sm font-medium text-gray-700 mb-4">Payment Method</h3>
                         <div className="text-sm text-gray-600">
-                          <p>Credit Card ending in {paymentInfo.cardNumber ? paymentInfo.cardNumber.slice(-4) : '****'}</p>
-                          <p>{paymentInfo.cardName || 'Cardholder'}</p>
+                          <p>Cash on Delivery</p>
+                          <p>Payment will be collected when the order is delivered.</p>
                         </div>
                       </div>
                     </div>
@@ -1072,12 +982,12 @@ const CheckoutPage = () => {
                     <span>Previous</span>
                   </button>
 
-                  {step < 3 ? (
+                  {step < 4 ? (
                     <button
                       onClick={handleNextStep}
                       className="flex items-center justify-center space-x-2 w-full sm:w-auto bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors"
                     >
-                      <span>Next</span>
+                      <span>{step === 3 ? 'Review Order' : 'Next'}</span>
                       <ArrowRight className="w-4 h-4" />
                     </button>
                   ) : (
@@ -1098,56 +1008,6 @@ const CheckoutPage = () => {
                             <span>Place Order</span>
                           </>
                         )}
-                      </button>
-                      
-                      // Debug test button */
-                      <button
-                        onClick={async () => {
-                          console.log('Checkout - DEBUG: Test API call directly');
-                          try {
-                            const testResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'}/orders`, {
-                              method: 'POST',
-                              headers: {
-                                'Content-Type': 'application/json',
-                              },
-                              body: JSON.stringify({
-                                products: [{
-                                  productId: 'debug-test',
-                                  name: 'Debug Test Product',
-                                  price: 999,
-                                  quantity: 1
-                                }],
-                                shippingAddress: {
-                                  firstName: 'Debug',
-                                  lastName: 'Test',
-                                  email: 'debug@test.com',
-                                  phone: '1234567890',
-                                  address: '123 Debug St',
-                                  city: 'Debug City',
-                                  state: 'Debug State',
-                                  postalCode: '12345',
-                                  country: 'Debug Country'
-                                },
-                                paymentMethod: 'Credit Card',
-                                paymentDetails: {
-                                  paidAt: new Date().toISOString(),
-                                  transactionId: 'DEBUG-' + Date.now()
-                                },
-                                notes: 'Debug test from checkout page'
-                              })
-                            });
-                            
-                            const testResult = await testResponse.json();
-                            console.log('Checkout - DEBUG: Test API response:', testResult);
-                            alert('Debug test: ' + (testResult.success ? 'SUCCESS' : 'FAILED: ' + testResult.error));
-                          } catch (error) {
-                            console.error('Checkout - DEBUG: Test API error:', error);
-                            alert('Debug test error: ' + error.message);
-                          }
-                        }}
-                        className="flex items-center justify-center space-x-2 w-full sm:w-auto bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors"
-                      >
-                        <span>Debug Test API</span>
                       </button>
                     </>
                   )}
