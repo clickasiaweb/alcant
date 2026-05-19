@@ -471,14 +471,13 @@ exports.updateOrderStatus = async (req, res) => {
       notes: note || `Status updated to ${labelStatus}`,
       updated_at: new Date().toISOString(),
       ...(includeOptionalFields ? { status_history: statusHistory } : {}),
+      ...(includeOptionalFields && trackingValue !== undefined
+        ? { tracking_id: trackingValue || null }
+        : {}),
     });
 
     const tryStatusUpdate = async (storedStatus, includeOptionalFields = true) => {
       const updatePayload = buildUpdatePayload(storedStatus, includeOptionalFields);
-
-      if (trackingValue !== undefined) {
-        updatePayload.tracking_id = trackingValue || null;
-      }
 
       return supabaseService
         .from("orders")

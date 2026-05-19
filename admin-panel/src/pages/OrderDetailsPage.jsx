@@ -158,16 +158,21 @@ export default function OrderDetailsPage() {
 
   const handleStatusUpdate = async () => {
     try {
+      const updatePayload = {
+        status: newStatus,
+        note: statusNote,
+      };
+
+      if (newTrackingId.trim()) {
+        updatePayload.tracking_id = newTrackingId.trim();
+      }
+
       const response = await fetch(`${API_BASE_URL}/orders/${id}/status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          status: newStatus,
-          note: statusNote,
-          tracking_id: newTrackingId
-        }),
+        body: JSON.stringify(updatePayload),
       });
 
       if (!response.ok) {
