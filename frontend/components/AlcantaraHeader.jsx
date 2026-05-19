@@ -25,9 +25,6 @@ import {
   Wallet,
   Car,
   ShoppingBag,
-  LogOut,
-  Package,
-  Settings,
 } from "lucide-react";
 import { categoryService } from "../services/categoryService";
 import { productService } from "../lib/productService";
@@ -35,7 +32,6 @@ import GenericSubcategoryGrid from "./GenericSubcategoryGrid";
 import { useSupabaseCart } from "../contexts/SupabaseCartContext";
 import { useSearch } from "../contexts/SearchContext";
 import { useWishlist } from "../contexts/WishlistContext";
-import { useSupabaseAuth } from "../contexts/SupabaseAuthContext";
 import OrderTrackingWidget from "./OrderTrackingWidget";
 
 // Logo component
@@ -62,20 +58,6 @@ const AlcantaraHeader = () => {
   const { wishlistItems, openWishlist, getWishlistCount, isInWishlist } =
     useWishlist();
   const { openSearch } = useSearch();
-
-  // Handle contexts with proper fallbacks for SSR
-  let authContext;
-  try {
-    authContext = useSupabaseAuth();
-  } catch (error) {
-    // Fallback for SSR when context is not available
-    authContext = {
-      isAuthenticated: () => false,
-      user: null,
-      logout: async () => {},
-    };
-  }
-  const { isAuthenticated, user, logout } = authContext;
 
   // Handle SupabaseCart context with fallback for SSR
   let supabaseCartContext;
@@ -111,33 +93,11 @@ const AlcantaraHeader = () => {
   const [activeCategory, setActiveCategory] = useState(null);
   const [expandedMobileCategory, setExpandedMobileCategory] = useState(null);
   const [focusedCategory, setFocusedCategory] = useState(null);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [mobileNavStack, setMobileNavStack] = useState([]);
   const dropdownTimeoutRef = useRef(null);
   const categoryButtonRefs = useRef({});
-  const userMenuRef = useRef(null);
   const isMounted = useRef(true);
   const hasFetchedData = useRef(false);
-
-  // Handle user logout
-  const handleLogout = async () => {
-    try {
-      await logout();
-      setIsProfileOpen(false);
-      router.push("/");
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
-  // Handle user menu clicks
-  const handleUserMenuClick = () => {
-    if (isAuthenticated()) {
-      setIsProfileOpen(!isProfileOpen);
-    } else {
-      router.push("/login");
-    }
-  };
 
   // Fetch products for a category
   const fetchCategoryProducts = useCallback(async (categorySlug) => {
@@ -306,7 +266,7 @@ const AlcantaraHeader = () => {
   useEffect(() => {
     if (!isMounted.current) return;
 
-    if (activeDropdown || isProfileOpen) {
+    if (activeDropdown) {
       // Disable body scrolling when any modal/dropdown is active
       document.body.style.overflow = "hidden";
     } else {
@@ -318,7 +278,7 @@ const AlcantaraHeader = () => {
     return () => {
       document.body.style.overflow = "unset";
     };
-  }, [activeDropdown, isProfileOpen]);
+  }, [activeDropdown]);
 
   // Handle category hover in mega menu
   const handleCategoryHover = (categoryName) => {
@@ -396,12 +356,6 @@ const AlcantaraHeader = () => {
         setActiveCategory(null);
         setHoveredSubcategory(null);
       }
-      if (
-        !e.target.closest(".user-menu-container") &&
-        !e.target.closest(".user-menu-button")
-      ) {
-        setIsProfileOpen(false);
-      }
     };
 
     const handleEscapeKey = (e) => {
@@ -409,7 +363,6 @@ const AlcantaraHeader = () => {
         setActiveDropdown(null);
         setActiveCategory(null);
         setHoveredSubcategory(null);
-        setIsProfileOpen(false);
       }
     };
 
@@ -862,64 +815,6 @@ const AlcantaraHeader = () => {
               </button>
 
               <OrderTrackingWidget />
-
-              {/* User Profile Icon */}
-              <div className="relative user-menu-container">
-                <button
-                  className="p-1.5 sm:p-2 text-gray-600 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-all duration-200 user-menu-button"
-                  onClick={handleUserMenuClick}
-                  aria-label="User profile"
-                >
-                  <User className="w-4 h-4 sm:w-5 sm:h-5" />
-                </button>
-
-                {/* User Dropdown Menu */}
-                {isProfileOpen && isAuthenticated() && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 user-menu-container">
-                    <div className="p-4 border-b border-gray-100">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                          <User className="w-5 h-5 text-primary-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">
-                            {user?.user_metadata?.name || user?.email || "User"}
-                          </p>
-                          <p className="text-sm text-gray-500">{user?.email}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="py-2">
-                      <Link
-                        href="/account"
-                        className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-600 transition-colors"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        <Package className="w-4 h-4" />
-                        <span>My Orders</span>
-                      </Link>
-
-                      <Link
-                        href="/account?tab=profile"
-                        className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-primary-600 transition-colors"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        <Settings className="w-4 h-4" />
-                        <span>Account Settings</span>
-                      </Link>
-
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors w-full text-left"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Logout</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
 
               {/* Mobile Menu Toggle */}
               <button

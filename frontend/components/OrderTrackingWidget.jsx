@@ -107,17 +107,16 @@ const OrderTrackingWidget = () => {
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="hidden sm:flex items-center gap-2 rounded-lg bg-green-600 px-3 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
+        className="hidden sm:flex items-center rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-700 transition-colors"
         aria-label="Track order"
       >
-        <Package className="h-4 w-4" />
         <span className="hidden xl:inline">Track Order</span>
       </button>
 
       <button
         type="button"
         onClick={() => setIsOpen((current) => !current)}
-        className="sm:hidden p-1.5 text-green-700 hover:text-green-800 hover:bg-green-50 rounded-lg transition-all duration-200"
+        className="sm:hidden p-1.5 text-primary-600 hover:text-primary-700 hover:bg-primary-50 rounded-lg transition-all duration-200"
         aria-label="Track order"
       >
         <Package className="w-4 h-4" />
